@@ -28,7 +28,7 @@ const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
     const initializeAutocomplete = async () => {
       try {
         const loader = new Loader({
-          apiKey: process.env.GOOGLE_MAPS_API_KEY || '',
+          apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
           version: 'weekly',
           libraries: ['places']
         });

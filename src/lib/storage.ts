@@ -1,7 +1,7 @@
 import { Job, Customer, JobBookingStats, MachineCategory, JobPart } from '@/types/job';
 
 const DB_NAME = 'JobBookingSystem';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 class JobBookingDB {
   private db: IDBDatabase | null = null;
@@ -18,6 +18,7 @@ class JobBookingDB {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
+        const oldVersion = event.oldVersion;
 
         // Create customers store
         if (!db.objectStoreNames.contains('customers')) {
@@ -38,6 +39,14 @@ class JobBookingDB {
         // Create settings store for categories, parts, templates
         if (!db.objectStoreNames.contains('settings')) {
           db.createObjectStore('settings', { keyPath: 'key' });
+        }
+
+        // Version 2 upgrades - ensure settings store exists
+        if (oldVersion < 2) {
+          if (!db.objectStoreNames.contains('settings')) {
+            db.createObjectStore('settings', { keyPath: 'key' });
+          }
+          console.log('Database upgraded to version 2 - settings store ready');
         }
       };
     });

@@ -1,0 +1,4 @@
+name,category,competitor_price,markup_percent,our_price,source
+Sample Part,Engine,25.00,20,,Google Search
+Another Part,Fuel System,15.50,25,19.38,Local Dealer
+Custom Part,Cutting,35.00,30,,Competitor Website
