@@ -127,13 +127,14 @@ export const PartsManager: React.FC<PartsManagerProps> = ({ onPartsUpdate }) => 
   };
 
   const exportPartsCSV = () => {
-    const csvHeaders = ['Name', 'Category', 'Base Price', 'Sell Price', 'Markup %', 'In Stock', 'Description'];
+    const csvHeaders = ['Name', 'Category', 'Competitor Price', 'Markup %', 'Our Price', 'Source', 'In Stock', 'Description'];
     const csvRows = parts.map(part => [
       part.name,
       part.category,
-      part.basePrice.toFixed(2),
+      part.competitorPrice?.toFixed(2) || '',
+      part.markup?.toString() || '20',
       part.sellPrice.toFixed(2),
-      part.markup?.toString() || '0',
+      part.source || '',
       part.inStock ? 'Yes' : 'No',
       part.description || ''
     ]);
@@ -158,6 +159,125 @@ export const PartsManager: React.FC<PartsManagerProps> = ({ onPartsUpdate }) => 
     });
   };
 
+  const downloadCSVTemplate = () => {
+    const csvHeaders = ['name', 'category', 'competitor_price', 'markup_percent', 'our_price', 'source'];
+    const csvRows = [
+      ['Sample Part', 'Engine', '25.00', '20', '', 'Google Search'],
+      ['', '', '', '20', '', ''] // Empty row for template
+    ];
+    
+    const csvContent = [csvHeaders, ...csvRows]
+      .map(row => row.map(field => `"${field}"`).join(','))
+      .join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `hampton-parts-template-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Success",
+      description: "CSV template downloaded successfully"
+    });
+  };
+
+  const importCSV = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const csv = e.target?.result as string;
+        const lines = csv.split('\n').filter(line => line.trim());
+        const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
+        
+        const nameIndex = headers.indexOf('name');
+        const categoryIndex = headers.indexOf('category');
+        const competitorPriceIndex = headers.indexOf('competitor_price');
+        const markupIndex = headers.indexOf('markup_percent');
+        const ourPriceIndex = headers.indexOf('our_price');
+        const sourceIndex = headers.indexOf('source');
+        
+        if (nameIndex === -1 || categoryIndex === -1) {
+          throw new Error('CSV must contain "name" and "category" columns');
+        }
+        
+        const newParts: Part[] = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+          const values = lines[i].split(',').map(v => v.replace(/"/g, '').trim());
+          const name = values[nameIndex];
+          
+          if (!name) continue; // Skip empty rows
+          
+          const category = values[categoryIndex] || 'General';
+          const competitorPrice = competitorPriceIndex >= 0 ? parseFloat(values[competitorPriceIndex]) || 0 : 0;
+          const markupPercent = markupIndex >= 0 ? parseFloat(values[markupIndex]) || 20 : 20;
+          const ourPrice = ourPriceIndex >= 0 && values[ourPriceIndex] 
+            ? parseFloat(values[ourPriceIndex]) 
+            : competitorPrice * (1 + markupPercent / 100);
+          const source = sourceIndex >= 0 ? values[sourceIndex] : '';
+          
+          // Check if part already exists (upsert logic)
+          const existingIndex = parts.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+          
+          const partData: Part = {
+            id: existingIndex >= 0 ? parts[existingIndex].id : `import-${Date.now()}-${i}`,
+            name,
+            category,
+            basePrice: competitorPrice || ourPrice * 0.8, // Estimate base price
+            sellPrice: ourPrice,
+            markup: markupPercent,
+            competitorPrice,
+            source,
+            inStock: true,
+            description: `Imported from CSV ${source ? `(${source})` : ''}`
+          };
+          
+          if (existingIndex >= 0) {
+            // Update existing part
+            const updatedParts = [...parts];
+            updatedParts[existingIndex] = partData;
+            setParts(updatedParts);
+          } else {
+            // Add new part
+            newParts.push(partData);
+          }
+        }
+        
+        if (newParts.length > 0) {
+          setParts([...parts, ...newParts]);
+        }
+        
+        // Auto-save after import
+        saveParts();
+        
+        toast({
+          title: "Success",
+          description: `Imported ${newParts.length} new parts and updated ${lines.length - 1 - newParts.length} existing parts`
+        });
+        
+      } catch (error) {
+        console.error('Error importing CSV:', error);
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to import CSV file",
+          variant: "destructive"
+        });
+      }
+    };
+    
+    reader.readAsText(file);
+    // Clear the input so the same file can be imported again
+    event.target.value = '';
+  };
+
   const getFilteredParts = () => {
     if (selectedCategory === 'All') return parts;
     return parts.filter(part => part.category === selectedCategory);
@@ -169,6 +289,29 @@ export const PartsManager: React.FC<PartsManagerProps> = ({ onPartsUpdate }) => 
         <CardTitle className="flex items-center justify-between">
           Parts Management
           <div className="flex gap-2">
+            <input
+              type="file"
+              accept=".csv"
+              onChange={importCSV}
+              style={{ display: 'none' }}
+              id="csv-import-input"
+            />
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={downloadCSVTemplate}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              CSV Template
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => document.getElementById('csv-import-input')?.click()}
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Import CSV
+            </Button>
             <Button variant="outline" size="sm" onClick={addPart}>
               <Plus className="w-4 h-4 mr-2" />
               Add Part
@@ -225,7 +368,7 @@ export const PartsManager: React.FC<PartsManagerProps> = ({ onPartsUpdate }) => 
             {getFilteredParts().map((part, index) => {
               const actualIndex = parts.findIndex(p => p.id === part.id);
               return (
-                <div key={part.id} className="grid grid-cols-12 gap-4 items-end p-4 border rounded-lg">
+                <div key={part.id} className="grid grid-cols-16 gap-4 items-end p-4 border rounded-lg">
                   <div className="col-span-3">
                     <Label>Part Name</Label>
                     <Input
@@ -253,10 +396,10 @@ export const PartsManager: React.FC<PartsManagerProps> = ({ onPartsUpdate }) => 
                     </Select>
                   </div>
                   <div className="col-span-2">
-                    <Label>Base Price</Label>
+                    <Label>Competitor Price</Label>
                     <InputCurrency
-                      value={part.basePrice}
-                      onChange={(value) => updatePart(actualIndex, { basePrice: value })}
+                      value={part.competitorPrice || 0}
+                      onChange={(value) => updatePart(actualIndex, { competitorPrice: value })}
                     />
                   </div>
                   <div className="col-span-1">
@@ -268,10 +411,18 @@ export const PartsManager: React.FC<PartsManagerProps> = ({ onPartsUpdate }) => 
                     />
                   </div>
                   <div className="col-span-2">
-                    <Label>Sell Price</Label>
+                    <Label>Our Price</Label>
                     <InputCurrency
                       value={part.sellPrice}
                       onChange={(value) => updatePart(actualIndex, { sellPrice: value })}
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Source</Label>
+                    <Input
+                      value={part.source || ''}
+                      onChange={(e) => updatePart(actualIndex, { source: e.target.value })}
+                      placeholder="e.g. Google, Competitor"
                     />
                   </div>
                   <div className="col-span-1">
@@ -279,6 +430,14 @@ export const PartsManager: React.FC<PartsManagerProps> = ({ onPartsUpdate }) => 
                     <div className="h-10 flex items-center px-3 bg-muted rounded-md text-sm">
                       {part.inStock ? 'Yes' : 'No'}
                     </div>
+                  </div>
+                  <div className="col-span-3">
+                    <Label>Description</Label>
+                    <Input
+                      value={part.description || ''}
+                      onChange={(e) => updatePart(actualIndex, { description: e.target.value })}
+                      placeholder="Part description"
+                    />
                   </div>
                   <div className="col-span-1">
                     <Button

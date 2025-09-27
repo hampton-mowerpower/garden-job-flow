@@ -25,6 +25,8 @@ export interface Part {
   markup?: number; // percentage - optional for global markup calculation
   inStock: boolean;
   description?: string;
+  competitorPrice?: number; // competitor/Google pricing
+  source?: string; // source of competitor pricing
 }
 
 export interface JobPart {
@@ -51,6 +53,7 @@ export interface Job {
   // Problem description
   problemDescription: string;
   notes?: string;
+  serviceTemplates?: string[]; // selected service note templates
   
   // Pricing
   parts: JobPart[];

@@ -13,6 +13,17 @@ export const JobPrintLabel: React.FC<JobPrintLabelProps> = ({ job }) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
+    // Create Service Notes string from templates and additional notes
+    const serviceNotes = [...(job.serviceTemplates || []), ...(job.notes ? [job.notes] : [])]
+      .filter(note => note.trim())
+      .join(' | ');
+
+    // Create Parts Required list
+    const partsRequired = job.parts
+      .filter(part => part.partName && part.quantity > 0)
+      .map(part => `${part.partName} × ${part.quantity}`)
+      .join(', ');
+
     const labelHTML = `
       <!DOCTYPE html>
       <html>
@@ -62,6 +73,18 @@ export const JobPrintLabel: React.FC<JobPrintLabelProps> = ({ job }) => {
               padding: 8px;
               border-left: 4px solid #333;
             }
+            .service-notes {
+              background: #e3f2fd;
+              padding: 8px;
+              border-left: 4px solid #2196f3;
+              margin-top: 10px;
+            }
+            .parts-required {
+              background: #f3e5f5;
+              padding: 8px;
+              border-left: 4px solid #9c27b0;
+              margin-top: 10px;
+            }
             .problem {
               background: #fff3cd;
               padding: 8px;
@@ -91,10 +114,23 @@ export const JobPrintLabel: React.FC<JobPrintLabelProps> = ({ job }) => {
               ${job.machineSerial ? `<div>Serial: ${job.machineSerial}</div>` : ''}
             </div>
             
+            ${serviceNotes ? `
+            <div class="service-notes">
+              <div><strong>Service Notes:</strong></div>
+              <div>${serviceNotes}</div>
+            </div>
+            ` : ''}
+            
+            ${partsRequired ? `
+            <div class="parts-required">
+              <div><strong>Parts Required:</strong></div>
+              <div>${partsRequired}</div>
+            </div>
+            ` : ''}
+            
             <div class="problem">
               <div><strong>Problem/Fault:</strong></div>
               <div>${job.problemDescription}</div>
-              ${job.notes ? `<div><strong>Notes:</strong> ${job.notes}</div>` : ''}
             </div>
             
             <div class="footer">

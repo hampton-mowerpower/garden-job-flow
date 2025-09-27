@@ -74,6 +74,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setMachineSerial(job.machineSerial || '');
       setProblemDescription(job.problemDescription);
       setNotes(job.notes || '');
+      setServiceTemplates(job.serviceTemplates || []); // Load service templates
       setParts(job.parts);
       setLabourHours(job.labourHours);
       setStatus(job.status);
@@ -201,6 +202,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         machineSerial,
         problemDescription,
         notes,
+        serviceTemplates, // Add service templates to job data
         parts,
         labourHours,
         labourRate,
