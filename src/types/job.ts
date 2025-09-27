@@ -1,0 +1,80 @@
+export interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  address: string;
+  email?: string;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface MachineCategory {
+  id: string;
+  name: string;
+  labourRate: number; // per hour in AUD
+  labelCharge: number; // fixed charge in AUD
+  commonBrands: string[];
+}
+
+export interface Part {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  markup: number; // percentage
+  inStock: boolean;
+  description?: string;
+}
+
+export interface JobPart {
+  partId: string;
+  partName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface Job {
+  id: string;
+  jobNumber: string;
+  customerId: string;
+  customer: Customer;
+  
+  // Machine details
+  machineCategory: string;
+  machineBrand: string;
+  machineModel: string;
+  machineSerial?: string;
+  
+  // Problem description
+  problemDescription: string;
+  notes?: string;
+  
+  // Pricing
+  parts: JobPart[];
+  labourHours: number;
+  labourRate: number;
+  labelCharge: number;
+  
+  // Calculations
+  partsSubtotal: number;
+  labourTotal: number;
+  subtotal: number;
+  gst: number;
+  grandTotal: number;
+  
+  // Status
+  status: 'pending' | 'in-progress' | 'completed' | 'delivered';
+  createdAt: Date;
+  updatedAt: Date;
+  completedAt?: Date;
+}
+
+export interface JobBookingStats {
+  totalJobs: number;
+  pendingJobs: number;
+  completedJobs: number;
+  totalRevenue: number;
+  averageJobValue: number;
+}
