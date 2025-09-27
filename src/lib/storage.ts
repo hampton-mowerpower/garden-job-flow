@@ -191,6 +191,19 @@ class JobBookingDB {
     };
   }
 
+  async deleteJob(id: string): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const transaction = this.db.transaction(['jobs'], 'readwrite');
+    const store = transaction.objectStore('jobs');
+    
+    return new Promise((resolve, reject) => {
+      const request = store.delete(id);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
+
   // Utility function to generate next job number
   async getNextJobNumber(): Promise<string> {
     const jobs = await this.getAllJobs();

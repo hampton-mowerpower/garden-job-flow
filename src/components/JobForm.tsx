@@ -14,6 +14,8 @@ import { DEFAULT_PARTS } from '@/data/defaultParts';
 import { calculateJobTotals, formatCurrency, calculatePartTotal } from '@/lib/calculations';
 import { jobBookingDB } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
+import { JobPrintLabel } from './JobPrintLabel';
+import { JobPrintInvoice } from './JobPrintInvoice';
 
 interface JobFormProps {
   job?: Job;
@@ -223,10 +225,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         </div>
         <div className="flex gap-2">
           {job && (
-            <Button variant="outline" onClick={() => onPrint?.(job)}>
-              <Printer className="w-4 h-4 mr-2" />
-              Print
-            </Button>
+            <>
+              <JobPrintLabel job={job} />
+              <JobPrintInvoice job={job} />
+            </>
           )}
           <Button onClick={handleSave} disabled={isLoading}>
             <Save className="w-4 h-4 mr-2" />

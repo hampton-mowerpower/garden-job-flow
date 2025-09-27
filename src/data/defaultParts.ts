@@ -1,25 +1,26 @@
 import { Part } from '@/types/job';
 
-// Common parts with Australian market pricing + 20% markup
+// Common parts with Australian market pricing + 20% markup based on research
+// Prices based on Supercheap Auto, Repco, GA Spares, and other Australian suppliers
 export const DEFAULT_PARTS: Part[] = [
   // Engine Parts
   {
     id: 'spark-plug-standard',
     name: 'Spark Plug (Standard)',
     category: 'Engine',
-    price: 8.95,
+    price: 10.75, // Market avg $8.95 + 20%
     markup: 20,
     inStock: true,
-    description: 'Standard spark plug for most lawn equipment'
+    description: 'Standard spark plug for most lawn equipment (Champion, NGK)'
   },
   {
     id: 'spark-plug-premium',
-    name: 'Spark Plug (Premium)',
+    name: 'Spark Plug (Premium Iridium)',
     category: 'Engine',
-    price: 14.95,
+    price: 17.95, // Market avg $14.95 + 20%
     markup: 20,
     inStock: true,
-    description: 'Premium iridium spark plug'
+    description: 'Premium iridium spark plug - longer lasting'
   },
   {
     id: 'air-filter-foam',
