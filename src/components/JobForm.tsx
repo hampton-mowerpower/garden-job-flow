@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, Save, Printer } from 'lucide-react';
 import { Job, Customer, JobPart } from '@/types/job';
-import { MACHINE_CATEGORIES } from '@/data/machineCategories';
+import { HAMPTON_MACHINE_CATEGORIES } from '@/data/hamptonMachineData';
 import { DEFAULT_PARTS } from '@/data/defaultParts';
 import { A4_PARTS, PART_CATEGORIES } from '@/data/a4Parts';
 import { calculateJobTotals, formatCurrency, calculatePartTotal } from '@/lib/calculations';
@@ -57,14 +57,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [selectedPartCategory, setSelectedPartCategory] = useState<string>('All');
   
   // Calculations
-  const selectedCategory = MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
+  const selectedCategory = HAMPTON_MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
   const labourRate = selectedCategory?.labourRate || 0;
   const calculations = calculateJobTotals(parts, labourHours, labourRate);
   
   // Generate Parts Required list reliably
   const partsRequired = parts
-    .filter(part => part.partName?.trim() && part.quantity > 0)
-    .map(part => `${part.partName} × ${part.quantity || 1}`)
+    .filter(part => part.partName && part.partName.trim() !== '' && part.quantity > 0)
+    .map(part => `${part.partName.trim()} × ${part.quantity || 1}`)
     .join(', ');
 
   useEffect(() => {
@@ -328,14 +328,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               <CardTitle>Machine Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <MachineManager
-                machineCategory={machineCategory}
-                machineBrand={machineBrand}
-                machineModel={machineModel}
-                onCategoryChange={setMachineCategory}
-                onBrandChange={setMachineBrand}
-                onModelChange={setMachineModel}
-              />
+            <MachineManager
+              machineCategory={machineCategory}
+              machineBrand={machineBrand}
+              machineModel={machineModel}
+              onCategoryChange={setMachineCategory}
+              onBrandChange={setMachineBrand}
+              onModelChange={setMachineModel}
+            />
               <div>
                 <Label htmlFor="machine-serial">Serial Number</Label>
                 <Input
@@ -537,8 +537,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               {partsRequired && (
                 <div className="space-y-2">
                   <Label>Parts Required</Label>
-                  <div className="text-sm bg-muted p-2 rounded text-muted-foreground">
-                    {partsRequired}
+                  <div className="text-sm bg-muted p-3 rounded min-h-[60px] text-muted-foreground">
+                    {partsRequired || 'No parts selected yet'}
                   </div>
                 </div>
               )}

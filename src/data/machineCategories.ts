@@ -1,12 +1,15 @@
 import { MachineCategory } from '@/types/job';
+import { HAMPTON_MACHINE_CATEGORIES } from './hamptonMachineData';
 
 // Based on Hampton Mower Centre categories and Australian market research + 20% markup
 // Labour rates based on competitor analysis: $55-135/hr average, applying 20% markup
-export const MACHINE_CATEGORIES: MachineCategory[] = [
+export const MACHINE_CATEGORIES: MachineCategory[] = HAMPTON_MACHINE_CATEGORIES;
+// Legacy categories still exported for backward compatibility
+export const LEGACY_MACHINE_CATEGORIES = [
   {
     id: 'lawn-mowers',
     name: 'Lawn Mowers',
-    labourRate: 79, // Base market rate
+    labourRate: 79,
     commonBrands: ['Honda', 'Victa', 'Masport', 'Husqvarna', 'Al-Ko', 'Atom', 'Kawasaki']
   },
   {

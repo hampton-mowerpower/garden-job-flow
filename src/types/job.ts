@@ -16,6 +16,7 @@ export interface MachineCategory {
   commonBrands: string[];
 }
 
+// Add Part interface with updated fields for competitor pricing support
 export interface Part {
   id: string;
   name: string;
@@ -23,10 +24,10 @@ export interface Part {
   basePrice: number;
   sellPrice: number;
   markup?: number; // percentage - optional for global markup calculation
-  inStock: boolean;
-  description?: string;
   competitorPrice?: number; // competitor/Google pricing
   source?: string; // source of competitor pricing
+  inStock: boolean;
+  description?: string;
 }
 
 export interface JobPart {

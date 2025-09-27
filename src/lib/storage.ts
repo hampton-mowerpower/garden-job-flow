@@ -251,20 +251,7 @@ class JobBookingDB {
   }
 
   // Settings operations
-  private async saveSetting(key: string, value: any): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
-    
-    const transaction = this.db.transaction(['settings'], 'readwrite');
-    const store = transaction.objectStore('settings');
-    
-    return new Promise((resolve, reject) => {
-      const request = store.put({ key, value });
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
-  }
-
-  private async getSetting(key: string): Promise<any> {
+  async getSetting(key: string): Promise<any> {
     if (!this.db) throw new Error('Database not initialized');
     
     const transaction = this.db.transaction(['settings'], 'readonly');
@@ -273,6 +260,19 @@ class JobBookingDB {
     return new Promise((resolve, reject) => {
       const request = store.get(key);
       request.onsuccess = () => resolve(request.result?.value || null);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async saveSetting(key: string, value: any): Promise<void> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const transaction = this.db.transaction(['settings'], 'readwrite');
+    const store = transaction.objectStore('settings');
+    
+    return new Promise((resolve, reject) => {
+      const request = store.put({ key, value });
+      request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
   }
