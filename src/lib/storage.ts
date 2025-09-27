@@ -303,6 +303,19 @@ class JobBookingDB {
     const templates = await this.getSetting('serviceTemplates');
     return templates || [];
   }
+
+  async saveCustomMachineData(data: any): Promise<void> {
+    return this.saveSetting('customMachineData', data);
+  }
+
+  async getCustomMachineData(): Promise<any> {
+    const data = await this.getSetting('customMachineData');
+    return data || {
+      categories: [],
+      brands: {},
+      models: {}
+    };
+  }
 }
 
 export const jobBookingDB = new JobBookingDB();

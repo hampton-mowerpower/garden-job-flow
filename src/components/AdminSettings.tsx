@@ -6,10 +6,12 @@ import { InputCurrency } from '@/components/ui/input-currency';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Download, Upload, Save, Settings } from 'lucide-react';
 import { MachineCategory, JobPart } from '@/types/job';
 import { MACHINE_CATEGORIES } from '@/data/machineCategories';
 import { DEFAULT_PARTS } from '@/data/defaultParts';
+import { A4_PARTS, PART_CATEGORIES } from '@/data/a4Parts';
 import { jobBookingDB } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 
@@ -40,8 +42,9 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
         setCategories(customCategories);
       }
       
-      // Convert DEFAULT_PARTS to JobPart format
-      const formattedParts = DEFAULT_PARTS.map(part => ({
+      // Convert DEFAULT_PARTS and A4_PARTS to JobPart format
+      const allParts = [...DEFAULT_PARTS, ...A4_PARTS];
+      const formattedParts = allParts.map(part => ({
         partId: part.id,
         partName: part.name,
         quantity: 1,
@@ -77,7 +80,8 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
 
   const saveParts = async () => {
     try {
-      const customParts = parts.filter(part => !DEFAULT_PARTS.find(dp => dp.id === part.partId));
+      const allDefaultParts = [...DEFAULT_PARTS, ...A4_PARTS];
+      const customParts = parts.filter(part => !allDefaultParts.find(dp => dp.id === part.partId));
       await jobBookingDB.saveCustomParts(customParts);
       toast({
         title: "Success",
@@ -364,11 +368,22 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
                       </div>
                       <div className="col-span-3">
                         <Label>Category</Label>
-                        <Input
-                          value={part.category || 'General'}
-                          onChange={(e) => updatePart(index, { category: e.target.value })}
-                          placeholder="Part category"
-                        />
+                        <Select 
+                          value={part.category || 'General'} 
+                          onValueChange={(value) => updatePart(index, { category: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PART_CATEGORIES.map((category) => (
+                              <SelectItem key={category} value={category}>
+                                {category}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="General">General</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="col-span-2">
                         <Label>Unit Price</Label>

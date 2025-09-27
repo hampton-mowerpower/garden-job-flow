@@ -11,6 +11,7 @@ import { Plus, Trash2, Save, Printer } from 'lucide-react';
 import { Job, Customer, JobPart } from '@/types/job';
 import { MACHINE_CATEGORIES } from '@/data/machineCategories';
 import { DEFAULT_PARTS } from '@/data/defaultParts';
+import { A4_PARTS, PART_CATEGORIES } from '@/data/a4Parts';
 import { calculateJobTotals, formatCurrency, calculatePartTotal } from '@/lib/calculations';
 import { jobBookingDB } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
@@ -18,6 +19,7 @@ import { JobPrintLabel } from './JobPrintLabel';
 import { JobPrintInvoice } from './JobPrintInvoice';
 import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 import { ServiceNoteTemplates } from './ServiceNoteTemplates';
+import { MachineManager } from './MachineManager';
 
 interface JobFormProps {
   job?: Job;
@@ -50,6 +52,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [parts, setParts] = useState<JobPart[]>([]);
   const [labourHours, setLabourHours] = useState(0);
   const [status, setStatus] = useState<Job['status']>('pending');
+  const [selectedPartCategory, setSelectedPartCategory] = useState<string>('All');
   
   // Calculations
   const selectedCategory = MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
@@ -132,14 +135,26 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       return;
     }
     
-    const presetPart = DEFAULT_PARTS.find(p => p.id === partId);
+    // Check both DEFAULT_PARTS and A4_PARTS
+    const allParts = [...DEFAULT_PARTS, ...A4_PARTS];
+    const presetPart = allParts.find(p => p.id === partId);
     if (presetPart) {
       updatePart(index, {
         partId: presetPart.id,
         partName: presetPart.name,
-        unitPrice: presetPart.price
+        unitPrice: presetPart.price,
+        category: presetPart.category
       });
     }
+  };
+
+  // Get filtered parts based on selected category
+  const getFilteredParts = () => {
+    const allParts = [...DEFAULT_PARTS, ...A4_PARTS];
+    if (selectedPartCategory === 'All') {
+      return allParts;
+    }
+    return allParts.filter(part => part.category === selectedPartCategory);
   };
 
   const handleSave = async () => {
@@ -296,49 +311,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               <CardTitle>Machine Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="machine-category">Category *</Label>
-                  <Select value={machineCategory} onValueChange={setMachineCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select machine category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MACHINE_CATEGORIES.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name} (${category.labourRate}/hr)
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="machine-brand">Brand</Label>
-                  <Select value={machineBrand} onValueChange={setMachineBrand}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select brand" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {selectedCategory?.commonBrands.map((brand) => (
-                        <SelectItem key={brand} value={brand}>
-                          {brand}
-                        </SelectItem>
-                      ))}
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="machine-model">Model</Label>
-                  <Input
-                    id="machine-model"
-                    value={machineModel}
-                    onChange={(e) => setMachineModel(e.target.value)}
-                    placeholder="Enter model number"
-                  />
-                </div>
+              <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
                 <div>
                   <Label htmlFor="machine-serial">Serial Number</Label>
                   <Input
@@ -390,10 +363,25 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
                 Parts Required
-                <Button variant="outline" size="sm" onClick={addPart}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Part
-                </Button>
+                <div className="flex gap-2">
+                  <Select value={selectedPartCategory} onValueChange={setSelectedPartCategory}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Filter by category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="All">All Categories</SelectItem>
+                      {PART_CATEGORIES.map((category) => (
+                        <SelectItem key={category} value={category}>
+                          {category}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="sm" onClick={addPart}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Part
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -414,11 +402,19 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                           <SelectTrigger>
                             <SelectValue placeholder="Select part" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="max-h-60">
                             <SelectItem value="custom">Custom Part</SelectItem>
-                            {DEFAULT_PARTS.map((preset) => (
+                            {selectedPartCategory !== 'All' && (
+                              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-b">
+                                {selectedPartCategory} Parts
+                              </div>
+                            )}
+                            {getFilteredParts().map((preset) => (
                               <SelectItem key={preset.id} value={preset.id}>
-                                {preset.name} - ${preset.price}
+                                <div className="flex justify-between items-center w-full">
+                                  <span>{preset.name}</span>
+                                  <span className="text-muted-foreground ml-2">${preset.price}</span>
+                                </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
