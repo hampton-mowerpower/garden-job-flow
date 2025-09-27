@@ -33,6 +33,7 @@ export interface JobPart {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  category?: string;
 }
 
 export interface Job {

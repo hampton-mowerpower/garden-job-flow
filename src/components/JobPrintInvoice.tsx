@@ -142,9 +142,11 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
           <div class="invoice-container">
             <div class="header">
               <div class="company-info">
-                <h1>Hampton Mowerpower</h1>
-                <p>Your One-Stop Shop for All Things Outdoor Power!</p>
-                <p>Phone: (03) 9876 5432 | Email: info@hamptonmowerpower.com.au</p>
+                <h1>HAMPTON MOWERPOWER</h1>
+                <p>Garden Equipment Sales & Service</p>
+                <p>87 Ludstone Street, Hampton 3188</p>
+                <p>(03) 9598 6741 | https://www.hamptonmowerpower.com.au</p>
+                <p>ABN: 97 161 289 069</p>
               </div>
               <div class="invoice-details">
                 <h2>INVOICE</h2>
@@ -237,8 +239,18 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
             </div>
 
             <div class="footer">
-              <p>Thank you for choosing Hampton Mowerpower!</p>
-              <p>ABN: 12 345 678 901 | All work guaranteed for 90 days</p>
+              <p><strong>Thank you for choosing Hampton Mowerpower!</strong></p>
+              <p><strong>REPAIR CONTRACT CONDITIONS:</strong></p>
+              <p style="text-align: left; font-size: 9px; line-height: 1.2;">
+                1. All work is guaranteed for 90 days from completion date.<br>
+                2. Customer machines left for more than 30 days after completion may incur storage charges.<br>
+                3. Estimates are valid for 30 days. Additional charges may apply for work beyond original estimate.<br>
+                4. Payment is due upon completion unless prior arrangements have been made.<br>
+                5. We are not responsible for machines left unattended on premises.<br>
+                6. Customer agrees to pay all repair costs even if machine proves economically unviable to repair.<br>
+                7. Used parts may be supplied unless specifically requested otherwise.<br>
+                8. Warranty does not cover abuse, normal wear, or damage caused by poor maintenance.
+              </p>
             </div>
           </div>
         </body>

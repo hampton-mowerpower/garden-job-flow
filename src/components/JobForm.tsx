@@ -16,6 +16,8 @@ import { jobBookingDB } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { JobPrintLabel } from './JobPrintLabel';
 import { JobPrintInvoice } from './JobPrintInvoice';
+import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
+import { ServiceNoteTemplates } from './ServiceNoteTemplates';
 
 interface JobFormProps {
   job?: Job;
@@ -43,6 +45,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [machineSerial, setMachineSerial] = useState('');
   const [problemDescription, setProblemDescription] = useState('');
   const [notes, setNotes] = useState('');
+  const [serviceTemplates, setServiceTemplates] = useState<string[]>([]);
   
   const [parts, setParts] = useState<JobPart[]>([]);
   const [labourHours, setLabourHours] = useState(0);
@@ -268,10 +271,9 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               </div>
               <div>
                 <Label htmlFor="customer-address">Address</Label>
-                <Input
-                  id="customer-address"
-                  value={customer.address}
-                  onChange={(e) => setCustomer({...customer, address: e.target.value})}
+                <GooglePlacesAutocomplete
+                  value={customer.address || ''}
+                  onChange={(value) => setCustomer({...customer, address: value})}
                   placeholder="Enter customer address"
                 />
               </div>
@@ -366,6 +368,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                   rows={3}
                 />
               </div>
+              <ServiceNoteTemplates
+                selectedTemplates={serviceTemplates}
+                onTemplatesChange={setServiceTemplates}
+              />
               <div>
                 <Label htmlFor="notes">Additional Notes</Label>
                 <Textarea

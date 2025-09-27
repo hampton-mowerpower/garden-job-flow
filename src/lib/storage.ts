@@ -1,4 +1,4 @@
-import { Job, Customer, JobBookingStats } from '@/types/job';
+import { Job, Customer, JobBookingStats, MachineCategory, JobPart } from '@/types/job';
 
 const DB_NAME = 'JobBookingSystem';
 const DB_VERSION = 1;
@@ -33,6 +33,11 @@ class JobBookingDB {
           jobStore.createIndex('customerId', 'customerId', { unique: false });
           jobStore.createIndex('status', 'status', { unique: false });
           jobStore.createIndex('createdAt', 'createdAt', { unique: false });
+        }
+
+        // Create settings store for categories, parts, templates
+        if (!db.objectStoreNames.contains('settings')) {
+          db.createObjectStore('settings', { keyPath: 'key' });
         }
       };
     });
@@ -85,6 +90,28 @@ class JobBookingDB {
           ) {
             customers.push(customer);
           }
+          cursor.continue();
+        } else {
+          resolve(customers);
+        }
+      };
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async getAllCustomers(): Promise<Customer[]> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const transaction = this.db.transaction(['customers'], 'readonly');
+    const store = transaction.objectStore('customers');
+    const customers: Customer[] = [];
+    
+    return new Promise((resolve, reject) => {
+      const request = store.openCursor();
+      request.onsuccess = (event) => {
+        const cursor = (event.target as IDBRequest).result;
+        if (cursor) {
+          customers.push(cursor.value);
           cursor.continue();
         } else {
           resolve(customers);
@@ -223,26 +250,58 @@ class JobBookingDB {
     return { customers, jobs };
   }
 
-  private async getAllCustomers(): Promise<Customer[]> {
+  // Settings operations
+  private async saveSetting(key: string, value: any): Promise<void> {
     if (!this.db) throw new Error('Database not initialized');
     
-    const transaction = this.db.transaction(['customers'], 'readonly');
-    const store = transaction.objectStore('customers');
-    const customers: Customer[] = [];
+    const transaction = this.db.transaction(['settings'], 'readwrite');
+    const store = transaction.objectStore('settings');
     
     return new Promise((resolve, reject) => {
-      const request = store.openCursor();
-      request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest).result;
-        if (cursor) {
-          customers.push(cursor.value);
-          cursor.continue();
-        } else {
-          resolve(customers);
-        }
-      };
+      const request = store.put({ key, value });
+      request.onsuccess = () => resolve();
       request.onerror = () => reject(request.error);
     });
+  }
+
+  private async getSetting(key: string): Promise<any> {
+    if (!this.db) throw new Error('Database not initialized');
+    
+    const transaction = this.db.transaction(['settings'], 'readonly');
+    const store = transaction.objectStore('settings');
+    
+    return new Promise((resolve, reject) => {
+      const request = store.get(key);
+      request.onsuccess = () => resolve(request.result?.value || null);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async saveCustomCategories(categories: MachineCategory[]): Promise<void> {
+    return this.saveSetting('customCategories', categories);
+  }
+
+  async getCustomCategories(): Promise<MachineCategory[]> {
+    const categories = await this.getSetting('customCategories');
+    return categories || [];
+  }
+
+  async saveCustomParts(parts: JobPart[]): Promise<void> {
+    return this.saveSetting('customParts', parts);
+  }
+
+  async getCustomParts(): Promise<JobPart[]> {
+    const parts = await this.getSetting('customParts');
+    return parts || [];
+  }
+
+  async saveServiceTemplates(templates: string[]): Promise<void> {
+    return this.saveSetting('serviceTemplates', templates);
+  }
+
+  async getServiceTemplates(): Promise<string[]> {
+    const templates = await this.getSetting('serviceTemplates');
+    return templates || [];
   }
 }
 

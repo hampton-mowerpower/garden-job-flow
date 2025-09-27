@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, BarChart3 } from 'lucide-react';
+import { Plus, Search, BarChart3, Settings } from 'lucide-react';
 import { Job } from '@/types/job';
 import { formatCurrency } from '@/lib/calculations';
 import JobForm from '@/components/JobForm';
 import JobSearch from '@/components/JobSearch';
+import { AdminSettings } from '@/components/AdminSettings';
 
 const Index = () => {
-  const [activeView, setActiveView] = useState<'dashboard' | 'create' | 'search'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'create' | 'search' | 'admin'>('dashboard');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
 
@@ -90,6 +91,12 @@ const Index = () => {
     );
   }
 
+  if (activeView === 'admin') {
+    return (
+      <AdminSettings onClose={() => setActiveView('dashboard')} />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -139,16 +146,16 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView('admin')}>
             <CardHeader className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                <BarChart3 className="h-6 w-6 text-primary" />
+                <Settings className="h-6 w-6 text-primary" />
               </div>
-              <CardTitle>Business Stats</CardTitle>
+              <CardTitle>Admin Settings</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground text-center">
-                View revenue, job counts, and performance analytics
+                Manage categories, parts, rates, and export data
               </p>
             </CardContent>
           </Card>
