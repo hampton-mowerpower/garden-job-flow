@@ -118,6 +118,15 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   };
 
   const selectPresetPart = (partId: string, index: number) => {
+    if (partId === 'custom') {
+      updatePart(index, {
+        partId: 'custom',
+        partName: '',
+        unitPrice: 0
+      });
+      return;
+    }
+    
     const presetPart = DEFAULT_PARTS.find(p => p.id === partId);
     if (presetPart) {
       updatePart(index, {
@@ -398,7 +407,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                             <SelectValue placeholder="Select part" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Custom Part</SelectItem>
+                            <SelectItem value="custom">Custom Part</SelectItem>
                             {DEFAULT_PARTS.map((preset) => (
                               <SelectItem key={preset.id} value={preset.id}>
                                 {preset.name} - ${preset.price}
@@ -406,7 +415,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                             ))}
                           </SelectContent>
                         </Select>
-                        {!part.partId && (
+                        {(!part.partId || part.partId === 'custom') && (
                           <Input
                             className="mt-1"
                             value={part.partName}
