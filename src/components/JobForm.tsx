@@ -141,8 +141,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       updatePart(index, {
         partId: presetPart.id,
         partName: presetPart.name,
-        unitPrice: presetPart.sellPrice,
-        category: presetPart.category
+        unitPrice: presetPart.sellPrice || presetPart.basePrice || 0,
+        category: presetPart.category,
+        totalPrice: calculatePartTotal(
+          presetPart.sellPrice || presetPart.basePrice || 0,
+          parts[index]?.quantity || 1
+        )
       });
     }
   };
@@ -309,16 +313,22 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               <CardTitle>Machine Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
-                <div>
-                  <Label htmlFor="machine-serial">Serial Number</Label>
-                  <Input
-                    id="machine-serial"
-                    value={machineSerial}
-                    onChange={(e) => setMachineSerial(e.target.value)}
-                    placeholder="Enter serial number"
-                  />
-                </div>
+              <MachineManager
+                machineCategory={machineCategory}
+                machineBrand={machineBrand}
+                machineModel={machineModel}
+                onCategoryChange={setMachineCategory}
+                onBrandChange={setMachineBrand}
+                onModelChange={setMachineModel}
+              />
+              <div>
+                <Label htmlFor="machine-serial">Serial Number</Label>
+                <Input
+                  id="machine-serial"
+                  value={machineSerial}
+                  onChange={(e) => setMachineSerial(e.target.value)}
+                  placeholder="Enter serial number"
+                />
               </div>
             </CardContent>
           </Card>
