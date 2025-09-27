@@ -18,10 +18,10 @@ export const JobPrintLabel: React.FC<JobPrintLabelProps> = ({ job }) => {
       .filter(note => note.trim())
       .join(' | ');
 
-    // Create Parts Required list
-    const partsRequired = job.parts
-      .filter(part => part.partName && part.quantity > 0)
-      .map(part => `${part.partName} × ${part.quantity}`)
+    // Use computed Parts Required from job or generate it
+    const partsRequired = job.partsRequired || job.parts
+      .filter(part => part.partName?.trim() && part.quantity > 0)
+      .map(part => `${part.partName} × ${part.quantity || 1}`)
       .join(', ');
 
     const labelHTML = `

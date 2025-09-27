@@ -48,6 +48,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [problemDescription, setProblemDescription] = useState('');
   const [notes, setNotes] = useState('');
   const [serviceTemplates, setServiceTemplates] = useState<string[]>([]);
+  const [servicePerformed, setServicePerformed] = useState('');
+  const [recommendations, setRecommendations] = useState('');
   
   const [parts, setParts] = useState<JobPart[]>([]);
   const [labourHours, setLabourHours] = useState(0);
@@ -58,6 +60,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const selectedCategory = MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
   const labourRate = selectedCategory?.labourRate || 0;
   const calculations = calculateJobTotals(parts, labourHours, labourRate);
+  
+  // Generate Parts Required list reliably
+  const partsRequired = parts
+    .filter(part => part.partName?.trim() && part.quantity > 0)
+    .map(part => `${part.partName} × ${part.quantity || 1}`)
+    .join(', ');
 
   useEffect(() => {
     initializeForm();
@@ -75,6 +83,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setProblemDescription(job.problemDescription);
       setNotes(job.notes || '');
       setServiceTemplates(job.serviceTemplates || []); // Load service templates
+      setServicePerformed(job.servicePerformed || '');
+      setRecommendations(job.recommendations || '');
       setParts(job.parts);
       setLabourHours(job.labourHours);
       setStatus(job.status);
@@ -203,6 +213,9 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         problemDescription,
         notes,
         serviceTemplates, // Add service templates to job data
+        servicePerformed,
+        recommendations,
+        partsRequired, // Store computed parts list
         parts,
         labourHours,
         labourRate,
@@ -368,6 +381,35 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             </CardContent>
           </Card>
 
+          {/* Mechanic Service Notes */}
+          <Card className="form-section">
+            <CardHeader>
+              <CardTitle>Mechanic Service Notes</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="service-performed">Service Performed (by mechanic)</Label>
+                <Textarea
+                  id="service-performed"
+                  value={servicePerformed}
+                  onChange={(e) => setServicePerformed(e.target.value)}
+                  placeholder="e.g., Changed oil, replaced spark plug, sharpened blade, tuned carburettor..."
+                  rows={3}
+                />
+              </div>
+              <div>
+                <Label htmlFor="recommendations">Recommendations / Future Attention</Label>
+                <Textarea
+                  id="recommendations"
+                  value={recommendations}
+                  onChange={(e) => setRecommendations(e.target.value)}
+                  placeholder="e.g., Rear belt worn—replace within 3 months; check air filter monthly..."
+                  rows={3}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Parts */}
           <Card className="form-section">
             <CardHeader>
@@ -491,6 +533,15 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                   {jobNumber}
                 </div>
               </div>
+              
+              {partsRequired && (
+                <div className="space-y-2">
+                  <Label>Parts Required</Label>
+                  <div className="text-sm bg-muted p-2 rounded text-muted-foreground">
+                    {partsRequired}
+                  </div>
+                </div>
+              )}
               
               <div>
                 <Label htmlFor="labour-hours">Labour Hours</Label>

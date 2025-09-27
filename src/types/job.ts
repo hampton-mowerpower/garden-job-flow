@@ -55,6 +55,13 @@ export interface Job {
   notes?: string;
   serviceTemplates?: string[]; // selected service note templates
   
+  // Mechanic service notes
+  servicePerformed?: string; // what work was actually completed
+  recommendations?: string; // what to watch or do next
+  
+  // Computed parts list for display
+  partsRequired?: string; // computed from parts array
+  
   // Pricing
   parts: JobPart[];
   labourHours: number;

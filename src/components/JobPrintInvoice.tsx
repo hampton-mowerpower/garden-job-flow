@@ -179,7 +179,16 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
               ${job.notes ? `<p><strong>Notes:</strong> ${job.notes}</p>` : ''}
             </div>
 
+            ${(job.servicePerformed || job.recommendations) ? `
+            <div class="problem-section" style="background: #e8f5e8; border-left-color: #4caf50;">
+              <h3 style="margin-top: 0;">Mechanic Notes</h3>
+              ${job.servicePerformed ? `<p><strong>Service Performed:</strong> ${job.servicePerformed}</p>` : ''}
+              ${job.recommendations ? `<p><strong>Recommendations / Future Attention:</strong> ${job.recommendations}</p>` : ''}
+            </div>
+            ` : ''}
+
             ${job.parts.length > 0 ? `
+            ${job.partsRequired ? `<p><strong>Parts Required:</strong> ${job.partsRequired}</p>` : ''}
             <h3>Parts Used</h3>
             <table class="parts-table">
               <thead>
