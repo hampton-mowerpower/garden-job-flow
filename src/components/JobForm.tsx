@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, Save, Printer } from 'lucide-react';
+import { nanoid } from 'nanoid';
 import { Job, Customer, JobPart } from '@/types/job';
 import { HAMPTON_MACHINE_CATEGORIES } from '@/data/hamptonMachineData';
 import { DEFAULT_PARTS } from '@/data/defaultParts';
@@ -85,7 +86,13 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setServiceTemplates(job.serviceTemplates || []); // Load service templates
       setServicePerformed(job.servicePerformed || '');
       setRecommendations(job.recommendations || '');
-      setParts(job.parts);
+      
+      // Migrate parts to include stable IDs if missing
+      const migratedParts = job.parts.map(part => ({
+        ...part,
+        id: part.id || nanoid() // Add ID if missing for backward compatibility
+      }));
+      setParts(migratedParts);
       setLabourHours(job.labourHours);
       setStatus(job.status);
     } else {
@@ -107,6 +114,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
 
   const addPart = () => {
     const newPart: JobPart = {
+      id: nanoid(), // Add stable row ID
       partId: '',
       partName: '',
       quantity: 1,
@@ -116,28 +124,32 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     setParts([...parts, newPart]);
   };
 
-  const updatePart = (index: number, updates: Partial<JobPart>) => {
-    const updatedParts = [...parts];
-    updatedParts[index] = { ...updatedParts[index], ...updates };
-    
-    // Recalculate total price
-    if (updates.quantity !== undefined || updates.unitPrice !== undefined) {
-      updatedParts[index].totalPrice = calculatePartTotal(
-        updatedParts[index].unitPrice,
-        updatedParts[index].quantity
-      );
-    }
-    
-    setParts(updatedParts);
+  const updatePart = (id: string, updates: Partial<JobPart>) => {
+    setParts(prev => prev.map(part => {
+      if (part.id === id) {
+        const updatedPart = { ...part, ...updates };
+        
+        // Recalculate total price
+        if (updates.quantity !== undefined || updates.unitPrice !== undefined) {
+          updatedPart.totalPrice = calculatePartTotal(
+            updatedPart.unitPrice,
+            updatedPart.quantity
+          );
+        }
+        
+        return updatedPart;
+      }
+      return part;
+    }));
   };
 
-  const removePart = (index: number) => {
-    setParts(parts.filter((_, i) => i !== index));
+  const removePart = (id: string) => {
+    setParts(prev => prev.filter(part => part.id !== id));
   };
 
-  const selectPresetPart = (partId: string, index: number) => {
+  const selectPresetPart = (partId: string, rowId: string) => {
     if (partId === 'custom') {
-      updatePart(index, {
+      updatePart(rowId, {
         partId: 'custom',
         partName: '',
         unitPrice: 0
@@ -149,26 +161,34 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     const allParts = [...DEFAULT_PARTS, ...A4_PARTS];
     const presetPart = allParts.find(p => p.id === partId);
     if (presetPart) {
-      updatePart(index, {
+      const currentPart = parts.find(p => p.id === rowId);
+      updatePart(rowId, {
         partId: presetPart.id,
         partName: presetPart.name,
         unitPrice: presetPart.sellPrice || presetPart.basePrice || 0,
         category: presetPart.category,
         totalPrice: calculatePartTotal(
           presetPart.sellPrice || presetPart.basePrice || 0,
-          parts[index]?.quantity || 1
+          currentPart?.quantity || 1
         )
       });
     }
   };
 
-  // Get filtered parts based on selected category
-  const getFilteredParts = () => {
+  // Get filtered parts based on selected category - preserve current selection
+  const getFilteredPartsForRow = (currentPartId?: string) => {
     const allParts = [...DEFAULT_PARTS, ...A4_PARTS];
-    if (selectedPartCategory === 'All') {
-      return allParts;
+    const selectedPartIds = new Set(parts.map(p => p.partId).filter(id => id && id !== 'custom'));
+    
+    let filteredParts = allParts;
+    if (selectedPartCategory !== 'All') {
+      filteredParts = allParts.filter(part => part.category === selectedPartCategory);
     }
-    return allParts.filter(part => part.category === selectedPartCategory);
+    
+    // Keep currently selected part in dropdown even if it would be filtered out
+    return filteredParts.filter(part => 
+      !selectedPartIds.has(part.id) || part.id === currentPartId
+    );
   };
 
   const handleSave = async () => {
@@ -443,13 +463,13 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {parts.map((part, index) => (
-                    <div key={index} className="grid grid-cols-12 gap-2 items-end p-4 border rounded-lg">
+                  {parts.map((part) => (
+                    <div key={part.id} className="grid grid-cols-12 gap-2 items-end p-4 border rounded-lg">
                       <div className="col-span-4">
                         <Label>Part Name</Label>
                         <Select
                           value={part.partId}
-                          onValueChange={(value) => selectPresetPart(value, index)}
+                          onValueChange={(value) => selectPresetPart(value, part.id)}
                         >
                           <SelectTrigger>
                             <SelectValue placeholder="Select part" />
@@ -461,7 +481,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                                 {selectedPartCategory} Parts
                               </div>
                             )}
-                            {getFilteredParts().map((preset) => (
+                            {getFilteredPartsForRow(part.partId).map((preset) => (
                               <SelectItem key={preset.id} value={preset.id}>
                                 <div className="flex justify-between items-center w-full">
                                   <span>{preset.name}</span>
@@ -475,7 +495,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                           <Input
                             className="mt-1"
                             value={part.partName}
-                            onChange={(e) => updatePart(index, { partName: e.target.value })}
+                            onChange={(e) => updatePart(part.id, { partName: e.target.value })}
                             placeholder="Enter part name"
                           />
                         )}
@@ -486,14 +506,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                           type="number"
                           min="1"
                           value={part.quantity}
-                          onChange={(e) => updatePart(index, { quantity: parseInt(e.target.value) || 1 })}
+                          onChange={(e) => updatePart(part.id, { quantity: parseInt(e.target.value) || 1 })}
                         />
                       </div>
                       <div className="col-span-2">
                         <Label>Unit Price</Label>
                         <InputCurrency
                           value={part.unitPrice}
-                          onChange={(value) => updatePart(index, { unitPrice: value })}
+                          onChange={(value) => updatePart(part.id, { unitPrice: value })}
                         />
                       </div>
                       <div className="col-span-2">
@@ -506,7 +526,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => removePart(index)}
+                          onClick={() => removePart(part.id)}
                           className="w-full"
                         >
                           <Trash2 className="w-4 h-4" />

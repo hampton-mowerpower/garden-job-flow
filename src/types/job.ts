@@ -31,6 +31,7 @@ export interface Part {
 }
 
 export interface JobPart {
+  id: string; // Add stable row ID
   partId: string;
   partName: string;
   quantity: number;

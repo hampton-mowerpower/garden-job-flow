@@ -6,6 +6,7 @@ import { InputCurrency } from '@/components/ui/input-currency';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Save, Download, Upload } from 'lucide-react';
+import { nanoid } from 'nanoid';
 import { Part } from '@/types/job';
 import { DEFAULT_PARTS } from '@/data/defaultParts';
 import { A4_PARTS, PART_CATEGORIES } from '@/data/a4Parts';
@@ -58,6 +59,7 @@ export const PartsManager: React.FC<PartsManagerProps> = ({ onPartsUpdate }) => 
       const customParts = parts
         .filter(part => !builtInIds.includes(part.id))
         .map(part => ({
+          id: nanoid(), // Use proper unique ID
           partId: part.id,
           partName: part.name,
           quantity: 1,
