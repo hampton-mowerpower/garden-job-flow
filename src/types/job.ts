@@ -13,7 +13,6 @@ export interface MachineCategory {
   id: string;
   name: string;
   labourRate: number; // per hour in AUD
-  labelCharge: number; // fixed charge in AUD
   commonBrands: string[];
 }
 
@@ -21,8 +20,9 @@ export interface Part {
   id: string;
   name: string;
   category: string;
-  price: number;
-  markup: number; // percentage
+  basePrice: number;
+  sellPrice: number;
+  markup?: number; // percentage - optional for global markup calculation
   inStock: boolean;
   description?: string;
 }
@@ -56,7 +56,6 @@ export interface Job {
   parts: JobPart[];
   labourHours: number;
   labourRate: number;
-  labelCharge: number;
   
   // Calculations
   partsSubtotal: number;

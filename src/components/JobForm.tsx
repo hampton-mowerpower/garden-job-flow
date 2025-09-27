@@ -57,8 +57,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   // Calculations
   const selectedCategory = MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
   const labourRate = selectedCategory?.labourRate || 0;
-  const labelCharge = selectedCategory?.labelCharge || 0;
-  const calculations = calculateJobTotals(parts, labourHours, labourRate, labelCharge);
+  const calculations = calculateJobTotals(parts, labourHours, labourRate);
 
   useEffect(() => {
     initializeForm();
@@ -142,7 +141,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       updatePart(index, {
         partId: presetPart.id,
         partName: presetPart.name,
-        unitPrice: presetPart.price,
+        unitPrice: presetPart.sellPrice,
         category: presetPart.category
       });
     }
@@ -201,7 +200,6 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         parts,
         labourHours,
         labourRate,
-        labelCharge,
         ...calculations,
         status,
         createdAt: job?.createdAt || new Date(),
@@ -413,7 +411,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                               <SelectItem key={preset.id} value={preset.id}>
                                 <div className="flex justify-between items-center w-full">
                                   <span>{preset.name}</span>
-                                  <span className="text-muted-foreground ml-2">${preset.price}</span>
+                                  <span className="text-muted-foreground ml-2">${preset.sellPrice}</span>
                                 </div>
                               </SelectItem>
                             ))}
@@ -525,13 +523,6 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                 <span>Labour ({labourHours}h × ${labourRate}/h):</span>
                 <span>{formatCurrency(labourHours * labourRate)}</span>
               </div>
-              
-              {labelCharge > 0 && (
-                <div className="flex justify-between">
-                  <span>Label Charge:</span>
-                  <span>{formatCurrency(labelCharge)}</span>
-                </div>
-              )}
               
               <div className="flex justify-between font-medium">
                 <span>Labour Total:</span>

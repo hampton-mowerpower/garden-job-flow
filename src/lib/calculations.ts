@@ -13,14 +13,13 @@ export interface JobCalculations {
 export function calculateJobTotals(
   parts: JobPart[],
   labourHours: number,
-  labourRate: number,
-  labelCharge: number = 0
+  labourRate: number
 ): JobCalculations {
   // Calculate parts subtotal
   const partsSubtotal = parts.reduce((sum, part) => sum + part.totalPrice, 0);
   
-  // Calculate labour total (hours × rate + label charge)
-  const labourTotal = (labourHours * labourRate) + labelCharge;
+  // Calculate labour total (hours × rate)
+  const labourTotal = labourHours * labourRate;
   
   // Calculate subtotal (parts + labour)
   const subtotal = partsSubtotal + labourTotal;

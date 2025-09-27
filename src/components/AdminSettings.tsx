@@ -14,6 +14,7 @@ import { DEFAULT_PARTS } from '@/data/defaultParts';
 import { A4_PARTS, PART_CATEGORIES } from '@/data/a4Parts';
 import { jobBookingDB } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
+import { PartsManager } from './PartsManager';
 
 interface AdminSettingsProps {
   onClose: () => void;
@@ -48,8 +49,8 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
         partId: part.id,
         partName: part.name,
         quantity: 1,
-        unitPrice: part.price,
-        totalPrice: part.price,
+        unitPrice: part.sellPrice,
+        totalPrice: part.sellPrice,
         category: part.category
       }));
       
@@ -102,7 +103,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
       id: `custom-${Date.now()}`,
       name: '',
       labourRate: 95,
-      labelCharge: 30,
       commonBrands: []
     };
     setCategories([...categories, newCategory]);
@@ -303,14 +303,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
                           onChange={(value) => updateCategory(index, { labourRate: value })}
                         />
                       </div>
-                      <div className="col-span-2">
-                        <Label>Label Charge</Label>
-                        <InputCurrency
-                          value={category.labelCharge}
-                          onChange={(value) => updateCategory(index, { labelCharge: value })}
-                        />
-                      </div>
-                      <div className="col-span-4">
+                      <div className="col-span-5">
                         <Label>Common Brands (comma separated)</Label>
                         <Input
                           value={category.commonBrands.join(', ')}
@@ -338,81 +331,9 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
           </TabsContent>
 
           <TabsContent value="parts">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Parts Database
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={addPart}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Part
-                    </Button>
-                    <Button variant="default" size="sm" onClick={saveParts}>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Changes
-                    </Button>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {parts.map((part, index) => (
-                    <div key={part.partId} className="grid grid-cols-12 gap-4 items-end p-4 border rounded-lg">
-                      <div className="col-span-4">
-                        <Label>Part Name</Label>
-                        <Input
-                          value={part.partName}
-                          onChange={(e) => updatePart(index, { partName: e.target.value })}
-                          placeholder="Enter part name"
-                        />
-                      </div>
-                      <div className="col-span-3">
-                        <Label>Category</Label>
-                        <Select 
-                          value={part.category || 'General'} 
-                          onValueChange={(value) => updatePart(index, { category: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select category" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {PART_CATEGORIES.map((category) => (
-                              <SelectItem key={category} value={category}>
-                                {category}
-                              </SelectItem>
-                            ))}
-                            <SelectItem value="General">General</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="col-span-2">
-                        <Label>Unit Price</Label>
-                        <InputCurrency
-                          value={part.unitPrice}
-                          onChange={(value) => updatePart(index, { unitPrice: value })}
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <Label>Total Price</Label>
-                        <div className="h-10 flex items-center px-3 bg-muted rounded-md">
-                          ${part.totalPrice.toFixed(2)}
-                        </div>
-                      </div>
-                      <div className="col-span-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removePart(index)}
-                          className="w-full"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <PartsManager onPartsUpdate={(updatedParts) => {
+              // Handle parts updates if needed
+            }} />
           </TabsContent>
 
           <TabsContent value="export">

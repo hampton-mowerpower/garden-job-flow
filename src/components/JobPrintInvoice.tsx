@@ -216,12 +216,6 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
                     <td class="total-label">Labour (${job.labourHours} hrs @ ${formatCurrency(job.labourRate)}/hr):</td>
                     <td class="total-amount">${formatCurrency(job.labourHours * job.labourRate)}</td>
                   </tr>
-                  ${job.labelCharge > 0 ? `
-                  <tr>
-                    <td class="total-label">Service Charge:</td>
-                    <td class="total-amount">${formatCurrency(job.labelCharge)}</td>
-                  </tr>
-                  ` : ''}
                   <tr>
                     <td class="total-label">Subtotal:</td>
                     <td class="total-amount">${formatCurrency(job.subtotal)}</td>

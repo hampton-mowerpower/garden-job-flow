@@ -7,7 +7,8 @@ export const A4_PARTS: Part[] = [
     id: 'flywheel-key',
     name: 'Flywheel Key',
     category: 'Engine',
-    price: 8.95,
+    basePrice: 7.46,
+    sellPrice: 8.95,
     markup: 20,
     inStock: true,
     description: 'Engine flywheel key'
@@ -16,7 +17,8 @@ export const A4_PARTS: Part[] = [
     id: 'valves',
     name: 'Valves',
     category: 'Engine',
-    price: 45.95,
+    basePrice: 38.29,
+    sellPrice: 45.95,
     markup: 20,
     inStock: true,
     description: 'Engine valves (inlet/exhaust)'
@@ -25,7 +27,8 @@ export const A4_PARTS: Part[] = [
     id: 'muffler',
     name: 'Muffler',
     category: 'Engine',
-    price: 65.95,
+    basePrice: 54.96,
+    sellPrice: 65.95,
     markup: 20,
     inStock: true,
     description: 'Engine exhaust muffler'
@@ -34,7 +37,8 @@ export const A4_PARTS: Part[] = [
     id: 'cylinder-head',
     name: 'Cylinder Head',
     category: 'Engine',
-    price: 125.95,
+    basePrice: 104.96,
+    sellPrice: 125.95,
     markup: 20,
     inStock: true,
     description: 'Engine cylinder head assembly'
@@ -43,7 +47,8 @@ export const A4_PARTS: Part[] = [
     id: 'piston-rings',
     name: 'Piston Rings',
     category: 'Engine',
-    price: 35.95,
+    basePrice: 29.96,
+    sellPrice: 35.95,
     markup: 20,
     inStock: true,
     description: 'Engine piston ring set'
@@ -52,7 +57,8 @@ export const A4_PARTS: Part[] = [
     id: 'oil-seal-top',
     name: 'Oil Seal - Top',
     category: 'Engine',
-    price: 12.95,
+    basePrice: 10.79,
+    sellPrice: 12.95,
     markup: 20,
     inStock: true,
     description: 'Top crankshaft oil seal'
@@ -61,7 +67,8 @@ export const A4_PARTS: Part[] = [
     id: 'oil-seal-bottom',
     name: 'Oil Seal - Bottom',
     category: 'Engine',
-    price: 12.95,
+    basePrice: 10.79,
+    sellPrice: 12.95,
     markup: 20,
     inStock: true,
     description: 'Bottom crankshaft oil seal'
@@ -70,7 +77,8 @@ export const A4_PARTS: Part[] = [
     id: 'gaskets',
     name: 'Gaskets',
     category: 'Engine',
-    price: 18.95,
+    basePrice: 15.79,
+    sellPrice: 18.95,
     markup: 20,
     inStock: true,
     description: 'Engine gasket set'
@@ -79,7 +87,8 @@ export const A4_PARTS: Part[] = [
     id: 'bearings',
     name: 'Bearings',
     category: 'Engine',
-    price: 28.95,
+    basePrice: 24.13,
+    sellPrice: 28.95,
     markup: 20,
     inStock: true,
     description: 'Crankshaft bearings'
@@ -88,7 +97,8 @@ export const A4_PARTS: Part[] = [
     id: 'oil-change',
     name: 'Oil Change',
     category: 'Engine',
-    price: 25.95,
+    basePrice: 21.63,
+    sellPrice: 25.95,
     markup: 20,
     inStock: true,
     description: 'Engine oil change service'
@@ -97,7 +107,8 @@ export const A4_PARTS: Part[] = [
     id: 'spark-plug',
     name: 'Spark Plug',
     category: 'Engine',
-    price: 10.75,
+    basePrice: 8.96,
+    sellPrice: 10.75,
     markup: 20,
     inStock: true,
     description: 'Standard spark plug'
@@ -106,7 +117,8 @@ export const A4_PARTS: Part[] = [
     id: 'decompressor',
     name: 'Decompressor',
     category: 'Engine',
-    price: 22.95,
+    basePrice: 19.13,
+    sellPrice: 22.95,
     markup: 20,
     inStock: true,
     description: 'Engine decompressor valve'
@@ -117,7 +129,8 @@ export const A4_PARTS: Part[] = [
     id: 'starter-cord',
     name: 'Starter Cord',
     category: 'Starter',
-    price: 8.95,
+    basePrice: 7.46,
+    sellPrice: 8.95,
     markup: 20,
     inStock: true,
     description: 'Pull start cord'
@@ -126,7 +139,8 @@ export const A4_PARTS: Part[] = [
     id: 'mainspring',
     name: 'Mainspring',
     category: 'Starter',
-    price: 15.95,
+    basePrice: 13.29,
+    sellPrice: 15.95,
     markup: 20,
     inStock: true,
     description: 'Recoil starter mainspring'
@@ -135,7 +149,8 @@ export const A4_PARTS: Part[] = [
     id: 'starter-pulley',
     name: 'Starter Pulley',
     category: 'Starter',
-    price: 25.95,
+    basePrice: 21.63,
+    sellPrice: 25.95,
     markup: 20,
     inStock: true,
     description: 'Recoil starter pulley'
@@ -144,7 +159,8 @@ export const A4_PARTS: Part[] = [
     id: 'ferrule',
     name: 'Ferrule',
     category: 'Starter',
-    price: 3.95,
+    basePrice: 3.29,
+    sellPrice: 3.95,
     markup: 20,
     inStock: true,
     description: 'Starter cord ferrule'
@@ -153,7 +169,8 @@ export const A4_PARTS: Part[] = [
     id: 'starter-handle',
     name: 'Starter Handle',
     category: 'Starter',
-    price: 6.95,
+    basePrice: 5.79,
+    sellPrice: 6.95,
     markup: 20,
     inStock: true,
     description: 'Pull start handle'
@@ -162,7 +179,8 @@ export const A4_PARTS: Part[] = [
     id: 'starter-wash',
     name: 'Starter Wash',
     category: 'Starter',
-    price: 2.95,
+    basePrice: 2.46,
+    sellPrice: 2.95,
     markup: 20,
     inStock: true,
     description: 'Starter washer'
@@ -173,7 +191,8 @@ export const A4_PARTS: Part[] = [
     id: 'air-gaskets',
     name: 'Air Gaskets',
     category: 'Carburetor',
-    price: 5.95,
+    basePrice: 4.96,
+    sellPrice: 5.95,
     markup: 20,
     inStock: true,
     description: 'Carburetor air gasket set'
@@ -182,7 +201,8 @@ export const A4_PARTS: Part[] = [
     id: 'diaphragm',
     name: 'Diaphragm',
     category: 'Carburetor',
-    price: 12.95,
+    basePrice: 10.79,
+    sellPrice: 12.95,
     markup: 20,
     inStock: true,
     description: 'Carburetor diaphragm'
@@ -191,7 +211,8 @@ export const A4_PARTS: Part[] = [
     id: 'poppet-valve',
     name: 'Poppet Valve',
     category: 'Carburetor',
-    price: 8.95,
+    basePrice: 7.46,
+    sellPrice: 8.95,
     markup: 20,
     inStock: true,
     description: 'Carburetor poppet valve'
@@ -200,7 +221,8 @@ export const A4_PARTS: Part[] = [
     id: 'end-cap',
     name: 'End Cap',
     category: 'Carburetor',
-    price: 7.95,
+    basePrice: 6.63,
+    sellPrice: 7.95,
     markup: 20,
     inStock: true,
     description: 'Carburetor end cap'
@@ -209,7 +231,8 @@ export const A4_PARTS: Part[] = [
     id: 'needle-seat',
     name: 'Needle & Seat',
     category: 'Carburetor',
-    price: 15.95,
+    basePrice: 13.29,
+    sellPrice: 15.95,
     markup: 20,
     inStock: true,
     description: 'Carburetor needle and seat assembly'
@@ -218,7 +241,8 @@ export const A4_PARTS: Part[] = [
     id: 'float',
     name: 'Float',
     category: 'Carburetor',
-    price: 18.95,
+    basePrice: 15.79,
+    sellPrice: 18.95,
     markup: 20,
     inStock: true,
     description: 'Carburetor float'
@@ -227,7 +251,8 @@ export const A4_PARTS: Part[] = [
     id: 'jet',
     name: 'Jet',
     category: 'Carburetor',
-    price: 9.95,
+    basePrice: 8.29,
+    sellPrice: 9.95,
     markup: 20,
     inStock: true,
     description: 'Carburetor main jet'
@@ -236,7 +261,8 @@ export const A4_PARTS: Part[] = [
     id: 'vent',
     name: 'Vent',
     category: 'Carburetor',
-    price: 4.95,
+    basePrice: 4.13,
+    sellPrice: 4.95,
     markup: 20,
     inStock: true,
     description: 'Tank vent'
@@ -247,7 +273,8 @@ export const A4_PARTS: Part[] = [
     id: 'grommet',
     name: 'Grommet',
     category: 'Fuel System',
-    price: 3.95,
+    basePrice: 3.29,
+    sellPrice: 3.95,
     markup: 20,
     inStock: true,
     description: 'Fuel tank grommet'
@@ -256,7 +283,8 @@ export const A4_PARTS: Part[] = [
     id: 'lifter',
     name: 'Lifter',
     category: 'Fuel System',
-    price: 6.95,
+    basePrice: 5.79,
+    sellPrice: 6.95,
     markup: 20,
     inStock: true,
     description: 'Fuel lifter'
@@ -265,7 +293,8 @@ export const A4_PARTS: Part[] = [
     id: 'primer-face',
     name: 'Primer Face',
     category: 'Fuel System',
-    price: 8.95,
+    basePrice: 7.46,
+    sellPrice: 8.95,
     markup: 20,
     inStock: true,
     description: 'Primer bulb face'
@@ -274,7 +303,8 @@ export const A4_PARTS: Part[] = [
     id: 'fuel-tank',
     name: 'Fuel Tank',
     category: 'Fuel System',
-    price: 45.95,
+    basePrice: 38.29,
+    sellPrice: 45.95,
     markup: 20,
     inStock: true,
     description: 'Fuel tank assembly'
@@ -283,7 +313,8 @@ export const A4_PARTS: Part[] = [
     id: 'fuel-tap',
     name: 'Fuel Tap',
     category: 'Fuel System',
-    price: 18.95,
+    basePrice: 15.79,
+    sellPrice: 18.95,
     markup: 20,
     inStock: true,
     description: 'Fuel shut-off tap'
@@ -292,7 +323,8 @@ export const A4_PARTS: Part[] = [
     id: 'fuel-line-metre',
     name: 'Fuel Line (per metre)',
     category: 'Fuel System',
-    price: 4.95,
+    basePrice: 4.13,
+    sellPrice: 4.95,
     markup: 20,
     inStock: true,
     description: 'Fuel line tubing'
@@ -301,7 +333,8 @@ export const A4_PARTS: Part[] = [
     id: 'air-filter',
     name: 'Air Filter',
     category: 'Fuel System',
-    price: 12.95,
+    basePrice: 10.79,
+    sellPrice: 12.95,
     markup: 20,
     inStock: true,
     description: 'Air filter element'
@@ -310,7 +343,8 @@ export const A4_PARTS: Part[] = [
     id: 'fuel-filter',
     name: 'Fuel Filter',
     category: 'Fuel System',
-    price: 7.95,
+    basePrice: 6.63,
+    sellPrice: 7.95,
     markup: 20,
     inStock: true,
     description: 'Inline fuel filter'
@@ -321,7 +355,8 @@ export const A4_PARTS: Part[] = [
     id: 'throttle-cable',
     name: 'Throttle Cable',
     category: 'Controls',
-    price: 19.95,
+    basePrice: 16.63,
+    sellPrice: 19.95,
     markup: 20,
     inStock: true,
     description: 'Throttle control cable'
@@ -330,7 +365,8 @@ export const A4_PARTS: Part[] = [
     id: 'throttle-control',
     name: 'Throttle Control',
     category: 'Controls',
-    price: 25.95,
+    basePrice: 21.63,
+    sellPrice: 25.95,
     markup: 20,
     inStock: true,
     description: 'Throttle control lever'
@@ -341,7 +377,8 @@ export const A4_PARTS: Part[] = [
     id: 'chainsaw-chain',
     name: 'Chainsaw Chain',
     category: 'Cutting',
-    price: 35.95,
+    basePrice: 29.96,
+    sellPrice: 35.95,
     markup: 20,
     inStock: true,
     description: 'Replacement chainsaw chain'
@@ -350,7 +387,8 @@ export const A4_PARTS: Part[] = [
     id: 'mower-blade',
     name: 'Mower Blade',
     category: 'Cutting',
-    price: 29.95,
+    basePrice: 24.96,
+    sellPrice: 29.95,
     markup: 20,
     inStock: true,
     description: 'Lawn mower blade'
@@ -359,7 +397,8 @@ export const A4_PARTS: Part[] = [
     id: 'brushcutter-head',
     name: 'Brushcutter Head',
     category: 'Cutting',
-    price: 45.95,
+    basePrice: 38.29,
+    sellPrice: 45.95,
     markup: 20,
     inStock: true,
     description: 'Brushcutter cutting head'
