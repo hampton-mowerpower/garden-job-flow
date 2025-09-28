@@ -187,13 +187,15 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         .filter(id => id && id !== 'custom' && id.trim() !== '')
     );
     
+    // Filter by category, but ALWAYS include the current part even if it's in a different category
     let filteredParts = allParts;
     if (selectedPartCategory !== 'All') {
-      filteredParts = allParts.filter(part => part.category === selectedPartCategory);
+      filteredParts = allParts.filter(part => 
+        part.category === selectedPartCategory || part.id === currentPartId
+      );
     }
     
-    // Keep currently selected part in dropdown even if it would be filtered out
-    // Also ensure we don't filter out parts that aren't actually selected yet
+    // Keep currently selected part in dropdown and filter out other selected parts
     const availableParts = filteredParts.filter(part => 
       !selectedPartIds.has(part.id) || part.id === currentPartId
     );
