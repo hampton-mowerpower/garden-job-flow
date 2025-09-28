@@ -14,13 +14,314 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      customers_db: {
+        Row: {
+          address: string
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone: string
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      job_parts: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          part_id: string
+          quantity: number
+          total_price: number
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          part_id: string
+          quantity?: number
+          total_price: number
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          part_id?: string
+          quantity?: number
+          total_price?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_parts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_db"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_parts_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_catalogue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      jobs_db: {
+        Row: {
+          assigned_technician: string | null
+          completed_at: string | null
+          created_at: string
+          customer_id: string
+          grand_total: number
+          gst: number
+          id: string
+          job_number: string
+          labour_hours: number
+          labour_rate: number
+          labour_total: number
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial: string | null
+          notes: string | null
+          parts_required: string | null
+          parts_subtotal: number
+          problem_description: string
+          quotation_amount: number | null
+          recommendations: string | null
+          service_deposit: number | null
+          service_performed: string | null
+          status: string
+          subtotal: number
+          updated_at: string
+        }
+        Insert: {
+          assigned_technician?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id: string
+          grand_total?: number
+          gst?: number
+          id?: string
+          job_number: string
+          labour_hours?: number
+          labour_rate?: number
+          labour_total?: number
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial?: string | null
+          notes?: string | null
+          parts_required?: string | null
+          parts_subtotal?: number
+          problem_description: string
+          quotation_amount?: number | null
+          recommendations?: string | null
+          service_deposit?: number | null
+          service_performed?: string | null
+          status?: string
+          subtotal?: number
+          updated_at?: string
+        }
+        Update: {
+          assigned_technician?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string
+          grand_total?: number
+          gst?: number
+          id?: string
+          job_number?: string
+          labour_hours?: number
+          labour_rate?: number
+          labour_total?: number
+          machine_brand?: string
+          machine_category?: string
+          machine_model?: string
+          machine_serial?: string | null
+          notes?: string | null
+          parts_required?: string | null
+          parts_subtotal?: number
+          problem_description?: string
+          quotation_amount?: number | null
+          recommendations?: string | null
+          service_deposit?: number | null
+          service_performed?: string | null
+          status?: string
+          subtotal?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_db_assigned_technician_fkey"
+            columns: ["assigned_technician"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_db_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parts_catalogue: {
+        Row: {
+          base_price: number
+          category: string
+          competitor_price: number | null
+          created_at: string
+          description: string | null
+          id: string
+          in_stock: boolean
+          markup: number | null
+          name: string
+          sell_price: number
+          sku: string
+          source: string | null
+          stock_quantity: number
+          supplier: string | null
+          upc: string | null
+          updated_at: string
+        }
+        Insert: {
+          base_price: number
+          category: string
+          competitor_price?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          in_stock?: boolean
+          markup?: number | null
+          name: string
+          sell_price: number
+          sku: string
+          source?: string | null
+          stock_quantity?: number
+          supplier?: string | null
+          upc?: string | null
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          category?: string
+          competitor_price?: number | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          in_stock?: boolean
+          markup?: number | null
+          name?: string
+          sell_price?: number
+          sku?: string
+          source?: string | null
+          stock_quantity?: number
+          supplier?: string | null
+          upc?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          permissions: string[] | null
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          permissions?: string[] | null
+          role?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          permissions?: string[] | null
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_daily_takings: {
+        Args: { end_date: string; start_date: string }
+        Returns: {
+          average_job_value: number
+          date: string
+          total_jobs: number
+          total_revenue: number
+        }[]
+      }
+      get_parts_usage_report: {
+        Args: { end_date: string; start_date: string }
+        Returns: {
+          part_id: string
+          part_name: string
+          sku: string
+          total_quantity: number
+          total_value: number
+        }[]
+      }
+      get_technician_productivity: {
+        Args: {
+          end_date: string
+          filter_technician_id?: string
+          start_date: string
+        }
+        Returns: {
+          average_job_time: number
+          jobs_completed: number
+          technician_id: string
+          technician_name: string
+          total_revenue: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
