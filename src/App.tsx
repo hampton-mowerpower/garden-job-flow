@@ -1,21 +1,14 @@
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider, useAuth } from '@/components/auth/AuthProvider'
-import { LoginPage } from '@/components/auth/LoginPage'
-import { Navigation } from '@/components/Navigation'
-import Index from "./pages/Index";
-import NotFound from "./pages/NotFound";
-import { PartsCatalogue } from '@/components/parts/PartsCatalogue'
-import { ReportsManager } from '@/components/reports/ReportsManager'
-import { AdminSettings } from '@/components/AdminSettings'
-
-const queryClient = new QueryClient();
+import { useState } from 'react';
+import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
+import { LoginPage } from '@/components/auth/LoginPage';
+import { Navigation } from '@/components/Navigation';
+import { PartsCatalogue } from '@/components/parts/PartsCatalogue';
+import { ReportsManager } from '@/components/reports/ReportsManager';
+import { Toaster } from '@/components/ui/toaster';
 
 function AppContent() {
-  const { user, loading } = useAuth()
+  const [currentView, setCurrentView] = useState('jobs');
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -25,29 +18,74 @@ function AppContent() {
           <p>Loading...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!user) {
-    return <LoginPage />
+    return <LoginPage />;
   }
 
+  const renderCurrentView = () => {
+    switch (currentView) {
+      case 'jobs':
+        return (
+          <div className="container mx-auto p-6">
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-bold mb-4">Job Management</h2>
+              <p className="text-muted-foreground">Job management functionality coming soon...</p>
+            </div>
+          </div>
+        );
+      case 'customers':
+        return (
+          <div className="container mx-auto p-6">
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-bold mb-4">Customer Management</h2>
+              <p className="text-muted-foreground">Customer management functionality coming soon...</p>
+            </div>
+          </div>
+        );
+      case 'parts':
+        return (
+          <div className="container mx-auto p-6">
+            <PartsCatalogue />
+          </div>
+        );
+      case 'reports':
+        return (
+          <div className="container mx-auto p-6">
+            <ReportsManager />
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="container mx-auto p-6">
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-bold mb-4">Settings</h2>
+              <p className="text-muted-foreground">Settings functionality coming soon...</p>
+            </div>
+          </div>
+        );
+      default:
+        return (
+          <div className="container mx-auto p-6">
+            <div className="text-center py-12">
+              <h2 className="text-2xl font-bold mb-4">Welcome to Job Manager</h2>
+              <p className="text-muted-foreground">Select an option from the navigation menu.</p>
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
-    <div className="flex min-h-screen">
-      <div className="w-64 flex-shrink-0">
-        <Navigation />
-      </div>
-      <div className="flex-1 p-6 overflow-auto">
-        <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/parts" element={<PartsCatalogue />} />
-          <Route path="/reports" element={<ReportsManager />} />
-          <Route path="/admin" element={<AdminSettings onClose={() => {}} />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
+    <div className="min-h-screen bg-background">
+      <Navigation currentView={currentView} setCurrentView={setCurrentView} />
+      <main>
+        {renderCurrentView()}
+      </main>
     </div>
-  )
+  );
 }
 
 const App = () => (

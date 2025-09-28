@@ -1,81 +1,84 @@
-import React from 'react'
-import { Link, useLocation } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
+import { useAuth } from '@/components/auth/AuthProvider';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
-  Home, 
+  NavigationMenu, 
+  NavigationMenuContent, 
+  NavigationMenuItem, 
+  NavigationMenuList, 
+  NavigationMenuTrigger 
+} from '@/components/ui/navigation-menu';
+import { 
+  Wrench, 
   Users, 
-  Settings, 
   Package, 
+  ClipboardList, 
   BarChart3, 
+  Settings, 
   LogOut,
-  UserCog
-} from 'lucide-react'
-import { useAuth } from '@/components/auth/AuthProvider'
+  User
+} from 'lucide-react';
 
-const navigationItems = [
-  { path: '/', icon: Home, label: 'Dashboard' },
-  { path: '/customers', icon: Users, label: 'Customers' },
-  { path: '/parts', icon: Package, label: 'Parts Catalogue' },
-  { path: '/reports', icon: BarChart3, label: 'Reports' },
-  { path: '/admin', icon: Settings, label: 'Admin Settings' },
-]
+interface NavigationProps {
+  currentView: string;
+  setCurrentView: (view: string) => void;
+}
 
-export function Navigation() {
-  const location = useLocation()
-  const { user, userRole, signOut } = useAuth()
+export function Navigation({ currentView, setCurrentView }: NavigationProps) {
+  const { user, userRole, signOut } = useAuth();
 
-  const handleSignOut = async () => {
-    try {
-      await signOut()
-    } catch (error) {
-      console.error('Error signing out:', error)
-    }
-  }
+  const menuItems = [
+    { id: 'jobs', label: 'Jobs', icon: ClipboardList, roles: ['admin', 'technician', 'counter'] },
+    { id: 'customers', label: 'Customers', icon: Users, roles: ['admin', 'counter'] },
+    { id: 'parts', label: 'Parts Catalogue', icon: Package, roles: ['admin', 'technician', 'counter'] },
+    { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin'] },
+    { id: 'settings', label: 'Settings', icon: Settings, roles: ['admin'] },
+  ];
+
+  const availableMenuItems = menuItems.filter(item => 
+    item.roles.includes(userRole || '')
+  );
 
   return (
-    <nav className="bg-card border-r border-border p-4 min-h-screen">
-      <div className="space-y-2">
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold">Job Booking System</h2>
-          {user && (
-            <div className="text-sm text-muted-foreground mt-2">
-              <div className="flex items-center gap-2">
-                <UserCog className="h-4 w-4" />
-                <span>{user.email}</span>
-                <Badge variant="secondary" className="text-xs">
-                  {userRole}
-                </Badge>
-              </div>
-            </div>
-          )}
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between">
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-2">
+            <Wrench className="h-6 w-6 text-primary" />
+            <span className="text-xl font-bold">Job Manager</span>
+          </div>
+          
+          <NavigationMenu>
+            <NavigationMenuList>
+              {availableMenuItems.map((item) => (
+                <NavigationMenuItem key={item.id}>
+                  <Button
+                    variant={currentView === item.id ? "default" : "ghost"}
+                    onClick={() => setCurrentView(item.id)}
+                    className="flex items-center space-x-2"
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </Button>
+                </NavigationMenuItem>
+              ))}
+            </NavigationMenuList>
+          </NavigationMenu>
         </div>
 
-        {navigationItems.map((item) => (
-          <Button
-            key={item.path}
-            asChild
-            variant={location.pathname === item.path ? 'default' : 'ghost'}
-            className="w-full justify-start"
-          >
-            <Link to={item.path}>
-              <item.icon className="mr-2 h-4 w-4" />
-              {item.label}
-            </Link>
-          </Button>
-        ))}
-
-        <div className="pt-4 border-t border-border">
-          <Button
-            onClick={handleSignOut}
-            variant="ghost"
-            className="w-full justify-start text-destructive hover:text-destructive"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <User className="h-4 w-4" />
+            <span className="text-sm">{user?.email}</span>
+            <Badge variant="secondary" className="capitalize">
+              {userRole}
+            </Badge>
+          </div>
+          <Button variant="ghost" onClick={signOut}>
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </div>
-    </nav>
-  )
+    </header>
+  );
 }

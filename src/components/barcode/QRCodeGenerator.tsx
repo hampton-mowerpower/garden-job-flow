@@ -1,20 +1,19 @@
-import React from 'react'
-import { QRCodeSVG } from 'qrcode.react'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { QrCode, Printer } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Printer, QrCode } from 'lucide-react';
 
 interface QRCodeGeneratorProps {
-  jobNumber: string
-  jobId: string
-  size?: number
+  jobNumber: string;
+  jobId: string;
+  size?: number;
 }
 
-export function QRCodeGenerator({ jobNumber, jobId, size = 128 }: QRCodeGeneratorProps) {
-  const jobUrl = `${window.location.origin}/job/${jobId}`
-  
+export function QRCodeGenerator({ jobNumber, jobId, size = 200 }: QRCodeGeneratorProps) {
+  const jobUrl = `${window.location.origin}/job/${jobId}`;
+
   const printQRCode = () => {
-    const printWindow = window.open('', '_blank')
+    const printWindow = window.open('', '_blank');
     if (printWindow) {
       printWindow.document.write(`
         <html>
@@ -24,60 +23,36 @@ export function QRCodeGenerator({ jobNumber, jobId, size = 128 }: QRCodeGenerato
               body { 
                 font-family: Arial, sans-serif; 
                 text-align: center; 
-                padding: 20px; 
-              }
-              .qr-container {
-                display: inline-block;
                 padding: 20px;
-                border: 1px solid #ccc;
+                margin: 0;
+              }
+              .qr-container { 
+                display: inline-block; 
+                border: 2px solid #000; 
+                padding: 20px; 
                 margin: 20px;
               }
-              @media print {
-                body { margin: 0; }
-                .no-print { display: none; }
-              }
+              h1 { font-size: 24px; margin-bottom: 10px; }
+              p { font-size: 16px; margin: 10px 0; }
+              .job-url { font-size: 12px; word-break: break-all; }
             </style>
           </head>
           <body>
             <div class="qr-container">
-              <h2>Job ${jobNumber}</h2>
+              <h1>Job: ${jobNumber}</h1>
               <div id="qr-code"></div>
-              <p>Scan to open job details</p>
-              <p style="font-size: 12px; color: #666;">${jobUrl}</p>
+              <p class="job-url">${jobUrl}</p>
             </div>
-            <button class="no-print" onclick="window.print()">Print</button>
+            <script>
+              // QR Code will be inserted here
+              window.print();
+            </script>
           </body>
         </html>
-      `)
-      
-      // Generate QR code SVG for the print window
-      const qrContainer = printWindow.document.getElementById('qr-code')
-      if (qrContainer) {
-        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-        svg.setAttribute('width', '200')
-        svg.setAttribute('height', '200')
-        
-        // Create a temporary container to render QR code
-        const tempDiv = document.createElement('div')
-        document.body.appendChild(tempDiv)
-        
-        // Use QRCodeSVG to generate the QR code (simplified approach for print)
-        qrContainer.innerHTML = `
-          <svg width="200" height="200" viewBox="0 0 200 200">
-            <rect width="200" height="200" fill="white"/>
-            <!-- QR Code would be generated here - using placeholder pattern -->
-            <text x="100" y="100" text-anchor="middle" font-size="12" fill="black">QR Code</text>
-            <text x="100" y="120" text-anchor="middle" font-size="8" fill="black">${jobNumber}</text>
-          </svg>
-        `
-        
-        document.body.removeChild(tempDiv)
-      }
-      
-      printWindow.document.close()
-      printWindow.focus()
+      `);
+      printWindow.document.close();
     }
-  }
+  };
 
   return (
     <Dialog>
@@ -92,28 +67,23 @@ export function QRCodeGenerator({ jobNumber, jobId, size = 128 }: QRCodeGenerato
           <DialogTitle>Job QR Code - {jobNumber}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col items-center space-y-4">
-          <div className="p-4 bg-white rounded-lg border">
-            <QRCodeSVG 
+          <div className="bg-white p-4 rounded-lg border">
+            <QRCodeSVG
               value={jobUrl}
               size={size}
               level="M"
-              includeMargin
+              includeMargin={true}
             />
           </div>
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground mb-2">
-              Scan to open job details instantly
-            </p>
-            <p className="text-xs font-mono text-muted-foreground break-all">
-              {jobUrl}
-            </p>
-          </div>
+          <p className="text-sm text-muted-foreground text-center break-all">
+            {jobUrl}
+          </p>
           <Button onClick={printQRCode} className="w-full">
             <Printer className="h-4 w-4 mr-2" />
-            Print QR Label
+            Print QR Code
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
