@@ -1,16 +1,10 @@
-import { useState } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { BrowserRouter } from 'react-router-dom';
-import { TooltipProvider } from '@radix-ui/react-tooltip';
-import { Toaster } from '@/components/ui/toaster';
-import { Toaster as Sonner } from '@/components/ui/sonner';
+import React, { useState } from 'react';
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { Navigation } from '@/components/Navigation';
 import { PartsCatalogue } from '@/components/parts/PartsCatalogue';
 import { ReportsManager } from '@/components/reports/ReportsManager';
-
-const queryClient = new QueryClient();
+import { Toaster } from '@/components/ui/toaster';
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('jobs');
@@ -94,18 +88,13 @@ function AppContent() {
   );
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <BrowserRouter>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </BrowserRouter>
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
       <Toaster />
-      <Sonner />
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+    </AuthProvider>
+  );
+}
 
 export default App;
