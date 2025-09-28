@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { Navigation } from '@/components/Navigation';
+import { JobManager } from '@/components/JobManager';
 import { PartsCatalogue } from '@/components/parts/PartsCatalogue';
 import { ReportsManager } from '@/components/reports/ReportsManager';
 import { Toaster } from '@/components/ui/toaster';
@@ -30,10 +31,7 @@ function AppContent() {
       case 'jobs':
         return (
           <div className="container mx-auto p-6">
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold mb-4">Job Management</h2>
-              <p className="text-muted-foreground">Job management functionality coming soon...</p>
-            </div>
+            <JobManager />
           </div>
         );
       case 'customers':
