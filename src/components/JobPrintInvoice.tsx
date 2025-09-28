@@ -21,78 +21,107 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
           <style>
             @media print {
               @page { size: A4; margin: 15mm; }
-              body { font-family: Arial, sans-serif; font-size: 11px; }
+              body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; }
             }
             body { 
-              font-family: Arial, sans-serif; 
+              font-family: 'Segoe UI', Arial, sans-serif; 
               margin: 0; 
               padding: 20px;
               background: white;
-              line-height: 1.4;
+              line-height: 1.5;
+              color: #333;
             }
             .invoice-container {
               max-width: 800px;
               background: white;
+              margin: 0 auto;
             }
             .header {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              border-bottom: 3px solid #000;
-              padding-bottom: 20px;
-              margin-bottom: 30px;
+              text-align: center;
+              border-bottom: 2px solid #2563eb;
+              padding-bottom: 15px;
+              margin-bottom: 25px;
             }
             .company-info h1 {
-              margin: 0;
-              font-size: 28px;
-              color: #000;
+              margin: 0 0 5px 0;
+              font-size: 24px;
+              color: #1e40af;
+              font-weight: 600;
             }
             .company-info p {
-              margin: 5px 0;
+              margin: 2px 0;
               color: #666;
+              font-size: 11px;
             }
-            .invoice-details {
-              text-align: right;
+            .invoice-title {
+              background: #f8fafc;
+              padding: 10px;
+              margin: 20px 0;
+              border-radius: 4px;
+              text-align: center;
             }
-            .invoice-details h2 {
+            .invoice-title h2 {
               margin: 0;
-              font-size: 24px;
-              color: #000;
+              font-size: 20px;
+              color: #1e40af;
+            }
+            .invoice-meta {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 20px;
+              font-size: 11px;
             }
             .customer-machine {
               display: flex;
               justify-content: space-between;
-              margin-bottom: 30px;
+              margin-bottom: 25px;
             }
             .customer-info, .machine-info {
               width: 48%;
+              background: #f9fafb;
+              padding: 15px;
+              border-radius: 4px;
             }
             .customer-info h3, .machine-info h3 {
               margin: 0 0 10px 0;
-              font-size: 16px;
-              color: #000;
-              border-bottom: 1px solid #ccc;
+              font-size: 14px;
+              color: #1e40af;
+              border-bottom: 1px solid #e5e7eb;
               padding-bottom: 5px;
             }
+            .customer-info p, .machine-info p {
+              margin: 3px 0;
+              font-size: 11px;
+            }
             .problem-section {
-              background: #f9f9f9;
+              background: #fef3c7;
               padding: 15px;
               margin-bottom: 20px;
-              border-left: 4px solid #333;
+              border-radius: 4px;
+              border-left: 4px solid #f59e0b;
+            }
+            .service-section {
+              background: #dcfce7;
+              padding: 15px;
+              margin-bottom: 20px;
+              border-radius: 4px;
+              border-left: 4px solid #22c55e;
             }
             .parts-table {
               width: 100%;
               border-collapse: collapse;
               margin-bottom: 20px;
+              font-size: 11px;
             }
             .parts-table th, .parts-table td {
-              border: 1px solid #ddd;
+              border: 1px solid #e5e7eb;
               padding: 8px;
               text-align: left;
             }
             .parts-table th {
-              background: #f5f5f5;
-              font-weight: bold;
+              background: #f3f4f6;
+              font-weight: 600;
+              color: #374151;
             }
             .parts-table .qty, .parts-table .price {
               text-align: right;
@@ -100,36 +129,68 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
             .totals {
               float: right;
               width: 300px;
+              margin-top: 20px;
             }
             .totals table {
               width: 100%;
               border-collapse: collapse;
+              font-size: 12px;
             }
             .totals td {
-              padding: 8px;
-              border-bottom: 1px solid #ddd;
+              padding: 8px 12px;
+              border-bottom: 1px solid #e5e7eb;
             }
             .totals .total-label {
-              font-weight: bold;
+              font-weight: 500;
               text-align: right;
+              color: #374151;
             }
             .totals .total-amount {
               text-align: right;
-              font-weight: bold;
+              font-weight: 600;
             }
             .grand-total {
-              background: #000;
+              background: #1e40af;
               color: white;
-              font-size: 16px;
+              font-size: 14px;
             }
-            .footer {
+            .grand-total td {
+              border-bottom: none;
+            }
+            .terms-section {
               clear: both;
-              text-align: center;
               margin-top: 40px;
-              padding-top: 20px;
-              border-top: 1px solid #ccc;
-              color: #666;
+              padding: 20px;
+              background: #f9fafb;
+              border-radius: 4px;
+              border: 1px solid #e5e7eb;
+            }
+            .terms-title {
+              font-size: 14px;
+              font-weight: 600;
+              color: #1e40af;
+              margin-bottom: 10px;
+              text-align: center;
+            }
+            .terms-content {
               font-size: 10px;
+              line-height: 1.4;
+              color: #4b5563;
+            }
+            .terms-content ol {
+              margin: 0;
+              padding-left: 15px;
+            }
+            .terms-content li {
+              margin-bottom: 4px;
+            }
+            .consumer-rights {
+              margin-top: 15px;
+              padding-top: 15px;
+              border-top: 1px solid #e5e7eb;
+              font-size: 9px;
+              color: #6b7280;
+              font-style: italic;
             }
             .clearfix::after {
               content: "";
@@ -144,15 +205,23 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
               <div class="company-info">
                 <h1>HAMPTON MOWERPOWER</h1>
                 <p>Garden Equipment Sales & Service</p>
-                <p>87 Ludstone Street, Hampton 3188</p>
-                <p>(03) 9598 6741 | https://www.hamptonmowerpower.com.au</p>
-                <p>ABN: 97 161 289 069</p>
+                <p>87 Ludstone Street, Hampton 3188 | (03) 9598 6741</p>
+                <p>www.hamptonmowerpower.com.au | ABN: 97 161 289 069</p>
               </div>
-              <div class="invoice-details">
-                <h2>INVOICE</h2>
-                <p><strong>Job #:</strong> ${job.jobNumber}</p>
-                <p><strong>Date:</strong> ${new Date(job.createdAt).toLocaleDateString('en-AU')}</p>
-                <p><strong>Status:</strong> ${job.status.charAt(0).toUpperCase() + job.status.slice(1)}</p>
+            </div>
+
+            <div class="invoice-title">
+              <h2>TAX INVOICE</h2>
+            </div>
+
+            <div class="invoice-meta">
+              <div>
+                <strong>Job Number:</strong> ${job.jobNumber}<br>
+                <strong>Invoice Date:</strong> ${new Date(job.createdAt).toLocaleDateString('en-AU')}<br>
+                <strong>Status:</strong> ${job.status.charAt(0).toUpperCase() + job.status.slice(1)}
+              </div>
+              <div style="text-align: right;">
+                ${job.completedAt ? `<strong>Completion Date:</strong> ${new Date(job.completedAt).toLocaleDateString('en-AU')}` : ''}
               </div>
             </div>
 
@@ -165,7 +234,7 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
                 ${job.customer.email ? `<p>${job.customer.email}</p>` : ''}
               </div>
               <div class="machine-info">
-                <h3>Machine Details</h3>
+                <h3>Equipment Details</h3>
                 <p><strong>Type:</strong> ${job.machineCategory}</p>
                 <p><strong>Brand:</strong> ${job.machineBrand}</p>
                 <p><strong>Model:</strong> ${job.machineModel}</p>
@@ -174,26 +243,26 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
             </div>
 
             <div class="problem-section">
-              <h3 style="margin-top: 0;">Problem Description</h3>
+              <h3 style="margin-top: 0; color: #92400e;">Problem Description</h3>
               <p>${job.problemDescription}</p>
-              ${job.notes ? `<p><strong>Notes:</strong> ${job.notes}</p>` : ''}
+              ${job.notes ? `<p><strong>Additional Notes:</strong> ${job.notes}</p>` : ''}
             </div>
 
             ${(job.servicePerformed || job.recommendations) ? `
-            <div class="problem-section" style="background: #e8f5e8; border-left-color: #4caf50;">
-              <h3 style="margin-top: 0;">Mechanic Notes</h3>
-              ${job.servicePerformed ? `<p><strong>Service Performed:</strong> ${job.servicePerformed}</p>` : ''}
-              ${job.recommendations ? `<p><strong>Recommendations / Future Attention:</strong> ${job.recommendations}</p>` : ''}
+            <div class="service-section">
+              <h3 style="margin-top: 0; color: #16a34a;">Service Completed</h3>
+              ${job.servicePerformed ? `<p><strong>Work Performed:</strong> ${job.servicePerformed}</p>` : ''}
+              ${job.recommendations ? `<p><strong>Recommendations:</strong> ${job.recommendations}</p>` : ''}
             </div>
             ` : ''}
 
             ${job.parts.length > 0 ? `
-            ${job.partsRequired ? `<p><strong>Parts Required:</strong> ${job.partsRequired}</p>` : ''}
-            <h3>Parts Used</h3>
+            ${job.partsRequired ? `<p style="margin-bottom: 15px;"><strong>Parts Required:</strong> ${job.partsRequired}</p>` : ''}
+            <h3 style="color: #1e40af; margin-bottom: 10px;">Parts & Materials</h3>
             <table class="parts-table">
               <thead>
                 <tr>
-                  <th>Part Description</th>
+                  <th>Description</th>
                   <th class="qty">Qty</th>
                   <th class="price">Unit Price</th>
                   <th class="price">Total</th>
@@ -226,7 +295,7 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
                     <td class="total-amount">${formatCurrency(job.labourHours * job.labourRate)}</td>
                   </tr>
                   <tr>
-                    <td class="total-label">Subtotal:</td>
+                    <td class="total-label">Subtotal (excl. GST):</td>
                     <td class="total-amount">${formatCurrency(job.subtotal)}</td>
                   </tr>
                   <tr>
@@ -234,26 +303,31 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
                     <td class="total-amount">${formatCurrency(job.gst)}</td>
                   </tr>
                   <tr class="grand-total">
-                    <td class="total-label">TOTAL:</td>
+                    <td class="total-label">TOTAL AMOUNT DUE:</td>
                     <td class="total-amount">${formatCurrency(job.grandTotal)}</td>
                   </tr>
                 </table>
               </div>
             </div>
 
-            <div class="footer">
-              <p><strong>Thank you for choosing Hampton Mowerpower!</strong></p>
-              <p><strong>REPAIR CONTRACT CONDITIONS:</strong></p>
-              <p style="text-align: left; font-size: 9px; line-height: 1.2;">
-                1. All work is guaranteed for 90 days from completion date.<br>
-                2. Customer machines left for more than 30 days after completion may incur storage charges.<br>
-                3. Estimates are valid for 30 days. Additional charges may apply for work beyond original estimate.<br>
-                4. Payment is due upon completion unless prior arrangements have been made.<br>
-                5. We are not responsible for machines left unattended on premises.<br>
-                6. Customer agrees to pay all repair costs even if machine proves economically unviable to repair.<br>
-                7. Used parts may be supplied unless specifically requested otherwise.<br>
-                8. Warranty does not cover abuse, normal wear, or damage caused by poor maintenance.
-              </p>
+            <div class="terms-section">
+              <div class="terms-title">REPAIR CONTRACT CONDITIONS</div>
+              <div class="terms-content">
+                <ol>
+                  <li>All domestic customer service work is guaranteed for 90 days from completion date.</li>
+                  <li>All commercial customer service work is covered by floor warranty only (as provided by the manufacturer or distributor).</li>
+                  <li>Customer machines left for more than 30 days after completion may incur storage charges.</li>
+                  <li>Estimates are valid for 30 days. Additional charges may apply for work beyond original estimate.</li>
+                  <li>Payment is due upon completion unless prior arrangements have been made.</li>
+                  <li>We are not responsible for machines left unattended on premises.</li>
+                  <li>Customer agrees to pay all repair costs even if machine proves economically unviable to repair.</li>
+                  <li>Used parts may be supplied unless specifically requested otherwise.</li>
+                  <li>Warranty does not cover abuse, normal wear, or damage caused by poor maintenance.</li>
+                </ol>
+                <div class="consumer-rights">
+                  <strong>Australian Consumer Law:</strong> Our goods and services come with guarantees that cannot be excluded under Australian Consumer Law. You are entitled to a replacement or refund for a major failure and compensation for any other reasonably foreseeable loss or damage. You are also entitled to have the goods repaired or replaced if the goods fail to be of acceptable quality and the failure does not amount to a major failure. These terms do not limit your rights under Australian Consumer Law.
+                </div>
+              </div>
             </div>
           </div>
         </body>
