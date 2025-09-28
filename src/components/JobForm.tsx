@@ -19,7 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { JobPrintLabel } from './JobPrintLabel';
 import { JobPrintInvoice } from './JobPrintInvoice';
 import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
-import { ServiceNoteTemplates } from './ServiceNoteTemplates';
+
 import { MachineManager } from './MachineManager';
 
 interface JobFormProps {
@@ -48,9 +48,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [machineSerial, setMachineSerial] = useState('');
   const [problemDescription, setProblemDescription] = useState('');
   const [notes, setNotes] = useState('');
-  const [serviceTemplates, setServiceTemplates] = useState<string[]>([]);
   const [servicePerformed, setServicePerformed] = useState('');
   const [recommendations, setRecommendations] = useState('');
+  const [serviceDeposit, setServiceDeposit] = useState(0);
+  const [quotationAmount, setQuotationAmount] = useState(0);
   
   const [parts, setParts] = useState<JobPart[]>([]);
   const [labourHours, setLabourHours] = useState(0);
@@ -60,7 +61,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   // Calculations
   const selectedCategory = HAMPTON_MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
   const labourRate = selectedCategory?.labourRate || 0;
-  const calculations = calculateJobTotals(parts, labourHours, labourRate);
+  const baseCalculations = calculateJobTotals(parts, labourHours, labourRate);
+  
+  // Apply service deposit deduction to final total
+  const calculations = {
+    ...baseCalculations,
+    finalTotal: Math.max(0, baseCalculations.grandTotal - serviceDeposit),
+    serviceDeposit
+  };
   
   // Generate Parts Required list reliably
   const partsRequired = parts
@@ -83,9 +91,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setMachineSerial(job.machineSerial || '');
       setProblemDescription(job.problemDescription);
       setNotes(job.notes || '');
-      setServiceTemplates(job.serviceTemplates || []); // Load service templates
       setServicePerformed(job.servicePerformed || '');
       setRecommendations(job.recommendations || '');
+      setServiceDeposit(job.serviceDeposit || 0);
+      setQuotationAmount(job.quotationAmount || 0);
       
       // Migrate parts to include stable IDs if missing
       const migratedParts = job.parts.map(part => ({
@@ -244,9 +253,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         machineSerial,
         problemDescription,
         notes,
-        serviceTemplates, // Add service templates to job data
         servicePerformed,
         recommendations,
+        serviceDeposit,
+        quotationAmount,
         partsRequired, // Store computed parts list
         parts,
         labourHours,
@@ -396,10 +406,52 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                   rows={3}
                 />
               </div>
-              <ServiceNoteTemplates
-                selectedTemplates={serviceTemplates}
-                onTemplatesChange={setServiceTemplates}
-              />
+              
+              <div>
+                <Label>Quick Problem Descriptions</Label>
+                <p className="text-sm text-muted-foreground mb-3">Click to add to problem description above</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    'Full Service Required',
+                    'Blade Sharpen',
+                    'Carburetor Clean',
+                    'Chain Sharpen', 
+                    'Recoil Cord Replacement',
+                    'Oil Change',
+                    'Spark Plug Replacement',
+                    'Air Filter Clean/Replace',
+                    'Fuel System Service',
+                    'Engine Tune-Up',
+                    'Belt Replacement',
+                    'Tire Repair',
+                    'Deck Clean & Adjust',
+                    'Safety Check',
+                    'Won\'t Start',
+                    'Runs Rough',
+                    'No Power',
+                    'Smoking',
+                    'Overheating'
+                  ].map((quickDesc) => (
+                    <Button
+                      key={quickDesc}
+                      variant="outline"
+                      size="sm"
+                      type="button"
+                      onClick={() => {
+                        const currentDesc = problemDescription.trim();
+                        const newDesc = currentDesc 
+                          ? `${currentDesc}${currentDesc.endsWith('.') || currentDesc.endsWith(',') ? ' ' : ', '}${quickDesc}`
+                          : quickDesc;
+                        setProblemDescription(newDesc);
+                      }}
+                      className="text-xs"
+                    >
+                      {quickDesc}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              
               <div>
                 <Label htmlFor="notes">Additional Notes</Label>
                 <Textarea
@@ -409,6 +461,31 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                   placeholder="Any additional notes or special instructions"
                   rows={2}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quotation Box */}
+          <Card className="form-section border-orange-200 bg-orange-50/50">
+            <CardHeader>
+              <CardTitle className="text-orange-700">Quotation</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="quotation-amount">Quotation Amount</Label>
+                <InputCurrency
+                  value={quotationAmount}
+                  onChange={setQuotationAmount}
+                  placeholder="Enter quotation amount"
+                />
+              </div>
+              <div className="bg-orange-100 border border-orange-200 rounded-lg p-3">
+                <p className="text-sm font-medium text-orange-800 mb-1">
+                  Important Notice:
+                </p>
+                <p className="text-xs text-orange-700">
+                  Quotation cost is non-refundable. It may only be deducted from the total repair cost when the job is finalized.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -586,6 +663,18 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                   onChange={(e) => setLabourHours(parseFloat(e.target.value) || 0)}
                 />
               </div>
+
+              <div>
+                <Label htmlFor="service-deposit">Service Deposit</Label>
+                <InputCurrency
+                  value={serviceDeposit}
+                  onChange={setServiceDeposit}
+                  placeholder="Enter service deposit amount"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Will be deducted from final total when job is finalized
+                </p>
+              </div>
               
               <div>
                 <Label htmlFor="status">Status</Label>
@@ -642,6 +731,22 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                 <span>Grand Total:</span>
                 <span className="text-primary">{formatCurrency(calculations.grandTotal)}</span>
               </div>
+
+              {serviceDeposit > 0 && (
+                <>
+                  <div className="flex justify-between text-orange-600">
+                    <span>Less: Service Deposit:</span>
+                    <span>-{formatCurrency(serviceDeposit)}</span>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex justify-between text-xl font-bold text-green-600">
+                    <span>Final Amount Due:</span>
+                    <span>{formatCurrency(calculations.finalTotal)}</span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

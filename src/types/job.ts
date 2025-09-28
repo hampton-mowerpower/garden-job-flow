@@ -55,11 +55,14 @@ export interface Job {
   // Problem description
   problemDescription: string;
   notes?: string;
-  serviceTemplates?: string[]; // selected service note templates
   
   // Mechanic service notes
   servicePerformed?: string; // what work was actually completed
   recommendations?: string; // what to watch or do next
+  
+  // Service pricing
+  serviceDeposit?: number; // deposit paid by customer
+  quotationAmount?: number; // quotation amount for inspection
   
   // Computed parts list for display
   partsRequired?: string; // computed from parts array

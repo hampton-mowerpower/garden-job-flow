@@ -10,6 +10,11 @@ export interface JobCalculations {
   grandTotal: number;
 }
 
+export interface ExtendedJobCalculations extends JobCalculations {
+  serviceDeposit: number;
+  finalTotal: number;
+}
+
 export function calculateJobTotals(
   parts: JobPart[],
   labourHours: number,

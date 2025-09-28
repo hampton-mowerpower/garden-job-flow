@@ -25,7 +25,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
   const { toast } = useToast();
   const [categories, setCategories] = useState<MachineCategory[]>(MACHINE_CATEGORIES);
   const [parts, setParts] = useState<JobPart[]>([]);
-  const [serviceTemplates, setServiceTemplates] = useState<string[]>([]);
 
   useEffect(() => {
     loadSettings();
@@ -38,7 +37,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
       // Load custom categories and parts
       const customCategories = await jobBookingDB.getCustomCategories();
       const customParts = await jobBookingDB.getCustomParts();
-      const templates = await jobBookingDB.getServiceTemplates();
       
       if (customCategories.length > 0) {
         setCategories(customCategories);
@@ -57,7 +55,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
       }));
       
       setParts([...formattedParts, ...customParts]);
-      setServiceTemplates(templates);
       
     } catch (error) {
       console.error('Error loading admin settings:', error);
@@ -159,7 +156,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
         customers,
         categories,
         parts,
-        serviceTemplates,
         exportDate: new Date().toISOString()
       };
 
@@ -263,11 +259,10 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
         </div>
 
         <Tabs defaultValue="categories" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="categories">Categories & Rates</TabsTrigger>
             <TabsTrigger value="parts">Parts Management</TabsTrigger>
             <TabsTrigger value="export">Data Export</TabsTrigger>
-            <TabsTrigger value="templates">Service Templates</TabsTrigger>
           </TabsList>
 
           <TabsContent value="categories">
@@ -359,33 +354,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
                 <div className="text-sm text-muted-foreground">
                   <p><strong>JSON Export:</strong> Complete backup including jobs, customers, settings, and configurations.</p>
                   <p><strong>CSV Export:</strong> Job data only, suitable for spreadsheet applications.</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="templates">
-            <Card>
-              <CardHeader>
-                <CardTitle>Service Note Templates</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Service templates are managed directly in the job creation form. 
-                    Use the "Service Note Templates" section when creating or editing jobs 
-                    to add, remove, or modify service templates.
-                  </p>
-                  <div className="bg-muted p-4 rounded-lg">
-                    <h4 className="font-medium mb-2">Current Templates:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {serviceTemplates.map((template, index) => (
-                        <span key={index} className="bg-primary/10 text-primary px-2 py-1 rounded text-sm">
-                          {template}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
                 </div>
               </CardContent>
             </Card>

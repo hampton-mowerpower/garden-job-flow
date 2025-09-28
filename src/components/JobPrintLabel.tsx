@@ -13,10 +13,8 @@ export const JobPrintLabel: React.FC<JobPrintLabelProps> = ({ job }) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
-    // Create Service Notes string from templates and additional notes
-    const serviceNotes = [...(job.serviceTemplates || []), ...(job.notes ? [job.notes] : [])]
-      .filter(note => note.trim())
-      .join(' | ');
+    // Create Service Notes string from notes
+    const serviceNotes = job.notes?.trim() || '';
 
     // Use computed Parts Required from job or generate it
     const partsRequired = job.partsRequired || job.parts
