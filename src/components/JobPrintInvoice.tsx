@@ -13,11 +13,31 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
+    // Helper function to escape HTML content
+    const escapeHtml = (text: string) => {
+      return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    };
+
+    // Generate parts table rows
+    const partsRows = job.parts.map(part => 
+      `<tr>
+        <td>${escapeHtml(part.partName)}</td>
+        <td class="qty">${part.quantity}</td>
+        <td class="price">${formatCurrency(part.unitPrice)}</td>
+        <td class="price">${formatCurrency(part.totalPrice)}</td>
+      </tr>`
+    ).join('');
+
     const invoiceHTML = `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Invoice - ${job.jobNumber}</title>
+          <title>Invoice - ${escapeHtml(job.jobNumber)}</title>
           <style>
             @media print {
               @page { size: A4; margin: 15mm; }
@@ -216,7 +236,7 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
 
             <div class="invoice-meta">
               <div>
-                <strong>Job Number:</strong> ${job.jobNumber}<br>
+                <strong>Job Number:</strong> ${escapeHtml(job.jobNumber)}<br>
                 <strong>Invoice Date:</strong> ${new Date(job.createdAt).toLocaleDateString('en-AU')}<br>
                 <strong>Status:</strong> ${job.status.charAt(0).toUpperCase() + job.status.slice(1)}
               </div>
@@ -228,36 +248,36 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
             <div class="customer-machine">
               <div class="customer-info">
                 <h3>Customer Details</h3>
-                <p><strong>${job.customer.name}</strong></p>
-                <p>${job.customer.phone}</p>
-                <p>${job.customer.address}</p>
-                ${job.customer.email ? `<p>${job.customer.email}</p>` : ''}
+                <p><strong>${escapeHtml(job.customer.name)}</strong></p>
+                <p>${escapeHtml(job.customer.phone)}</p>
+                <p>${escapeHtml(job.customer.address)}</p>
+                ${job.customer.email ? `<p>${escapeHtml(job.customer.email)}</p>` : ''}
               </div>
               <div class="machine-info">
                 <h3>Equipment Details</h3>
-                <p><strong>Type:</strong> ${job.machineCategory}</p>
-                <p><strong>Brand:</strong> ${job.machineBrand}</p>
-                <p><strong>Model:</strong> ${job.machineModel}</p>
-                ${job.machineSerial ? `<p><strong>Serial:</strong> ${job.machineSerial}</p>` : ''}
+                <p><strong>Type:</strong> ${escapeHtml(job.machineCategory)}</p>
+                <p><strong>Brand:</strong> ${escapeHtml(job.machineBrand)}</p>
+                <p><strong>Model:</strong> ${escapeHtml(job.machineModel)}</p>
+                ${job.machineSerial ? `<p><strong>Serial:</strong> ${escapeHtml(job.machineSerial)}</p>` : ''}
               </div>
             </div>
 
             <div class="problem-section">
               <h3 style="margin-top: 0; color: #92400e;">Problem Description</h3>
-              <p>${job.problemDescription}</p>
-              ${job.notes ? `<p><strong>Additional Notes:</strong> ${job.notes}</p>` : ''}
+              <p>${escapeHtml(job.problemDescription)}</p>
+              ${job.notes ? `<p><strong>Additional Notes:</strong> ${escapeHtml(job.notes)}</p>` : ''}
             </div>
 
             ${(job.servicePerformed || job.recommendations) ? `
             <div class="service-section">
               <h3 style="margin-top: 0; color: #16a34a;">Service Completed</h3>
-              ${job.servicePerformed ? `<p><strong>Work Performed:</strong> ${job.servicePerformed}</p>` : ''}
-              ${job.recommendations ? `<p><strong>Recommendations:</strong> ${job.recommendations}</p>` : ''}
+              ${job.servicePerformed ? `<p><strong>Work Performed:</strong> ${escapeHtml(job.servicePerformed)}</p>` : ''}
+              ${job.recommendations ? `<p><strong>Recommendations:</strong> ${escapeHtml(job.recommendations)}</p>` : ''}
             </div>
             ` : ''}
 
             ${job.parts.length > 0 ? `
-            ${job.partsRequired ? `<p style="margin-bottom: 15px;"><strong>Parts Required:</strong> ${job.partsRequired}</p>` : ''}
+            ${job.partsRequired ? `<p style="margin-bottom: 15px;"><strong>Parts Required:</strong> ${escapeHtml(job.partsRequired)}</p>` : ''}
             <h3 style="color: #1e40af; margin-bottom: 10px;">Parts & Materials</h3>
             <table class="parts-table">
               <thead>
@@ -269,14 +289,7 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
                 </tr>
               </thead>
               <tbody>
-                ${job.parts.map(part => `
-                  <tr>
-                    <td>${part.partName}</td>
-                    <td class="qty">${part.quantity}</td>
-                    <td class="price">${formatCurrency(part.unitPrice)}</td>
-                    <td class="price">${formatCurrency(part.totalPrice)}</td>
-                  </tr>
-                `).join('')}
+                ${partsRows}
               </tbody>
             </table>
             ` : ''}
