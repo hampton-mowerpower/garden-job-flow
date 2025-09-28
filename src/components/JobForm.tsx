@@ -160,17 +160,18 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     // Check both DEFAULT_PARTS and A4_PARTS
     const allParts = [...DEFAULT_PARTS, ...A4_PARTS];
     const presetPart = allParts.find(p => p.id === partId);
+    
     if (presetPart) {
       const currentPart = parts.find(p => p.id === rowId);
+      const quantity = currentPart?.quantity || 1;
+      const unitPrice = presetPart.sellPrice || presetPart.basePrice || 0;
+      
       updatePart(rowId, {
         partId: presetPart.id,
         partName: presetPart.name,
-        unitPrice: presetPart.sellPrice || presetPart.basePrice || 0,
+        unitPrice: unitPrice,
         category: presetPart.category,
-        totalPrice: calculatePartTotal(
-          presetPart.sellPrice || presetPart.basePrice || 0,
-          currentPart?.quantity || 1
-        )
+        totalPrice: calculatePartTotal(unitPrice, quantity)
       });
     }
   };
@@ -178,7 +179,13 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   // Get filtered parts based on selected category - preserve current selection
   const getFilteredPartsForRow = (currentPartId?: string) => {
     const allParts = [...DEFAULT_PARTS, ...A4_PARTS];
-    const selectedPartIds = new Set(parts.map(p => p.partId).filter(id => id && id !== 'custom'));
+    
+    // Get currently selected part IDs from all rows (excluding empty and custom)
+    const selectedPartIds = new Set(
+      parts
+        .map(p => p.partId)
+        .filter(id => id && id !== 'custom' && id.trim() !== '')
+    );
     
     let filteredParts = allParts;
     if (selectedPartCategory !== 'All') {
@@ -186,9 +193,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     }
     
     // Keep currently selected part in dropdown even if it would be filtered out
-    return filteredParts.filter(part => 
+    // Also ensure we don't filter out parts that aren't actually selected yet
+    const availableParts = filteredParts.filter(part => 
       !selectedPartIds.has(part.id) || part.id === currentPartId
     );
+    
+    return availableParts;
   };
 
   const handleSave = async () => {
