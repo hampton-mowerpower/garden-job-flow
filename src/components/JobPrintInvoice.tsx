@@ -56,23 +56,6 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
               background: white;
               margin: 0 auto;
             }
-            .header {
-              text-align: center;
-              border-bottom: 2px solid #2563eb;
-              padding-bottom: 15px;
-              margin-bottom: 25px;
-            }
-            .company-info h1 {
-              margin: 0 0 5px 0;
-              font-size: 24px;
-              color: #1e40af;
-              font-weight: 600;
-            }
-            .company-info p {
-              margin: 2px 0;
-              color: #666;
-              font-size: 11px;
-            }
             .invoice-title {
               background: #f8fafc;
               padding: 10px;
@@ -204,14 +187,6 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
             .terms-content li {
               margin-bottom: 4px;
             }
-            .consumer-rights {
-              margin-top: 15px;
-              padding-top: 15px;
-              border-top: 1px solid #e5e7eb;
-              font-size: 9px;
-              color: #6b7280;
-              font-style: italic;
-            }
             .clearfix::after {
               content: "";
               display: table;
@@ -221,14 +196,6 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
         </head>
         <body>
           <div class="invoice-container">
-            <div class="header">
-              <div class="company-info">
-                <h1>HAMPTON MOWERPOWER</h1>
-                <p>Garden Equipment Sales & Service</p>
-                <p>87 Ludstone Street, Hampton 3188 | (03) 9598 6741</p>
-                <p>www.hamptonmowerpower.com.au | ABN: 97 161 289 069</p>
-              </div>
-            </div>
 
             <div class="invoice-title">
               <h2>TAX INVOICE</h2>
@@ -337,9 +304,6 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
                   <li>Used parts may be supplied unless specifically requested otherwise.</li>
                   <li>Warranty does not cover abuse, normal wear, or damage caused by poor maintenance.</li>
                 </ol>
-                <div class="consumer-rights">
-                  <strong>Australian Consumer Law:</strong> Our goods and services come with guarantees that cannot be excluded under Australian Consumer Law. You are entitled to a replacement or refund for a major failure and compensation for any other reasonably foreseeable loss or damage. You are also entitled to have the goods repaired or replaced if the goods fail to be of acceptable quality and the failure does not amount to a major failure. These terms do not limit your rights under Australian Consumer Law.
-                </div>
               </div>
             </div>
           </div>
