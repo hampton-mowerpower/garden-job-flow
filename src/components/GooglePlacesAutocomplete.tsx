@@ -27,8 +27,16 @@ const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
   useEffect(() => {
     const initializeAutocomplete = async () => {
       try {
+        // Get API key from environment - this should be set in your deployment environment
+        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+        
+        if (!apiKey) {
+          console.warn('Google Maps API key not found. Please set VITE_GOOGLE_MAPS_API_KEY in your environment variables.');
+          return;
+        }
+
         const loader = new Loader({
-          apiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+          apiKey: apiKey,
           version: 'weekly',
           libraries: ['places']
         });
