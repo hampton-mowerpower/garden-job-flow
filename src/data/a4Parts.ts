@@ -340,7 +340,7 @@ export const A4_PARTS: Part[] = [
     description: 'Air filter element'
   },
   {
-    id: 'fuel-filter',
+    id: 'fuel-filter-a4',
     name: 'Fuel Filter',
     category: 'Fuel System',
     basePrice: 6.63,
@@ -352,7 +352,7 @@ export const A4_PARTS: Part[] = [
 
   // CONTROLS
   {
-    id: 'throttle-cable',
+    id: 'throttle-cable-a4',
     name: 'Throttle Cable',
     category: 'Controls',
     basePrice: 16.63,

@@ -16,6 +16,7 @@ import { A4_PARTS, PART_CATEGORIES } from '@/data/a4Parts';
 import { jobBookingDB } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { PartsManager } from './PartsManager';
+import { EnhancedPartsCatalogue } from './parts/EnhancedPartsCatalogue';
 
 interface AdminSettingsProps {
   onClose: () => void;
@@ -370,9 +371,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
           </TabsContent>
 
           <TabsContent value="parts">
-            <PartsManager onPartsUpdate={(updatedParts) => {
-              // Handle parts updates if needed
-            }} />
+            <EnhancedPartsCatalogue />
           </TabsContent>
 
           <TabsContent value="descriptions">

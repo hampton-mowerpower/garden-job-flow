@@ -194,12 +194,53 @@ export type Database = {
           },
         ]
       }
+      parts_audit_log: {
+        Row: {
+          action: string
+          changed_at: string | null
+          changed_by: string | null
+          id: string
+          new_data: Json | null
+          old_data: Json | null
+          part_id: string | null
+        }
+        Insert: {
+          action: string
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          part_id?: string | null
+        }
+        Update: {
+          action?: string
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          new_data?: Json | null
+          old_data?: Json | null
+          part_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parts_audit_log_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_catalogue"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parts_catalogue: {
         Row: {
           base_price: number
           category: string
           competitor_price: number | null
           created_at: string
+          created_by: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           description: string | null
           id: string
           in_stock: boolean
@@ -212,12 +253,16 @@ export type Database = {
           supplier: string | null
           upc: string | null
           updated_at: string
+          updated_by: string | null
         }
         Insert: {
           base_price: number
           category: string
           competitor_price?: number | null
           created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           id?: string
           in_stock?: boolean
@@ -230,12 +275,16 @@ export type Database = {
           supplier?: string | null
           upc?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Update: {
           base_price?: number
           category?: string
           competitor_price?: number | null
           created_at?: string
+          created_by?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           description?: string | null
           id?: string
           in_stock?: boolean
@@ -248,6 +297,7 @@ export type Database = {
           supplier?: string | null
           upc?: string | null
           updated_at?: string
+          updated_by?: string | null
         }
         Relationships: []
       }
