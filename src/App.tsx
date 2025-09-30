@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import * as React from 'react';
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { Navigation } from '@/components/Navigation';
@@ -6,6 +6,8 @@ import { JobManager } from '@/components/JobManager';
 import { PartsCatalogue } from '@/components/parts/PartsCatalogue';
 import { ReportsManager } from '@/components/reports/ReportsManager';
 import { Toaster } from '@/components/ui/toaster';
+
+const { useState } = React;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('jobs');
