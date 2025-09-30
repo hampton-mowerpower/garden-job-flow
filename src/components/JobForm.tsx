@@ -291,7 +291,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold">
             {job ? `Edit Job ${jobNumber}` : 'New Job Booking'}
@@ -300,14 +300,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             {job ? 'Update job details' : 'Create a new service booking'}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {job && (
             <>
               <JobPrintLabel job={job} />
               <JobPrintInvoice job={job} />
             </>
           )}
-          <Button onClick={handleSave} disabled={isLoading}>
+          <Button onClick={handleSave} disabled={isLoading} className="flex-1 sm:flex-initial">
             <Save className="w-4 h-4 mr-2" />
             {isLoading ? 'Saving...' : 'Save Job'}
           </Button>
@@ -522,11 +522,11 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           {/* Parts */}
           <Card className="form-section">
             <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                Parts Required
-                <div className="flex gap-2">
+              <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <span>Parts Required</span>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <Select value={selectedPartCategory} onValueChange={setSelectedPartCategory}>
-                    <SelectTrigger className="w-40">
+                    <SelectTrigger className="w-full sm:w-40">
                       <SelectValue placeholder="Filter by category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -538,7 +538,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button variant="outline" size="sm" onClick={addPart}>
+                  <Button variant="outline" size="sm" onClick={addPart} className="w-full sm:w-auto">
                     <Plus className="w-4 h-4 mr-2" />
                     Add Part
                   </Button>
@@ -553,8 +553,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               ) : (
                 <div className="space-y-4">
                   {parts.map((part) => (
-                    <div key={part.id} className="grid grid-cols-12 gap-2 items-end p-4 border rounded-lg">
-                      <div className="col-span-4">
+                    <div key={part.id} className="flex flex-col gap-3 p-4 border rounded-lg">
+                      <div className="w-full">
                         <Label>Part Name</Label>
                         <Select
                           value={part.partId}
@@ -582,44 +582,49 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                         </Select>
                         {(!part.partId || part.partId === 'custom') && (
                           <Input
-                            className="mt-1"
+                            className="mt-2"
                             value={part.partName}
                             onChange={(e) => updatePart(part.id, { partName: e.target.value })}
                             placeholder="Enter part name"
                           />
                         )}
                       </div>
-                      <div className="col-span-2">
-                        <Label>Quantity</Label>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={part.quantity}
-                          onChange={(e) => updatePart(part.id, { quantity: parseInt(e.target.value) || 1 })}
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <Label>Unit Price</Label>
-                        <InputCurrency
-                          value={part.unitPrice}
-                          onChange={(value) => updatePart(part.id, { unitPrice: value })}
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <Label>Total</Label>
-                        <div className="h-10 flex items-center px-3 bg-muted rounded-md">
-                          {formatCurrency(part.totalPrice)}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>Quantity</Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            value={part.quantity}
+                            onChange={(e) => updatePart(part.id, { quantity: parseInt(e.target.value) || 1 })}
+                          />
+                        </div>
+                        <div>
+                          <Label>Unit Price</Label>
+                          <InputCurrency
+                            value={part.unitPrice}
+                            onChange={(value) => updatePart(part.id, { unitPrice: value })}
+                          />
                         </div>
                       </div>
-                      <div className="col-span-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removePart(part.id)}
-                          className="w-full"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <Label>Total</Label>
+                          <div className="h-10 flex items-center px-3 bg-muted rounded-md font-medium">
+                            {formatCurrency(part.totalPrice)}
+                          </div>
+                        </div>
+                        <div className="flex items-end">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => removePart(part.id)}
+                            className="w-full"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Remove
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))}
