@@ -31,8 +31,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (userRole === 'admin') return true;
     
     const rolePermissions = {
-      technician: ['view_jobs', 'edit_jobs', 'create_jobs', 'view_parts', 'use_parts'],
-      counter: ['view_jobs', 'create_jobs', 'view_customers', 'edit_customers', 'create_customers']
+      technician: ['view_jobs', 'edit_jobs', 'create_jobs', 'view_parts', 'use_parts', 'edit_part_price', 'edit_part_stock'],
+      counter: ['view_jobs', 'create_jobs', 'view_customers', 'edit_customers', 'create_customers', 'view_parts', 'edit_part_price', 'edit_part_stock', 'edit_part_basic']
     };
     
     return rolePermissions[userRole as keyof typeof rolePermissions]?.includes(permission) || false;
