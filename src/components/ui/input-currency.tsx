@@ -13,16 +13,21 @@ const InputCurrency = React.forwardRef<HTMLInputElement, InputCurrencyProps>(
     const [displayValue, setDisplayValue] = React.useState(
       value !== undefined && value !== null ? (value === 0 ? "" : value.toFixed(2)) : ""
     );
+    const [isTyping, setIsTyping] = React.useState(false);
 
+    // Only update display value from prop when not actively typing
     React.useEffect(() => {
-      setDisplayValue(value !== undefined && value !== null ? (value === 0 ? "" : value.toFixed(2)) : "");
-    }, [value]);
+      if (!isTyping) {
+        setDisplayValue(value !== undefined && value !== null ? (value === 0 ? "" : value.toFixed(2)) : "");
+      }
+    }, [value, isTyping]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const inputValue = e.target.value;
       
       // Allow empty string or valid decimal numbers
       if (inputValue === "" || /^\d*\.?\d*$/.test(inputValue)) {
+        setIsTyping(true);
         setDisplayValue(inputValue);
         
         const numericValue = parseFloat(inputValue) || 0;
@@ -31,6 +36,7 @@ const InputCurrency = React.forwardRef<HTMLInputElement, InputCurrencyProps>(
     };
 
     const handleBlur = () => {
+      setIsTyping(false);
       const numericValue = parseFloat(displayValue) || 0;
       setDisplayValue(numericValue > 0 ? numericValue.toFixed(2) : "");
     };

@@ -3,8 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { InputCurrency } from '@/components/ui/input-currency';
+import { InputTranslated } from '@/components/ui/input-translated';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { TextareaTranslated } from '@/components/ui/textarea-translated';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, Save, Printer } from 'lucide-react';
@@ -19,6 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { JobPrintLabel } from './JobPrintLabel';
 import { JobPrintInvoice } from './JobPrintInvoice';
 import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 import { MachineManager } from './MachineManager';
 
@@ -30,6 +33,7 @@ interface JobFormProps {
 
 export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   
   // Form state
@@ -231,8 +235,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     // Validation
     if (!customer.name || !customer.phone || !machineCategory || !problemDescription) {
       toast({
-        title: "Validation Error",
-        description: "Please fill in all required fields",
+        title: t('msg.validation'),
+        description: t('msg.validation.required'),
         variant: "destructive"
       });
       return;
@@ -286,16 +290,16 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       await jobBookingDB.saveJob(jobData);
       
       toast({
-        title: "Success",
-        description: job ? "Job updated successfully" : "Job created successfully"
+        title: t('msg.success'),
+        description: job ? t('msg.job.updated') : t('msg.job.created')
       });
       
       onSave(jobData);
     } catch (error) {
       console.error('Error saving job:', error);
       toast({
-        title: "Error",
-        description: "Failed to save job",
+        title: t('msg.error'),
+        description: t('msg.job.failed'),
         variant: "destructive"
       });
     } finally {
@@ -309,10 +313,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold">
-            {job ? `Edit Job ${jobNumber}` : 'New Job Booking'}
+            {job ? `${t('jobs.edit')} ${jobNumber}` : t('jobs.new')}
           </h2>
           <p className="text-muted-foreground">
-            {job ? 'Update job details' : 'Create a new service booking'}
+            {job ? t('jobs.update.details') : t('jobs.create.service')}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -324,7 +328,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           )}
           <Button onClick={handleSave} disabled={isLoading} className="flex-1 sm:flex-initial">
             <Save className="w-4 h-4 mr-2" />
-            {isLoading ? 'Saving...' : 'Save Job'}
+            {isLoading ? t('jobs.saving') : t('jobs.save')}
           </Button>
         </div>
       </div>
@@ -335,45 +339,45 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           {/* Customer Information */}
           <Card className="form-section">
             <CardHeader>
-              <CardTitle>Customer Information</CardTitle>
+              <CardTitle>{t('customer.info')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="customer-name">Customer Name *</Label>
-                  <Input
+                  <Label htmlFor="customer-name">{t('customer.name')} *</Label>
+                  <InputTranslated
                     id="customer-name"
                     value={customer.name}
-                    onChange={(e) => setCustomer({...customer, name: e.target.value})}
-                    placeholder="Enter customer name"
+                    onChange={(value) => setCustomer({...customer, name: value})}
+                    placeholder={t('placeholder.customer.name')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="customer-phone">Phone Number *</Label>
+                  <Label htmlFor="customer-phone">{t('customer.phone')} *</Label>
                   <Input
                     id="customer-phone"
                     value={customer.phone}
                     onChange={(e) => setCustomer({...customer, phone: e.target.value})}
-                    placeholder="Enter phone number"
+                    placeholder={t('placeholder.customer.phone')}
                   />
                 </div>
               </div>
               <div>
-                <Label htmlFor="customer-address">Address</Label>
+                <Label htmlFor="customer-address">{t('customer.address')}</Label>
                 <GooglePlacesAutocomplete
                   value={customer.address || ''}
                   onChange={(value) => setCustomer({...customer, address: value})}
-                  placeholder="Enter customer address"
+                  placeholder={t('placeholder.customer.address')}
                 />
               </div>
               <div>
-                <Label htmlFor="customer-email">Email</Label>
+                <Label htmlFor="customer-email">{t('customer.email')}</Label>
                 <Input
                   id="customer-email"
                   type="email"
                   value={customer.email}
                   onChange={(e) => setCustomer({...customer, email: e.target.value})}
-                  placeholder="Enter email address"
+                  placeholder={t('placeholder.customer.email')}
                 />
               </div>
             </CardContent>
@@ -382,7 +386,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           {/* Machine Information */}
           <Card className="form-section">
             <CardHeader>
-              <CardTitle>Machine Information</CardTitle>
+              <CardTitle>{t('machine.info')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
             <MachineManager
@@ -394,12 +398,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               onModelChange={setMachineModel}
             />
               <div>
-                <Label htmlFor="machine-serial">Serial Number</Label>
+                <Label htmlFor="machine-serial">{t('machine.serial')}</Label>
                 <Input
                   id="machine-serial"
                   value={machineSerial}
                   onChange={(e) => setMachineSerial(e.target.value)}
-                  placeholder="Enter serial number"
+                  placeholder={t('placeholder.machine.serial')}
                 />
               </div>
             </CardContent>
@@ -408,23 +412,23 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           {/* Problem Description */}
           <Card className="form-section">
             <CardHeader>
-              <CardTitle>Problem Description</CardTitle>
+              <CardTitle>{t('problem.title')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="problem-description">Problem Description *</Label>
-                <Textarea
+                <Label htmlFor="problem-description">{t('problem.description')} *</Label>
+                <TextareaTranslated
                   id="problem-description"
                   value={problemDescription}
-                  onChange={(e) => setProblemDescription(e.target.value)}
-                  placeholder="Describe the problem or service required"
+                  onChange={(value) => setProblemDescription(value)}
+                  placeholder={t('placeholder.problem')}
                   rows={3}
                 />
               </div>
               
               <div>
-                <Label>Quick Problem Descriptions</Label>
-                <p className="text-sm text-muted-foreground mb-3">Click to add to problem description above</p>
+                <Label>{t('problem.quick')}</Label>
+                <p className="text-sm text-muted-foreground mb-3">{t('problem.quick.help')}</p>
                 <div className="flex flex-wrap gap-2">
                   {quickDescriptions.map((quickDesc) => (
                     <Button
@@ -448,12 +452,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               </div>
               
               <div>
-                <Label htmlFor="notes">Additional Notes</Label>
-                <Textarea
+                <Label htmlFor="notes">{t('problem.additional')}</Label>
+                <TextareaTranslated
                   id="notes"
                   value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Any additional notes or special instructions"
+                  onChange={(value) => setNotes(value)}
+                  placeholder={t('placeholder.notes')}
                   rows={2}
                 />
               </div>
@@ -463,23 +467,23 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           {/* Quotation Box */}
           <Card className="form-section border-orange-200 bg-orange-50/50">
             <CardHeader>
-              <CardTitle className="text-orange-700">Quotation</CardTitle>
+              <CardTitle className="text-orange-700">{t('quotation.title')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="quotation-amount">Quotation Amount</Label>
+                <Label htmlFor="quotation-amount">{t('quotation.amount')}</Label>
                 <InputCurrency
                   value={quotationAmount}
                   onChange={setQuotationAmount}
-                  placeholder="Enter quotation amount"
+                  placeholder={t('placeholder.quotation')}
                 />
               </div>
               <div className="bg-orange-100 border border-orange-200 rounded-lg p-3">
                 <p className="text-sm font-medium text-orange-800 mb-1">
-                  Important Notice:
+                  {t('quotation.notice')}
                 </p>
                 <p className="text-xs text-orange-700">
-                  Quotation cost is non-refundable. It may only be deducted from the total repair cost when the job is finalized.
+                  {t('quotation.notice.text')}
                 </p>
               </div>
             </CardContent>
@@ -488,26 +492,26 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           {/* Mechanic Service Notes */}
           <Card className="form-section">
             <CardHeader>
-              <CardTitle>Mechanic Service Notes</CardTitle>
+              <CardTitle>{t('service.notes')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="service-performed">Service Performed (by mechanic)</Label>
-                <Textarea
+                <Label htmlFor="service-performed">{t('service.performed.by')}</Label>
+                <TextareaTranslated
                   id="service-performed"
                   value={servicePerformed}
-                  onChange={(e) => setServicePerformed(e.target.value)}
-                  placeholder="e.g., Changed oil, replaced spark plug, sharpened blade, tuned carburettor..."
+                  onChange={(value) => setServicePerformed(value)}
+                  placeholder={t('placeholder.service')}
                   rows={3}
                 />
               </div>
               <div>
-                <Label htmlFor="recommendations">Recommendations / Future Attention</Label>
-                <Textarea
+                <Label htmlFor="recommendations">{t('service.recommendations')}</Label>
+                <TextareaTranslated
                   id="recommendations"
                   value={recommendations}
-                  onChange={(e) => setRecommendations(e.target.value)}
-                  placeholder="e.g., Rear belt worn—replace within 3 months; check air filter monthly..."
+                  onChange={(value) => setRecommendations(value)}
+                  placeholder={t('placeholder.recommendations')}
                   rows={3}
                 />
               </div>
@@ -518,14 +522,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           <Card className="form-section">
             <CardHeader>
               <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <span>Parts Required</span>
+                <span>{t('parts.required')}</span>
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <Select value={selectedPartCategory} onValueChange={setSelectedPartCategory}>
                     <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue placeholder="Filter by category" />
+                      <SelectValue placeholder={t('parts.filter')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="All">All Categories</SelectItem>
+                      <SelectItem value="All">{t('parts.all')}</SelectItem>
                       {PART_CATEGORIES.map((category) => (
                         <SelectItem key={category} value={category}>
                           {category}
@@ -535,7 +539,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                   </Select>
                   <Button variant="outline" size="sm" onClick={addPart} className="w-full sm:w-auto">
                     <Plus className="w-4 h-4 mr-2" />
-                    Add Part
+                    {t('parts.add')}
                   </Button>
                 </div>
               </CardTitle>
@@ -543,26 +547,26 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             <CardContent>
               {parts.length === 0 ? (
                 <p className="text-muted-foreground text-center py-4">
-                  No parts added yet. Click "Add Part" to get started.
+                  {t('parts.none')}
                 </p>
               ) : (
                 <div className="space-y-4">
                   {parts.map((part) => (
                     <div key={part.id} className="flex flex-col gap-3 p-4 border rounded-lg">
                       <div className="w-full">
-                        <Label>Part Name</Label>
+                        <Label>{t('parts.name')}</Label>
                         <Select
                           value={part.partId}
                           onValueChange={(value) => selectPresetPart(value, part.id)}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Select part" />
+                            <SelectValue placeholder={t('placeholder.select.part')} />
                           </SelectTrigger>
                           <SelectContent className="max-h-60">
-                            <SelectItem value="custom">Custom Part</SelectItem>
+                            <SelectItem value="custom">{t('parts.custom')}</SelectItem>
                             {selectedPartCategory !== 'All' && (
                               <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-b">
-                                {selectedPartCategory} Parts
+                                {selectedPartCategory} {t('parts.title')}
                               </div>
                             )}
                             {getFilteredPartsForRow(part.partId).map((preset) => (
@@ -576,17 +580,17 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                           </SelectContent>
                         </Select>
                         {(!part.partId || part.partId === 'custom') && (
-                          <Input
+                          <InputTranslated
                             className="mt-2"
                             value={part.partName}
-                            onChange={(e) => updatePart(part.id, { partName: e.target.value })}
-                            placeholder="Enter part name"
+                            onChange={(value) => updatePart(part.id, { partName: value })}
+                            placeholder={t('placeholder.part.name')}
                           />
                         )}
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label>Quantity</Label>
+                          <Label>{t('parts.quantity')}</Label>
                           <Input
                             type="number"
                             min="1"
@@ -595,7 +599,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                           />
                         </div>
                         <div>
-                          <Label>Unit Price</Label>
+                          <Label>{t('parts.unitPrice')}</Label>
                           <InputCurrency
                             value={part.unitPrice}
                             onChange={(value) => updatePart(part.id, { unitPrice: value })}
@@ -604,7 +608,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
-                          <Label>Total</Label>
+                          <Label>{t('calc.total')}</Label>
                           <div className="h-10 flex items-center px-3 bg-muted rounded-md font-medium">
                             {formatCurrency(part.totalPrice)}
                           </div>
@@ -617,7 +621,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                             className="w-full"
                           >
                             <Trash2 className="w-4 h-4 mr-2" />
-                            Remove
+                            {t('common.remove')}
                           </Button>
                         </div>
                       </div>
@@ -633,11 +637,11 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         <div className="space-y-6">
           <Card className="stats-card">
             <CardHeader>
-              <CardTitle>Job Summary</CardTitle>
+              <CardTitle>{t('jobs.title')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label>Job Number</Label>
+                <Label>{t('jobs.number')}</Label>
                 <div className="font-mono font-bold text-primary">
                   {jobNumber}
                 </div>
@@ -645,15 +649,15 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               
               {partsRequired && (
                 <div className="space-y-2">
-                  <Label>Parts Required</Label>
+                  <Label>{t('parts.required')}</Label>
                   <div className="text-sm bg-muted p-3 rounded min-h-[60px] text-muted-foreground">
-                    {partsRequired || 'No parts selected yet'}
+                    {partsRequired || t('parts.none')}
                   </div>
                 </div>
               )}
               
               <div>
-                <Label htmlFor="labour-hours">Labour Hours</Label>
+                <Label htmlFor="labour-hours">{t('labour.hours')}</Label>
                 <Input
                   id="labour-hours"
                   type="number"
@@ -665,28 +669,28 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               </div>
 
               <div>
-                <Label htmlFor="service-deposit">Service Deposit</Label>
+                <Label htmlFor="service-deposit">{t('service.deposit')}</Label>
                 <InputCurrency
                   value={serviceDeposit}
                   onChange={setServiceDeposit}
-                  placeholder="Enter service deposit amount"
+                  placeholder={t('placeholder.quotation')}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Will be deducted from final total when job is finalized
+                  {t('quotation.notice.text')}
                 </p>
               </div>
               
               <div>
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status">{t('jobs.status')}</Label>
                 <Select value={status} onValueChange={(value: Job['status']) => setStatus(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="in-progress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
+                    <SelectItem value="pending">{t('status.pending')}</SelectItem>
+                    <SelectItem value="in-progress">{t('status.in-progress')}</SelectItem>
+                    <SelectItem value="completed">{t('status.completed')}</SelectItem>
+                    <SelectItem value="delivered">{t('status.ready')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -695,54 +699,54 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
 
           <Card className="form-section">
             <CardHeader>
-              <CardTitle>Pricing Breakdown</CardTitle>
+              <CardTitle>{t('calc.subtotal')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               <div className="flex justify-between">
-                <span>Parts Subtotal:</span>
+                <span>{t('calc.parts')}:</span>
                 <span>{formatCurrency(calculations.partsSubtotal)}</span>
               </div>
               
               <div className="flex justify-between">
-                <span>Labour ({labourHours}h × ${labourRate}/h):</span>
+                <span>{t('labour.total')} ({labourHours}h × ${labourRate}/h):</span>
                 <span>{formatCurrency(labourHours * labourRate)}</span>
               </div>
               
               <div className="flex justify-between font-medium">
-                <span>Labour Total:</span>
+                <span>{t('labour.total')}:</span>
                 <span>{formatCurrency(calculations.labourTotal)}</span>
               </div>
               
               <Separator />
               
               <div className="flex justify-between">
-                <span>Subtotal:</span>
+                <span>{t('calc.subtotal')}:</span>
                 <span>{formatCurrency(calculations.subtotal)}</span>
               </div>
               
               <div className="flex justify-between">
-                <span>GST (10%):</span>
+                <span>{t('calc.gst')}:</span>
                 <span>{formatCurrency(calculations.gst)}</span>
               </div>
               
               <Separator />
               
               <div className="flex justify-between text-lg font-bold">
-                <span>Grand Total:</span>
+                <span>{t('calc.total')}:</span>
                 <span className="text-primary">{formatCurrency(calculations.grandTotal)}</span>
               </div>
 
               {serviceDeposit > 0 && (
                 <>
                   <div className="flex justify-between text-orange-600">
-                    <span>Less: Service Deposit:</span>
+                    <span>{t('calc.deposit')}:</span>
                     <span>-{formatCurrency(serviceDeposit)}</span>
                   </div>
                   
                   <Separator />
                   
                   <div className="flex justify-between text-xl font-bold text-green-600">
-                    <span>Final Amount Due:</span>
+                    <span>{t('calc.final')}:</span>
                     <span>{formatCurrency(calculations.finalTotal)}</span>
                   </div>
                 </>
