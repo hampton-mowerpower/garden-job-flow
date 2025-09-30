@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
+import { LanguageProvider } from '@/contexts/LanguageContext';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { Navigation } from '@/components/Navigation';
 import { JobManager } from '@/components/JobManager';
@@ -91,8 +92,10 @@ function AppContent() {
 function App() {
   return (
     <AuthProvider>
-      <AppContent />
-      <Toaster />
+      <LanguageProvider>
+        <AppContent />
+        <Toaster />
+      </LanguageProvider>
     </AuthProvider>
   );
 }

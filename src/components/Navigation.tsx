@@ -1,4 +1,6 @@
 import { useAuth } from '@/components/auth/AuthProvider';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -26,13 +28,14 @@ interface NavigationProps {
 
 export function Navigation({ currentView, setCurrentView }: NavigationProps) {
   const { user, userRole, signOut } = useAuth();
+  const { t } = useLanguage();
 
   const menuItems = [
-    { id: 'jobs', label: 'Jobs', icon: ClipboardList, roles: ['admin', 'technician', 'counter'] },
+    { id: 'jobs', label: t('nav.jobs'), icon: ClipboardList, roles: ['admin', 'technician', 'counter'] },
     { id: 'customers', label: 'Customers', icon: Users, roles: ['admin', 'counter'] },
-    { id: 'parts', label: 'Parts Catalogue', icon: Package, roles: ['admin', 'technician', 'counter'] },
-    { id: 'reports', label: 'Reports', icon: BarChart3, roles: ['admin'] },
-    { id: 'settings', label: 'Settings', icon: Settings, roles: ['admin'] },
+    { id: 'parts', label: t('nav.parts'), icon: Package, roles: ['admin', 'technician', 'counter'] },
+    { id: 'reports', label: t('nav.reports'), icon: BarChart3, roles: ['admin'] },
+    { id: 'settings', label: t('nav.settings'), icon: Settings, roles: ['admin'] },
   ];
 
   const availableMenuItems = menuItems.filter(item => 
@@ -67,6 +70,7 @@ export function Navigation({ currentView, setCurrentView }: NavigationProps) {
         </div>
 
         <div className="flex items-center space-x-4">
+          <LanguageSwitcher />
           <div className="flex items-center space-x-2">
             <User className="h-4 w-4" />
             <span className="text-sm">{user?.email}</span>
