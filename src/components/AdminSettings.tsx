@@ -25,6 +25,8 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
   const { toast } = useToast();
   const [categories, setCategories] = useState<MachineCategory[]>(MACHINE_CATEGORIES);
   const [parts, setParts] = useState<JobPart[]>([]);
+  const [quickDescriptions, setQuickDescriptions] = useState<string[]>([]);
+  const [newDescription, setNewDescription] = useState('');
 
   useEffect(() => {
     loadSettings();
@@ -37,10 +39,13 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
       // Load custom categories and parts
       const customCategories = await jobBookingDB.getCustomCategories();
       const customParts = await jobBookingDB.getCustomParts();
+      const descriptions = await jobBookingDB.getQuickDescriptions();
       
       if (customCategories.length > 0) {
         setCategories(customCategories);
       }
+      
+      setQuickDescriptions(descriptions);
       
       // Convert DEFAULT_PARTS and A4_PARTS to JobPart format
       const allParts = [...DEFAULT_PARTS, ...A4_PARTS];
@@ -143,6 +148,41 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
   const removePart = (index: number) => {
     const updatedParts = parts.filter((_, i) => i !== index);
     setParts(updatedParts);
+  };
+
+  const saveQuickDescriptions = async () => {
+    try {
+      await jobBookingDB.saveQuickDescriptions(quickDescriptions);
+      toast({
+        title: "Success",
+        description: "Quick descriptions saved successfully"
+      });
+    } catch (error) {
+      console.error('Error saving quick descriptions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save quick descriptions",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const addQuickDescription = () => {
+    if (newDescription.trim()) {
+      setQuickDescriptions([...quickDescriptions, newDescription.trim()]);
+      setNewDescription('');
+    }
+  };
+
+  const removeQuickDescription = (index: number) => {
+    const updated = quickDescriptions.filter((_, i) => i !== index);
+    setQuickDescriptions(updated);
+  };
+
+  const updateQuickDescription = (index: number, value: string) => {
+    const updated = [...quickDescriptions];
+    updated[index] = value;
+    setQuickDescriptions(updated);
   };
 
   const exportData = async () => {
@@ -259,9 +299,10 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
         </div>
 
         <Tabs defaultValue="categories" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="categories">Categories & Rates</TabsTrigger>
             <TabsTrigger value="parts">Parts Management</TabsTrigger>
+            <TabsTrigger value="descriptions">Quick Descriptions</TabsTrigger>
             <TabsTrigger value="export">Data Export</TabsTrigger>
           </TabsList>
 
@@ -332,6 +373,53 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
             <PartsManager onPartsUpdate={(updatedParts) => {
               // Handle parts updates if needed
             }} />
+          </TabsContent>
+
+          <TabsContent value="descriptions">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Quick Problem Descriptions
+                  <Button variant="default" size="sm" onClick={saveQuickDescriptions}>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex gap-2">
+                  <Input
+                    value={newDescription}
+                    onChange={(e) => setNewDescription(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && addQuickDescription()}
+                    placeholder="Enter new quick description"
+                  />
+                  <Button onClick={addQuickDescription}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add
+                  </Button>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                  {quickDescriptions.map((desc, index) => (
+                    <div key={index} className="flex gap-2 items-center">
+                      <Input
+                        value={desc}
+                        onChange={(e) => updateQuickDescription(index, e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeQuickDescription(index)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="export">

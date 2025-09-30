@@ -11,11 +11,11 @@ export interface InputCurrencyProps
 const InputCurrency = React.forwardRef<HTMLInputElement, InputCurrencyProps>(
   ({ className, value = 0, onChange, ...props }, ref) => {
     const [displayValue, setDisplayValue] = React.useState(
-      value > 0 ? value.toFixed(2) : ""
+      value !== undefined && value !== null ? (value === 0 ? "" : value.toFixed(2)) : ""
     );
 
     React.useEffect(() => {
-      setDisplayValue(value > 0 ? value.toFixed(2) : "");
+      setDisplayValue(value !== undefined && value !== null ? (value === 0 ? "" : value.toFixed(2)) : "");
     }, [value]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -313,6 +313,35 @@ class JobBookingDB {
     return templates || [];
   }
 
+  async saveQuickDescriptions(descriptions: string[]): Promise<void> {
+    return this.saveSetting('quickDescriptions', descriptions);
+  }
+
+  async getQuickDescriptions(): Promise<string[]> {
+    const descriptions = await this.getSetting('quickDescriptions');
+    return descriptions || [
+      'Full Service Required',
+      'Blade Sharpen',
+      'Carburetor Clean',
+      'Chain Sharpen', 
+      'Recoil Cord Replacement',
+      'Oil Change',
+      'Spark Plug Replacement',
+      'Air Filter Clean/Replace',
+      'Fuel System Service',
+      'Engine Tune-Up',
+      'Belt Replacement',
+      'Tire Repair',
+      'Deck Clean & Adjust',
+      'Safety Check',
+      'Won\'t Start',
+      'Runs Rough',
+      'No Power',
+      'Smoking',
+      'Overheating'
+    ];
+  }
+
   async saveCustomMachineData(data: any): Promise<void> {
     return this.saveSetting('customMachineData', data);
   }

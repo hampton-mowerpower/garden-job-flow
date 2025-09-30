@@ -57,6 +57,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [labourHours, setLabourHours] = useState(0);
   const [status, setStatus] = useState<Job['status']>('pending');
   const [selectedPartCategory, setSelectedPartCategory] = useState<string>('All');
+  const [quickDescriptions, setQuickDescriptions] = useState<string[]>([]);
   
   // Calculations
   const selectedCategory = HAMPTON_MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
@@ -79,6 +80,20 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   useEffect(() => {
     initializeForm();
   }, [job]);
+
+  useEffect(() => {
+    loadQuickDescriptions();
+  }, []);
+
+  const loadQuickDescriptions = async () => {
+    try {
+      await jobBookingDB.init();
+      const descriptions = await jobBookingDB.getQuickDescriptions();
+      setQuickDescriptions(descriptions);
+    } catch (error) {
+      console.error('Error loading quick descriptions:', error);
+    }
+  };
 
   const initializeForm = async () => {
     if (job) {
@@ -411,27 +426,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                 <Label>Quick Problem Descriptions</Label>
                 <p className="text-sm text-muted-foreground mb-3">Click to add to problem description above</p>
                 <div className="flex flex-wrap gap-2">
-                  {[
-                    'Full Service Required',
-                    'Blade Sharpen',
-                    'Carburetor Clean',
-                    'Chain Sharpen', 
-                    'Recoil Cord Replacement',
-                    'Oil Change',
-                    'Spark Plug Replacement',
-                    'Air Filter Clean/Replace',
-                    'Fuel System Service',
-                    'Engine Tune-Up',
-                    'Belt Replacement',
-                    'Tire Repair',
-                    'Deck Clean & Adjust',
-                    'Safety Check',
-                    'Won\'t Start',
-                    'Runs Rough',
-                    'No Power',
-                    'Smoking',
-                    'Overheating'
-                  ].map((quickDesc) => (
+                  {quickDescriptions.map((quickDesc) => (
                     <Button
                       key={quickDesc}
                       variant="outline"
