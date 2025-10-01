@@ -447,17 +447,13 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               machineModel={machineModel}
               onCategoryChange={(cat) => {
                 setMachineCategory(cat);
-                if (cat && machineModel) {
+                // Initialize checklist when category is selected
+                if (cat) {
                   setChecklist(initializeChecklist(cat));
                 }
               }}
               onBrandChange={setMachineBrand}
-              onModelChange={(model) => {
-                setMachineModel(model);
-                if (machineCategory && model && checklist.length === 0) {
-                  setChecklist(initializeChecklist(machineCategory));
-                }
-              }}
+              onModelChange={setMachineModel}
             />
               <div>
                 <Label htmlFor="machine-serial">{t('machine.serial')}</Label>
@@ -554,13 +550,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             </CardContent>
           </Card>
 
-          {/* Service Checklist */}
-          {machineCategory && machineModel && checklist.length > 0 && (
+          {/* Service Checklist - Always show universal, category shows when selected */}
+          {checklist.length > 0 && (
             <Card className="form-section">
               <CardHeader>
                 <CardTitle>Service Checklist</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Universal Checks - Always visible */}
                 <div>
                   <h4 className="font-semibold mb-3">Universal Checks</h4>
                   <div className="space-y-2">
@@ -577,32 +574,36 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                             setChecklist(newChecklist);
                           }}
                         />
-                        <label className="text-sm">{item.label}</label>
+                        <label className="text-sm cursor-pointer">{item.label}</label>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div>
-                  <h4 className="font-semibold mb-3">Category: {machineCategory}</h4>
-                  <div className="space-y-2">
-                    {checklist.filter(item => item.category !== 'universal').map((item, idx) => (
-                      <div key={idx} className="flex items-start gap-2">
-                        <Checkbox
-                          checked={item.checked}
-                          onCheckedChange={(checked) => {
-                            const newChecklist = [...checklist];
-                            const index = newChecklist.findIndex(i => i.label === item.label && i.category === item.category);
-                            if (index !== -1) {
-                              newChecklist[index].checked = checked as boolean;
-                            }
-                            setChecklist(newChecklist);
-                          }}
-                        />
-                        <label className="text-sm">{item.label}</label>
-                      </div>
-                    ))}
+
+                {/* Category-Specific Checks - Show when category selected */}
+                {machineCategory && checklist.filter(item => item.category !== 'universal').length > 0 && (
+                  <div>
+                    <h4 className="font-semibold mb-3">Category: {machineCategory}</h4>
+                    <div className="space-y-2">
+                      {checklist.filter(item => item.category !== 'universal').map((item, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <Checkbox
+                            checked={item.checked}
+                            onCheckedChange={(checked) => {
+                              const newChecklist = [...checklist];
+                              const index = newChecklist.findIndex(i => i.label === item.label && i.category === item.category);
+                              if (index !== -1) {
+                                newChecklist[index].checked = checked as boolean;
+                              }
+                              setChecklist(newChecklist);
+                            }}
+                          />
+                          <label className="text-sm cursor-pointer">{item.label}</label>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           )}

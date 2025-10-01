@@ -1,14 +1,17 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Job } from '@/types/job';
 import { formatCurrency } from '@/lib/calculations';
 import { format } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { FileText } from 'lucide-react';
 import hamptonLogo from '@/assets/hampton-logo.png';
 
 interface JobPrintInvoiceProps {
   job: Job;
 }
 
-export const JobPrintInvoice = React.forwardRef<HTMLDivElement, JobPrintInvoiceProps>(
+// Invoice Content Component
+const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
   ({ job }, ref) => {
     // Calculate payment due date (30 days if account customer)
     const issueDateObj = new Date(job.createdAt);
@@ -384,7 +387,7 @@ export const JobPrintInvoice = React.forwardRef<HTMLDivElement, JobPrintInvoiceP
   }
 );
 
-JobPrintInvoice.displayName = 'JobPrintInvoice';
+InvoiceContent.displayName = 'InvoiceContent';
 
 // Professional Workshop Palette - Minimal, Print-Ready
 const styles: Record<string, React.CSSProperties> = {
@@ -713,6 +716,72 @@ const styles: Record<string, React.CSSProperties> = {
     fontStyle: 'italic',
     paddingLeft: '24px',
   },
+};
+
+// Main Export - Button Component with Print Handler
+export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
+  const componentRef = useRef<HTMLDivElement>(null);
+  
+  const handlePrint = () => {
+    const printContent = componentRef.current;
+    if (!printContent) return;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Invoice - ${job.jobNumber}</title>
+          <style>
+            @media print {
+              @page { size: A4; margin: 0; }
+              body { margin: 0; }
+            }
+            ${Array.from(document.styleSheets)
+              .map(styleSheet => {
+                try {
+                  return Array.from(styleSheet.cssRules)
+                    .map(rule => rule.cssText)
+                    .join('\n');
+                } catch {
+                  return '';
+                }
+              })
+              .join('\n')}
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+      printWindow.close();
+    }, 250);
+  };
+
+  return (
+    <>
+      <Button
+        onClick={handlePrint}
+        variant="outline"
+        size="sm"
+        className="gap-2"
+      >
+        <FileText className="h-4 w-4" />
+        Print Invoice
+      </Button>
+      <div style={{ display: 'none' }}>
+        <InvoiceContent ref={componentRef} job={job} />
+      </div>
+    </>
+  );
 };
 
 export default JobPrintInvoice;

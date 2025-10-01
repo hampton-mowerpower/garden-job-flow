@@ -56,6 +56,7 @@ export const JobManager = () => {
         <JobForm 
           job={editingJob || undefined} 
           onSave={handleJobSave}
+          onPrint={handleSelectJob}
         />
       </div>
     );
