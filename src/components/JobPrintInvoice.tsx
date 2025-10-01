@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Printer } from 'lucide-react';
+import { FileText } from 'lucide-react';
 import { Job } from '@/types/job';
 import { formatCurrency } from '@/lib/calculations';
 import { format } from 'date-fns';
@@ -208,160 +208,187 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Invoice ${escapeHtml(job.jobNumber)} - Hampton Mowerpower</title>
+  <title>Tax Invoice ${escapeHtml(job.jobNumber)} - Hampton Mowerpower</title>
   <style>
     @page { size: A4; margin: 12mm 18mm; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      font-size: 10pt; 
-      line-height: 1.4; 
-      color: #1a1a1a;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif; 
+      font-size: 14px; 
+      line-height: 1.5; 
+      color: #0f172a;
+      background: #ffffff;
     }
     .invoice-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 3px solid #000;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e2e8f0;
     }
-    .logo { max-width: 220px; height: auto; margin-bottom: 8px; }
-    .company-details {
-      font-size: 8pt;
-      color: #444;
-      line-height: 1.5;
+    .logo { max-width: 200px; height: auto; margin-bottom: 6px; }
+    .company-line {
+      font-size: 11px;
+      color: #64748b;
+      line-height: 1.4;
+      margin-top: 4px;
+    }
+    .invoice-title-section {
+      text-align: right;
     }
     .invoice-title {
-      background: #000;
+      background: #111827;
       color: white;
-      padding: 8px 24px;
-      font-size: 26pt;
-      font-weight: bold;
-      margin-bottom: 12px;
+      padding: 6px 20px;
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
       display: inline-block;
+      letter-spacing: 0.5px;
     }
-    .invoice-info {
-      font-size: 9pt;
-      line-height: 1.8;
+    .invoice-meta {
+      font-size: 12px;
+      line-height: 1.6;
+      color: #0f172a;
     }
-    .invoice-info div { margin-bottom: 4px; }
+    .invoice-meta-row {
+      display: grid;
+      grid-template-columns: 110px 1fr;
+      margin-bottom: 2px;
+    }
+    .invoice-meta-label {
+      font-weight: 600;
+      color: #64748b;
+    }
     .info-panels {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-bottom: 20px;
+      gap: 12px;
+      margin-bottom: 16px;
     }
     .panel {
-      border: 2px solid #ddd;
+      border: 1px solid #e2e8f0;
       padding: 12px;
-      background: #f9fafb;
+      background: #ffffff;
     }
     .panel-title {
-      font-weight: bold;
-      font-size: 11pt;
-      margin-bottom: 10px;
-      color: #000;
-      border-bottom: 2px solid #000;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      color: #0f172a;
       padding-bottom: 4px;
+      border-bottom: 1px solid #e2e8f0;
     }
     .panel-content {
-      font-size: 9pt;
-      line-height: 1.7;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #0f172a;
     }
-    .panel-content p { margin-bottom: 4px; }
+    .panel-content p { margin-bottom: 3px; }
+    .panel-content strong { font-weight: 600; color: #0f172a; }
     .equipment-section {
-      margin-bottom: 20px;
-      border: 2px solid #ddd;
+      margin-bottom: 16px;
+      border: 1px solid #e2e8f0;
       padding: 12px;
-      background: #fffbeb;
+      background: #ffffff;
     }
-    .concern-section {
-      margin-bottom: 20px;
-      border: 2px solid #ddd;
+    .problem-section {
+      margin-bottom: 16px;
+      border-left: 3px solid #f59e0b;
+      border-top: 1px solid #e2e8f0;
+      border-right: 1px solid #e2e8f0;
+      border-bottom: 1px solid #e2e8f0;
       padding: 12px;
-      background: #fef2f2;
+      background: #ffffff;
     }
-    .concern-section .panel-title {
-      color: #dc2626;
-      border-bottom-color: #dc2626;
+    .problem-section .panel-title {
+      color: #b45309;
+      border-bottom-color: #fef3c7;
     }
     .checklist-section {
-      margin-bottom: 20px;
-      border: 2px solid #ddd;
+      margin-bottom: 16px;
+      border: 1px solid #e2e8f0;
       padding: 12px;
-      background: #f0fdf4;
+      background: #ffffff;
       page-break-inside: avoid;
     }
     .checklist-section .panel-title {
-      color: #16a34a;
-      border-bottom-color: #16a34a;
+      color: #0f172a;
     }
     .checklist-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 6px;
-      margin-top: 10px;
+      gap: 4px;
+      margin-top: 8px;
     }
     .checklist-item {
-      font-size: 8pt;
-      padding: 5px;
-      background: white;
-      border: 1px solid #ccc;
+      font-size: 10px;
+      padding: 4px 6px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
       line-height: 1.3;
+      color: #0f172a;
     }
     .checklist-item::before {
       content: '☐';
-      margin-right: 6px;
-      color: #16a34a;
-      font-size: 10pt;
+      margin-right: 4px;
+      color: #64748b;
+      font-size: 11px;
     }
     .parts-table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 20px;
-      font-size: 9pt;
+      margin-bottom: 16px;
+      font-size: 12px;
     }
     .parts-table thead {
-      background: #000;
+      background: #0f172a;
       color: white;
     }
     .parts-table th {
-      padding: 10px 8px;
+      padding: 8px 6px;
       text-align: left;
       font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
     .parts-table td {
-      padding: 8px;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      color: #0f172a;
     }
     .text-right { text-align: right; }
     .text-center { text-align: center; }
     .totals-section {
       display: flex;
       justify-content: flex-end;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
     .totals-card {
-      min-width: 380px;
-      border: 3px solid #000;
+      min-width: 360px;
+      border: 1px solid #e2e8f0;
       background: #fff;
     }
     .totals-row {
       display: flex;
       justify-content: space-between;
-      padding: 10px 15px;
-      border-bottom: 1px solid #ddd;
-      font-size: 10pt;
+      padding: 8px 12px;
+      border-bottom: 1px solid #e2e8f0;
+      font-size: 12px;
+      color: #0f172a;
     }
     .totals-row.subtotal {
-      background: #f9fafb;
+      background: #f8fafc;
     }
     .totals-row.total {
-      background: #000;
+      background: #0f172a;
       color: white;
-      font-weight: bold;
-      font-size: 13pt;
+      font-weight: 700;
+      font-size: 16px;
       border-bottom: none;
     }
     .totals-row.deposit {
@@ -370,51 +397,67 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
       font-weight: 600;
     }
     .totals-row.balance {
-      background: #16a34a;
+      background: #0f172a;
       color: white;
-      font-weight: bold;
-      font-size: 13pt;
+      font-weight: 700;
+      font-size: 16px;
       border-bottom: none;
     }
     .payment-badge {
-      background: #dc2626;
+      background: #111827;
       color: white;
-      padding: 10px 15px;
+      padding: 8px 12px;
       text-align: center;
-      font-weight: bold;
-      font-size: 10pt;
+      font-weight: 600;
+      font-size: 11px;
+      letter-spacing: 0.5px;
     }
     .terms-section {
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       padding: 12px;
-      border: 2px solid #ddd;
-      background: #f9fafb;
-      font-size: 8pt;
-      line-height: 1.6;
+      border: 1px solid #e2e8f0;
+      background: #f8fafc;
+      font-size: 11px;
+      line-height: 1.7;
+      color: #0f172a;
     }
     .terms-section h3 {
-      font-size: 10pt;
+      font-size: 12px;
+      font-weight: 700;
       margin-bottom: 6px;
+      color: #0f172a;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+    .terms-section ol {
+      margin-left: 18px;
+      margin-top: 6px;
+    }
+    .terms-section li {
+      margin-bottom: 4px;
+      color: #64748b;
     }
     .invoice-footer {
-      margin-top: 30px;
-      padding-top: 15px;
-      border-top: 3px solid #000;
+      margin-top: 24px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      font-size: 8pt;
+      gap: 16px;
+      font-size: 11px;
+      color: #64748b;
     }
     .invoice-footer h4 {
-      font-size: 10pt;
-      margin-bottom: 6px;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: #0f172a;
     }
     .thank-you {
       text-align: center;
-      margin-top: 15px;
-      font-size: 10pt;
-      font-style: italic;
-      color: #666;
+      margin-top: 12px;
+      font-size: 11px;
+      color: #64748b;
     }
     @media print {
       body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
@@ -428,21 +471,29 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
     <div class="invoice-header">
       <div class="header-left">
         <img src="${hamptonLogo}" alt="Hampton Mowerpower" class="logo"/>
-        <div class="company-details">
-          <strong>Hampton Mowerpower</strong><br>
-          ABN 97 161 289 069<br>
-          87 Ludstone Street, Hampton, VIC 3188, Australia<br>
-          📧 hamptonmowerpower@gmail.com · ☎ 03-9598-6741<br>
-          🌐 www.hamptonmowerpower.com.au
+        <div class="company-line">
+          <strong>Hampton Mowerpower</strong> · ABN 97 161 289 069 · 87 Ludstone Street, Hampton, VIC 3188 · hamptonmowerpower@gmail.com · 03-9598-6741 · www.hamptonmowerpower.com.au
         </div>
       </div>
-      <div class="header-right">
-        <div class="invoice-title">INVOICE</div>
-        <div class="invoice-info">
-          <div><strong>Invoice #:</strong> ${escapeHtml(job.jobNumber)}</div>
-          <div><strong>Work Order #:</strong> ${escapeHtml(job.jobNumber)}</div>
-          <div><strong>Issue Date:</strong> ${format(issueDate, 'dd MMM yyyy')}</div>
-          <div><strong>Due Date:</strong> ${format(dueDate, 'dd MMM yyyy')}</div>
+      <div class="invoice-title-section">
+        <div class="invoice-title">TAX INVOICE</div>
+        <div class="invoice-meta">
+          <div class="invoice-meta-row">
+            <span class="invoice-meta-label">Invoice #:</span>
+            <span>${escapeHtml(job.jobNumber)}</span>
+          </div>
+          <div class="invoice-meta-row">
+            <span class="invoice-meta-label">Work Order #:</span>
+            <span>${escapeHtml(job.jobNumber)}</span>
+          </div>
+          <div class="invoice-meta-row">
+            <span class="invoice-meta-label">Issue Date:</span>
+            <span>${format(issueDate, 'dd/MM/yyyy')}</span>
+          </div>
+          <div class="invoice-meta-row">
+            <span class="invoice-meta-label">Due Date:</span>
+            <span>${format(dueDate, 'dd/MM/yyyy')}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -480,22 +531,25 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
       </div>
     </div>
 
-    <!-- Customer Concern & Diagnosis -->
+    <!-- Problem Description -->
     ${job.problemDescription ? `
-    <div class="concern-section">
-      <div class="panel-title">CUSTOMER CONCERN & DIAGNOSIS</div>
+    <div class="problem-section">
+      <div class="panel-title">PROBLEM DESCRIPTION</div>
       <div class="panel-content">
-        <p><strong>Customer Complaint:</strong></p>
         <p>${escapeHtml(job.problemDescription)}</p>
         ${job.servicePerformed ? `
-        <p style="margin-top:12px;"><strong>Technician's Findings:</strong></p>
-        <p>${escapeHtml(job.servicePerformed)}</p>
+        <p style="margin-top:10px;"><strong>Service Performed:</strong> ${escapeHtml(job.servicePerformed)}</p>
         ` : ''}
         ${job.recommendations ? `
-        <p style="margin-top:12px;"><strong>Recommendations:</strong></p>
-        <p>${escapeHtml(job.recommendations)}</p>
+        <p style="margin-top:8px;"><strong>Recommendations:</strong> ${escapeHtml(job.recommendations)}</p>
         ` : ''}
       </div>
+    </div>
+    ` : ''}
+
+    ${job.partsRequired ? `
+    <div style="margin-bottom:16px;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12px;">
+      <strong style="color:#0f172a;">Parts Required:</strong> <span style="color:#64748b;">${escapeHtml(job.partsRequired)}</span>
     </div>
     ` : ''}
 
@@ -590,7 +644,22 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
       <p><strong>Payment Terms:</strong> ${paymentTerms}</p>
       <p><strong>Accepted Methods:</strong> Cash, EFTPOS, Credit Card, Bank Transfer</p>
       <p>Please reference Invoice #${escapeHtml(job.jobNumber)} with all payments.</p>
-      <p style="margin-top:8px;"><strong>Repair Contract Conditions:</strong> All repairs are guaranteed for 30 days from date of collection. Customer is responsible for equipment after collection. Uncollected items may be disposed of after 90 days.</p>
+    </div>
+
+    <!-- Repair Contract Conditions -->
+    <div class="terms-section">
+      <h3>Repair Contract Conditions</h3>
+      <ol>
+        <li>All domestic customer service work is guaranteed for 90 days from completion date.</li>
+        <li>All commercial customer service work is covered by floor warranty only (as provided by the manufacturer or distributor).</li>
+        <li>Customer machines left for more than 30 days after completion may incur storage charges.</li>
+        <li>Estimates are valid for 30 days. Additional charges may apply for work beyond original estimate.</li>
+        <li>Payment is due upon completion unless prior arrangements have been made.</li>
+        <li>We are not responsible for machines left unattended on premises.</li>
+        <li>Customer agrees to pay all repair costs even if machine proves economically unviable to repair.</li>
+        <li>Used parts may be supplied unless specifically requested otherwise.</li>
+        <li>Warranty does not cover abuse, normal wear, or damage caused by poor maintenance.</li>
+      </ol>
     </div>
 
     <!-- Footer -->
@@ -627,7 +696,7 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
 
   return (
     <Button onClick={handlePrintInvoice} variant="default" size="sm">
-      <Printer className="h-4 w-4 mr-2" />
+      <FileText className="h-4 w-4 mr-2" />
       Print Invoice
     </Button>
   );

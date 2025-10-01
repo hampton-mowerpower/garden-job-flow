@@ -320,6 +320,13 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         description: job ? t('msg.job.updated') : t('msg.job.created')
       });
       
+      // Auto-print label for new jobs
+      if (!job && onPrint) {
+        setTimeout(() => {
+          onPrint(jobData);
+        }, 500);
+      }
+      
       onSave(jobData);
     } catch (error) {
       console.error('Error saving job:', error);
