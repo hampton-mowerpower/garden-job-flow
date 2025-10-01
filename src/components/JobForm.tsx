@@ -316,6 +316,11 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         title: "Service Label Printed",
         description: `Printed ${quantity} label(s) using ${template} template`,
       });
+      // Now call onSave after printing
+      onSave(savedJob);
+      // Reset state
+      setSavedJob(null);
+      setShowServiceLabelDialog(false);
     }
   };
 
@@ -387,10 +392,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         description: job ? t('msg.job.updated') : t('msg.job.created')
       });
       
-      // For new jobs, show service label print dialog
+      // For new jobs, check auto-print settings
       if (!job) {
-        setSavedJob(jobData);
-        setShowServiceLabelDialog(true);
+        const printSettings = await jobBookingDB.getPrintSettings();
+        if (printSettings.autoPrintLabel) {
+          setSavedJob(jobData);
+          setShowServiceLabelDialog(true);
+          return; // Don't call onSave yet - wait for dialog
+        }
       }
       
       onSave(jobData);
@@ -951,7 +960,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         <ServiceLabelPrintDialog
           job={savedJob}
           open={showServiceLabelDialog}
-          onOpenChange={setShowServiceLabelDialog}
+          onOpenChange={(open) => {
+            setShowServiceLabelDialog(open);
+            if (!open && savedJob) {
+              // User closed dialog without printing
+              onSave(savedJob);
+              setSavedJob(null);
+            }
+          }}
           onPrint={handleServiceLabelPrint}
         />
       )}
