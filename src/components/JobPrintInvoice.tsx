@@ -283,9 +283,25 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
                     <td class="total-amount">${formatCurrency(job.gst)}</td>
                   </tr>
                   <tr class="grand-total">
-                    <td class="total-label">TOTAL AMOUNT DUE:</td>
+                    <td class="total-label">TOTAL AMOUNT:</td>
                     <td class="total-amount">${formatCurrency(job.grandTotal)}</td>
                   </tr>
+                  ${job.quotationAmount && job.quotationAmount > 0 ? `
+                  <tr>
+                    <td class="total-label">Quotation Amount:</td>
+                    <td class="total-amount">${formatCurrency(job.quotationAmount)}</td>
+                  </tr>
+                  ` : ''}
+                  ${job.serviceDeposit && job.serviceDeposit > 0 ? `
+                  <tr style="color: #ea580c;">
+                    <td class="total-label">Service Deposit:</td>
+                    <td class="total-amount">-${formatCurrency(job.serviceDeposit)}</td>
+                  </tr>
+                  <tr class="grand-total" style="background: #16a34a;">
+                    <td class="total-label">AMOUNT DUE:</td>
+                    <td class="total-amount">${formatCurrency(Math.max(0, job.grandTotal - job.serviceDeposit))}</td>
+                  </tr>
+                  ` : ''}
                 </table>
               </div>
             </div>

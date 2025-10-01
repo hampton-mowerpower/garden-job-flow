@@ -57,6 +57,32 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [serviceDeposit, setServiceDeposit] = useState(0);
   const [quotationAmount, setQuotationAmount] = useState(0);
   
+  // Bi-directional sync handlers with validation
+  const handleQuotationChange = (value: number) => {
+    const sanitizedValue = Math.max(0, value || 0);
+    setQuotationAmount(sanitizedValue);
+    setServiceDeposit(sanitizedValue);
+  };
+
+  const handleServiceDepositChange = (value: number) => {
+    const sanitizedValue = Math.max(0, value || 0);
+    const maxDeposit = baseCalculations.grandTotal;
+    
+    if (sanitizedValue > maxDeposit && maxDeposit > 0) {
+      toast({
+        title: "Validation Error",
+        description: `Service deposit cannot exceed the total amount of ${formatCurrency(maxDeposit)}`,
+        variant: "destructive"
+      });
+      const cappedValue = maxDeposit;
+      setServiceDeposit(cappedValue);
+      setQuotationAmount(cappedValue);
+    } else {
+      setServiceDeposit(sanitizedValue);
+      setQuotationAmount(sanitizedValue);
+    }
+  };
+  
   const [parts, setParts] = useState<JobPart[]>([]);
   const [labourHours, setLabourHours] = useState(0);
   const [status, setStatus] = useState<Job['status']>('pending');
@@ -474,9 +500,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                 <Label htmlFor="quotation-amount">{t('quotation.amount')}</Label>
                 <InputCurrency
                   value={quotationAmount}
-                  onChange={setQuotationAmount}
+                  onChange={handleQuotationChange}
                   placeholder={t('placeholder.quotation')}
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Syncs with service deposit below
+                </p>
               </div>
               <div className="bg-orange-100 border border-orange-200 rounded-lg p-3">
                 <p className="text-sm font-medium text-orange-800 mb-1">
@@ -672,11 +701,11 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                 <Label htmlFor="service-deposit">{t('service.deposit')}</Label>
                 <InputCurrency
                   value={serviceDeposit}
-                  onChange={setServiceDeposit}
+                  onChange={handleServiceDepositChange}
                   placeholder={t('placeholder.quotation')}
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  {t('quotation.notice.text')}
+                  Service deposit is deducted from the total
                 </p>
               </div>
               
