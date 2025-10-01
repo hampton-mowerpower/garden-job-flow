@@ -208,165 +208,200 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
 <html>
 <head>
   <meta charset="utf-8">
-  <title>Tax Invoice ${escapeHtml(job.jobNumber)} - Hampton Mowerpower</title>
+  <title>Invoice ${escapeHtml(job.jobNumber)} - Hampton Mowerpower</title>
   <style>
     @page { size: A4; margin: 12mm 18mm; }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', system-ui, sans-serif; 
       font-size: 14px; 
-      line-height: 1.5; 
+      line-height: 1.45; 
       color: #0f172a;
       background: #ffffff;
     }
     .invoice-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 16px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #e2e8f0;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #e2e8f0;
     }
-    .logo { max-width: 200px; height: auto; margin-bottom: 6px; }
+    .header-left {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .logo-container {
+      margin-bottom: 4px;
+    }
+    .logo { 
+      max-width: 280px; 
+      height: auto;
+      display: block;
+    }
     .company-line {
       font-size: 11px;
       color: #64748b;
-      line-height: 1.4;
-      margin-top: 4px;
+      line-height: 1.5;
     }
-    .invoice-title-section {
+    .header-right {
       text-align: right;
+      min-width: 280px;
     }
     .invoice-title {
-      background: #111827;
+      background: #0f172a;
       color: white;
-      padding: 6px 20px;
-      font-size: 20px;
+      padding: 10px 24px;
+      font-size: 24px;
       font-weight: 700;
-      margin-bottom: 8px;
+      margin-bottom: 12px;
       display: inline-block;
-      letter-spacing: 0.5px;
+      letter-spacing: 1px;
     }
     .invoice-meta {
-      font-size: 12px;
-      line-height: 1.6;
+      font-size: 13px;
+      line-height: 1.7;
       color: #0f172a;
     }
     .invoice-meta-row {
       display: grid;
-      grid-template-columns: 110px 1fr;
-      margin-bottom: 2px;
+      grid-template-columns: 120px 1fr;
+      margin-bottom: 4px;
+      text-align: left;
     }
     .invoice-meta-label {
       font-weight: 600;
-      color: #64748b;
+      color: #0f172a;
+    }
+    .payment-due-badge {
+      background: #0f172a;
+      color: white;
+      padding: 8px 16px;
+      margin-top: 12px;
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: 0.5px;
+      text-align: center;
     }
     .info-panels {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 16px;
+      margin-bottom: 20px;
     }
     .panel {
       border: 1px solid #e2e8f0;
-      padding: 12px;
+      padding: 16px;
       background: #ffffff;
     }
     .panel-title {
       font-weight: 700;
-      font-size: 11px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      color: #0f172a;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #0f172a;
+    }
+    .panel-content {
+      font-size: 13px;
+      line-height: 1.6;
+      color: #0f172a;
+    }
+    .panel-content p { margin-bottom: 4px; }
+    .panel-content strong { font-weight: 600; color: #0f172a; }
+    .equipment-section {
+      margin-bottom: 20px;
+      border: 1px solid #e2e8f0;
+      padding: 16px;
+      background: #ffffff;
+    }
+    .concern-section {
+      margin-bottom: 20px;
+      border: 1px solid #e2e8f0;
+      padding: 16px;
+      background: #ffffff;
+    }
+    .concern-section .section-title {
+      font-weight: 700;
+      font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       margin-bottom: 8px;
       color: #0f172a;
-      padding-bottom: 4px;
-      border-bottom: 1px solid #e2e8f0;
     }
-    .panel-content {
-      font-size: 12px;
+    .concern-section .section-content {
+      font-size: 13px;
       line-height: 1.6;
       color: #0f172a;
+      margin-bottom: 12px;
     }
-    .panel-content p { margin-bottom: 3px; }
-    .panel-content strong { font-weight: 600; color: #0f172a; }
-    .equipment-section {
-      margin-bottom: 16px;
-      border: 1px solid #e2e8f0;
-      padding: 12px;
-      background: #ffffff;
-    }
-    .problem-section {
-      margin-bottom: 16px;
-      border-left: 3px solid #f59e0b;
-      border-top: 1px solid #e2e8f0;
-      border-right: 1px solid #e2e8f0;
-      border-bottom: 1px solid #e2e8f0;
-      padding: 12px;
-      background: #ffffff;
-    }
-    .problem-section .panel-title {
-      color: #b45309;
-      border-bottom-color: #fef3c7;
-    }
-    .checklist-section {
-      margin-bottom: 16px;
-      border: 1px solid #e2e8f0;
-      padding: 12px;
-      background: #ffffff;
-      page-break-inside: avoid;
-    }
-    .checklist-section .panel-title {
+    .invoice-details-title {
+      font-weight: 700;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
       color: #0f172a;
-    }
-    .checklist-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 4px;
-      margin-top: 8px;
-    }
-    .checklist-item {
-      font-size: 10px;
-      padding: 4px 6px;
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      line-height: 1.3;
-      color: #0f172a;
-    }
-    .checklist-item::before {
-      content: '☐';
-      margin-right: 4px;
-      color: #64748b;
-      font-size: 11px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #0f172a;
     }
     .parts-table {
       width: 100%;
       border-collapse: collapse;
-      margin-bottom: 16px;
-      font-size: 12px;
+      margin-bottom: 20px;
+      font-size: 13px;
     }
     .parts-table thead {
       background: #0f172a;
       color: white;
     }
     .parts-table th {
-      padding: 8px 6px;
+      padding: 10px 8px;
       text-align: left;
       font-weight: 600;
-      font-size: 11px;
+      font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.3px;
     }
     .parts-table td {
-      padding: 6px;
+      padding: 8px;
       border-bottom: 1px solid #e2e8f0;
       color: #0f172a;
     }
     .text-right { text-align: right; }
     .text-center { text-align: center; }
-    .totals-section {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 16px;
+    .payment-terms-section {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      margin-bottom: 20px;
+      align-items: start;
+    }
+    .payment-details {
+      border: 1px solid #e2e8f0;
+      padding: 16px;
+      background: #f8fafc;
+    }
+    .payment-details h3 {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+      color: #0f172a;
+    }
+    .payment-details p {
+      font-size: 13px;
+      line-height: 1.7;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .payment-details strong {
+      font-weight: 600;
+      color: #0f172a;
     }
     .totals-card {
       min-width: 360px;
@@ -376,12 +411,16 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
     .totals-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 12px;
+      padding: 10px 16px;
       border-bottom: 1px solid #e2e8f0;
-      font-size: 12px;
+      font-size: 13px;
       color: #0f172a;
     }
     .totals-row.subtotal {
+      background: #f8fafc;
+      font-weight: 600;
+    }
+    .totals-row.gst {
       background: #f8fafc;
     }
     .totals-row.total {
@@ -392,9 +431,13 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
       border-bottom: none;
     }
     .totals-row.deposit {
-      background: #fef3c7;
-      color: #92400e;
+      background: #f8fafc;
+      color: #0f172a;
       font-weight: 600;
+    }
+    .totals-row.paid {
+      background: #f8fafc;
+      color: #0f172a;
     }
     .totals-row.balance {
       background: #0f172a;
@@ -403,65 +446,62 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
       font-size: 16px;
       border-bottom: none;
     }
-    .payment-badge {
-      background: #111827;
-      color: white;
-      padding: 8px 12px;
-      text-align: center;
-      font-weight: 600;
-      font-size: 11px;
-      letter-spacing: 0.5px;
-    }
-    .terms-section {
-      margin-bottom: 16px;
-      padding: 12px;
-      border: 1px solid #e2e8f0;
-      background: #f8fafc;
-      font-size: 11px;
-      line-height: 1.7;
-      color: #0f172a;
-    }
-    .terms-section h3 {
-      font-size: 12px;
-      font-weight: 700;
-      margin-bottom: 6px;
-      color: #0f172a;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
-    .terms-section ol {
-      margin-left: 18px;
-      margin-top: 6px;
-    }
-    .terms-section li {
-      margin-bottom: 4px;
-      color: #64748b;
-    }
     .invoice-footer {
-      margin-top: 24px;
-      padding-top: 12px;
-      border-top: 1px solid #e2e8f0;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 2px solid #e2e8f0;
+      text-align: center;
       font-size: 11px;
       color: #64748b;
     }
-    .invoice-footer h4 {
-      font-size: 12px;
-      font-weight: 700;
-      margin-bottom: 4px;
+    .footer-company {
+      font-weight: 600;
       color: #0f172a;
+      margin-bottom: 4px;
     }
     .thank-you {
-      text-align: center;
-      margin-top: 12px;
+      margin-top: 8px;
       font-size: 11px;
       color: #64748b;
+    }
+    .page-break {
+      page-break-before: always;
+    }
+    .checklist-section {
+      margin-top: 20px;
+    }
+    .checklist-title {
+      font-weight: 700;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 16px;
+      color: #0f172a;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #0f172a;
+    }
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+    .checklist-item {
+      font-size: 11px;
+      padding: 6px 8px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      line-height: 1.4;
+      color: #0f172a;
+    }
+    .checklist-item::before {
+      content: '☐';
+      margin-right: 6px;
+      color: #64748b;
+      font-size: 12px;
     }
     @media print {
       body { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
-      .checklist-section { page-break-inside: avoid; }
+      .page-break { page-break-before: always; }
     }
   </style>
 </head>
@@ -470,107 +510,81 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
     <!-- Header -->
     <div class="invoice-header">
       <div class="header-left">
-        <img src="${hamptonLogo}" alt="Hampton Mowerpower" class="logo"/>
+        <div class="logo-container">
+          <img src="${hamptonLogo}" alt="Hampton Mowerpower" class="logo"/>
+        </div>
         <div class="company-line">
-          <strong>Hampton Mowerpower</strong> · ABN 97 161 289 069 · 87 Ludstone Street, Hampton, VIC 3188 · hamptonmowerpower@gmail.com · 03-9598-6741 · www.hamptonmowerpower.com.au
+          <strong>ABN 97 161 289 069</strong> · 87 Ludstone Street, Hampton, VIC 3188 · hamptonmowerpower@gmail.com · (03) 9598-6741 · hamptonmowerpower.com.au
         </div>
       </div>
-      <div class="invoice-title-section">
-        <div class="invoice-title">TAX INVOICE</div>
+      <div class="header-right">
+        <div class="invoice-title">INVOICE</div>
         <div class="invoice-meta">
           <div class="invoice-meta-row">
             <span class="invoice-meta-label">Invoice #:</span>
             <span>${escapeHtml(job.jobNumber)}</span>
           </div>
           <div class="invoice-meta-row">
-            <span class="invoice-meta-label">Work Order #:</span>
-            <span>${escapeHtml(job.jobNumber)}</span>
-          </div>
-          <div class="invoice-meta-row">
-            <span class="invoice-meta-label">Issue Date:</span>
-            <span>${format(issueDate, 'dd/MM/yyyy')}</span>
-          </div>
-          <div class="invoice-meta-row">
-            <span class="invoice-meta-label">Due Date:</span>
-            <span>${format(dueDate, 'dd/MM/yyyy')}</span>
+            <span class="invoice-meta-label">Issue date:</span>
+            <span>${format(issueDate, 'dd MMM yyyy')}</span>
           </div>
         </div>
+        <div class="payment-due-badge">Payment Due: ${paymentBadge.replace('PAYMENT DUE: ', '').toUpperCase()}</div>
       </div>
     </div>
 
     <!-- Customer & Job Info Panels -->
     <div class="info-panels">
       <div class="panel">
-        <div class="panel-title">BILL TO</div>
+        <div class="panel-title">Bill To</div>
         <div class="panel-content">
           <p><strong>${escapeHtml(job.customer.name)}</strong></p>
-          ${job.customer.email ? `<p>📧 ${escapeHtml(job.customer.email)}</p>` : ''}
-          <p>☎ ${escapeHtml(job.customer.phone)}</p>
+          ${job.customer.email ? `<p>${escapeHtml(job.customer.email)} · ${escapeHtml(job.customer.phone)}</p>` : `<p>${escapeHtml(job.customer.phone)}</p>`}
           <p>${escapeHtml(job.customer.address)}</p>
         </div>
       </div>
       <div class="panel">
-        <div class="panel-title">JOB SUMMARY</div>
+        <div class="panel-title">Job Summary</div>
         <div class="panel-content">
+          <p><strong>Work Order:</strong> ${escapeHtml(job.jobNumber)}</p>
           <p><strong>Job Type:</strong> Service & Repair</p>
-          <p><strong>Status:</strong> ${job.status.toUpperCase()}</p>
-          <p><strong>Booking Date:</strong> ${format(job.createdAt, 'dd MMM yyyy')}</p>
-          ${job.completedAt ? `<p><strong>Completed:</strong> ${format(job.completedAt, 'dd MMM yyyy')}</p>` : ''}
+          <p><strong>Drop-off:</strong> ${format(job.createdAt, 'dd MMM yyyy, h:mmaaa')}</p>
+          ${job.completedAt ? `<p><strong>Completed:</strong> ${format(job.completedAt, 'dd MMM yyyy, h:mmaaa')}</p>` : ''}
+          <p><strong>Status:</strong> ${job.status.charAt(0).toUpperCase() + job.status.slice(1)}</p>
         </div>
       </div>
     </div>
 
     <!-- Equipment Details -->
     <div class="equipment-section">
-      <div class="panel-title">EQUIPMENT DETAILS</div>
+      <div class="panel-title">Equipment Details</div>
       <div class="panel-content">
-        <p><strong>Category:</strong> ${escapeHtml(job.machineCategory)}</p>
         <p><strong>Brand/Make:</strong> ${escapeHtml(job.machineBrand)}</p>
         <p><strong>Model:</strong> ${escapeHtml(job.machineModel)}</p>
-        ${job.machineSerial ? `<p><strong>Serial/VIN:</strong> ${escapeHtml(job.machineSerial)}</p>` : ''}
+        ${job.machineSerial ? `<p><strong>Serial:</strong> ${escapeHtml(job.machineSerial)}</p>` : ''}
+        <p><strong>Category:</strong> ${escapeHtml(job.machineCategory)}</p>
       </div>
     </div>
 
-    <!-- Problem Description -->
+    <!-- Customer Concern & Diagnosis -->
     ${job.problemDescription ? `
-    <div class="problem-section">
-      <div class="panel-title">PROBLEM DESCRIPTION</div>
-      <div class="panel-content">
-        <p>${escapeHtml(job.problemDescription)}</p>
-        ${job.servicePerformed ? `
-        <p style="margin-top:10px;"><strong>Service Performed:</strong> ${escapeHtml(job.servicePerformed)}</p>
-        ` : ''}
-        ${job.recommendations ? `
-        <p style="margin-top:8px;"><strong>Recommendations:</strong> ${escapeHtml(job.recommendations)}</p>
-        ` : ''}
-      </div>
+    <div class="concern-section">
+      <div class="section-title">Customer Concern</div>
+      <div class="section-content">${escapeHtml(job.problemDescription)}</div>
+      ${job.servicePerformed ? `
+      <div class="section-title" style="margin-top:12px;">Technician Diagnosis</div>
+      <div class="section-content">${escapeHtml(job.servicePerformed)}</div>
+      ` : ''}
+      ${job.recommendations ? `
+      <div class="section-title" style="margin-top:12px;">Recommendations</div>
+      <div class="section-content">${escapeHtml(job.recommendations)}</div>
+      ` : ''}
     </div>
     ` : ''}
 
-    ${job.partsRequired ? `
-    <div style="margin-bottom:16px;padding:8px 12px;background:#f8fafc;border:1px solid #e2e8f0;font-size:12px;">
-      <strong style="color:#0f172a;">Parts Required:</strong> <span style="color:#64748b;">${escapeHtml(job.partsRequired)}</span>
-    </div>
-    ` : ''}
-
-    <!-- Service Checklist -->
-    ${relevantChecklist.length > 0 ? `
-    <div class="checklist-section">
-      <div class="panel-title">SERVICE CHECKLIST - ${escapeHtml((job.machineCategory || '').toUpperCase())}</div>
-      <div class="checklist-grid">
-        ${SERVICE_CHECKLISTS.universal.map(item => `<div class="checklist-item">${escapeHtml(item)}</div>`).join('')}
-        ${relevantChecklist.map(item => `<div class="checklist-item">${escapeHtml(item)}</div>`).join('')}
-      </div>
-    </div>
-    ` : `
-    <div class="checklist-section">
-      <div class="panel-title">SERVICE CHECKLIST - UNIVERSAL CHECKS</div>
-      <div class="checklist-grid">
-        ${SERVICE_CHECKLISTS.universal.map(item => `<div class="checklist-item">${escapeHtml(item)}</div>`).join('')}
-      </div>
-    </div>
-    `}
-
+    <!-- Invoice Details -->
+    <div class="invoice-details-title">Invoice Details</div>
+    
     <!-- Parts & Labour Table -->
     <table class="parts-table">
       <thead>
@@ -609,78 +623,104 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
       </tbody>
     </table>
 
-    <!-- Totals -->
-    <div class="totals-section">
+    <!-- Payment Terms & Totals -->
+    <div class="payment-terms-section">
+      <div class="payment-details">
+        <h3>Payment Details</h3>
+        <p><strong>Bank:</strong> National Australia Bank</p>
+        <p><strong>BSB:</strong> 083-004</p>
+        <p><strong>Account:</strong> 87-612-4455</p>
+        <p><strong>PayID:</strong> hamptonmowerpower@gmail.com</p>
+        <p style="margin-top:12px;"><strong>Accepted Methods:</strong> Cash, EFTPOS, Credit Card, Bank Transfer</p>
+        <p>Please reference Invoice #${escapeHtml(job.jobNumber)} with all payments.</p>
+      </div>
       <div class="totals-card">
         <div class="totals-row subtotal">
           <span>Subtotal (ex GST):</span>
           <span>${formatCurrency(job.subtotal)}</span>
         </div>
-        <div class="totals-row">
+        <div class="totals-row gst">
           <span>GST (10%):</span>
           <span>${formatCurrency(job.gst)}</span>
         </div>
         <div class="totals-row total">
-          <span>TOTAL (inc GST):</span>
+          <span>Total:</span>
           <span>${formatCurrency(job.grandTotal)}</span>
         </div>
         ${job.serviceDeposit > 0 ? `
         <div class="totals-row deposit">
-          <span>Less: Deposit/Prepayment:</span>
+          <span>Deposit / Prepayment:</span>
           <span>-${formatCurrency(job.serviceDeposit)}</span>
         </div>
+        ` : ''}
+        <div class="totals-row paid">
+          <span>Amount Paid:</span>
+          <span>${formatCurrency(job.serviceDeposit || 0)}</span>
+        </div>
         <div class="totals-row balance">
-          <span>BALANCE DUE:</span>
+          <span>Balance Due:</span>
           <span>${formatCurrency(balanceDue)}</span>
         </div>
-        ` : ''}
-        <div class="payment-badge">${paymentBadge}</div>
       </div>
-    </div>
-
-    <!-- Payment Terms -->
-    <div class="terms-section">
-      <h3>Payment Terms & Methods</h3>
-      <p><strong>Payment Terms:</strong> ${paymentTerms}</p>
-      <p><strong>Accepted Methods:</strong> Cash, EFTPOS, Credit Card, Bank Transfer</p>
-      <p>Please reference Invoice #${escapeHtml(job.jobNumber)} with all payments.</p>
-    </div>
-
-    <!-- Repair Contract Conditions -->
-    <div class="terms-section">
-      <h3>Repair Contract Conditions</h3>
-      <ol>
-        <li>All domestic customer service work is guaranteed for 90 days from completion date.</li>
-        <li>All commercial customer service work is covered by floor warranty only (as provided by the manufacturer or distributor).</li>
-        <li>Customer machines left for more than 30 days after completion may incur storage charges.</li>
-        <li>Estimates are valid for 30 days. Additional charges may apply for work beyond original estimate.</li>
-        <li>Payment is due upon completion unless prior arrangements have been made.</li>
-        <li>We are not responsible for machines left unattended on premises.</li>
-        <li>Customer agrees to pay all repair costs even if machine proves economically unviable to repair.</li>
-        <li>Used parts may be supplied unless specifically requested otherwise.</li>
-        <li>Warranty does not cover abuse, normal wear, or damage caused by poor maintenance.</li>
-      </ol>
     </div>
 
     <!-- Footer -->
     <div class="invoice-footer">
-      <div>
-        <h4>Hampton Mowerpower</h4>
-        <p>ABN 97 161 289 069<br>
-        87 Ludstone Street<br>
-        Hampton, VIC 3188<br>
-        Australia</p>
+      <div class="footer-company">HAMPTON MOWERPOWER · ABN 97 161 289 069 · 87 Ludstone Street, Hampton, VIC 3188</div>
+      <div class="thank-you">Thank you for your business · Invoice ${escapeHtml(job.jobNumber)}</div>
+    </div>
+  </div>
+
+  <!-- Page 2: Service Checklist -->
+  <div class="page-break"></div>
+  <div class="invoice-container">
+    <!-- Header (repeated) -->
+    <div class="invoice-header">
+      <div class="header-left">
+        <div class="logo-container">
+          <img src="${hamptonLogo}" alt="Hampton Mowerpower" class="logo"/>
+        </div>
+        <div class="company-line">
+          <strong>ABN 97 161 289 069</strong> · 87 Ludstone Street, Hampton, VIC 3188 · hamptonmowerpower@gmail.com · (03) 9598-6741 · hamptonmowerpower.com.au
+        </div>
       </div>
-      <div>
-        <h4>Contact Us</h4>
-        <p>📧 hamptonmowerpower@gmail.com<br>
-        ☎ 03-9598-6741<br>
-        🌐 www.hamptonmowerpower.com.au</p>
+      <div class="header-right">
+        <div class="invoice-title">INVOICE</div>
+        <div class="invoice-meta">
+          <div class="invoice-meta-row">
+            <span class="invoice-meta-label">Invoice #:</span>
+            <span>${escapeHtml(job.jobNumber)}</span>
+          </div>
+          <div class="invoice-meta-row">
+            <span class="invoice-meta-label">Issue date:</span>
+            <span>${format(issueDate, 'dd MMM yyyy')}</span>
+          </div>
+        </div>
+        <div class="payment-due-badge">Payment Due: ${paymentBadge.replace('PAYMENT DUE: ', '').toUpperCase()}</div>
       </div>
     </div>
 
-    <div class="thank-you">
-      Thank you for your business! · Invoice #${escapeHtml(job.jobNumber)}
+    <!-- Service Checklist -->
+    <div class="checklist-section">
+      <div class="checklist-title">Service Checklist — Universal</div>
+      <div class="checklist-grid">
+        ${SERVICE_CHECKLISTS.universal.map(item => `<div class="checklist-item">${escapeHtml(item)}</div>`).join('')}
+      </div>
+    </div>
+
+    ${relevantChecklist.length > 0 ? `
+    <div class="checklist-section">
+      <div class="checklist-title">Category: ${escapeHtml(job.machineCategory || '')}</div>
+      <div class="checklist-grid">
+        ${relevantChecklist.map(item => `<div class="checklist-item">${escapeHtml(item)}</div>`).join('')}
+      </div>
+    </div>
+    ` : ''}
+
+    <!-- Footer -->
+    <div class="invoice-footer">
+      <div class="footer-company">HAMPTON MOWERPOWER · ABN 97 161 289 069 · 87 Ludstone Street, Hampton, VIC 3188</div>
+      <div class="thank-you">Thank you for your business · Invoice ${escapeHtml(job.jobNumber)}</div>
     </div>
   </div>
 </body>
