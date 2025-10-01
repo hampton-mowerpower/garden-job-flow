@@ -41,186 +41,322 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
           <style>
             @media print {
               @page { size: A4; margin: 15mm; }
-              body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; }
+              body { font-family: Arial, sans-serif; font-size: 11px; }
+            }
+            * {
+              box-sizing: border-box;
             }
             body { 
-              font-family: 'Segoe UI', Arial, sans-serif; 
+              font-family: Arial, sans-serif; 
               margin: 0; 
               padding: 20px;
               background: white;
-              line-height: 1.5;
+              line-height: 1.4;
               color: #333;
+              font-size: 11px;
             }
             .invoice-container {
               max-width: 800px;
               background: white;
               margin: 0 auto;
+              border: 1px solid #e5e7eb;
+              padding: 30px;
             }
-            .invoice-title {
-              background: #f8fafc;
-              padding: 10px;
-              margin: 20px 0;
-              border-radius: 4px;
-              text-align: center;
-            }
-            .invoice-title h2 {
-              margin: 0;
-              font-size: 20px;
-              color: #1e40af;
-            }
-            .invoice-meta {
+            .header {
               display: flex;
               justify-content: space-between;
-              margin-bottom: 20px;
-              font-size: 11px;
+              align-items: flex-start;
+              margin-bottom: 30px;
+              padding-bottom: 20px;
+              border-bottom: 2px solid #1e40af;
             }
-            .customer-machine {
+            .company-info {
+              flex: 1;
+            }
+            .company-name {
+              font-size: 28px;
+              font-weight: bold;
+              color: #1e40af;
+              margin: 0 0 10px 0;
+            }
+            .company-details {
+              font-size: 10px;
+              line-height: 1.6;
+              color: #555;
+            }
+            .company-details strong {
+              color: #333;
+            }
+            .invoice-title-section {
+              text-align: right;
+            }
+            .invoice-title {
+              font-size: 32px;
+              font-weight: bold;
+              color: #1e40af;
+              margin: 0;
+            }
+            .order-info {
+              margin-top: 10px;
+              font-size: 10px;
+              text-align: right;
+            }
+            .order-info div {
+              margin: 3px 0;
+            }
+            .addresses-section {
               display: flex;
               justify-content: space-between;
               margin-bottom: 25px;
+              gap: 15px;
             }
-            .customer-info, .machine-info {
-              width: 48%;
-              background: #f9fafb;
+            .address-box {
+              flex: 1;
+              background: #f8f9fa;
               padding: 15px;
               border-radius: 4px;
+              border: 1px solid #e5e7eb;
             }
-            .customer-info h3, .machine-info h3 {
+            .address-box h3 {
               margin: 0 0 10px 0;
-              font-size: 14px;
+              font-size: 11px;
+              font-weight: bold;
               color: #1e40af;
-              border-bottom: 1px solid #e5e7eb;
+              text-transform: uppercase;
+              border-bottom: 1px solid #cbd5e1;
               padding-bottom: 5px;
             }
-            .customer-info p, .machine-info p {
+            .address-box p {
               margin: 3px 0;
+              font-size: 10px;
+              line-height: 1.5;
+            }
+            .problem-service-section {
+              margin-bottom: 20px;
+            }
+            .section-title {
               font-size: 11px;
+              font-weight: bold;
+              color: #1e40af;
+              margin: 15px 0 8px 0;
+              text-transform: uppercase;
             }
-            .problem-section {
-              background: #fef3c7;
-              padding: 15px;
-              margin-bottom: 20px;
+            .section-content {
+              background: #f8f9fa;
+              padding: 12px;
               border-radius: 4px;
-              border-left: 4px solid #f59e0b;
-            }
-            .service-section {
-              background: #dcfce7;
-              padding: 15px;
-              margin-bottom: 20px;
-              border-radius: 4px;
-              border-left: 4px solid #22c55e;
+              border-left: 3px solid #1e40af;
+              font-size: 10px;
+              line-height: 1.5;
             }
             .parts-table {
               width: 100%;
               border-collapse: collapse;
-              margin-bottom: 20px;
-              font-size: 11px;
+              margin: 20px 0;
+              font-size: 10px;
             }
-            .parts-table th, .parts-table td {
-              border: 1px solid #e5e7eb;
-              padding: 8px;
-              text-align: left;
-            }
-            .parts-table th {
-              background: #f3f4f6;
-              font-weight: 600;
-              color: #374151;
-            }
-            .parts-table .qty, .parts-table .price {
-              text-align: right;
-            }
-            .totals {
-              float: right;
-              width: 300px;
-              margin-top: 20px;
-            }
-            .totals table {
-              width: 100%;
-              border-collapse: collapse;
-              font-size: 12px;
-            }
-            .totals td {
-              padding: 8px 12px;
-              border-bottom: 1px solid #e5e7eb;
-            }
-            .totals .total-label {
-              font-weight: 500;
-              text-align: right;
-              color: #374151;
-            }
-            .totals .total-amount {
-              text-align: right;
-              font-weight: 600;
-            }
-            .grand-total {
+            .parts-table thead {
               background: #1e40af;
               color: white;
-              font-size: 14px;
             }
-            .grand-total td {
+            .parts-table th {
+              padding: 10px 8px;
+              text-align: left;
+              font-weight: 600;
+              font-size: 10px;
+              text-transform: uppercase;
+              border: 1px solid #1e40af;
+            }
+            .parts-table td {
+              padding: 8px;
+              border: 1px solid #e5e7eb;
+              background: white;
+            }
+            .parts-table tbody tr:nth-child(even) {
+              background: #f8f9fa;
+            }
+            .parts-table .qty, .parts-table .tax, .parts-table .price {
+              text-align: right;
+            }
+            .payment-totals {
+              display: flex;
+              justify-content: flex-end;
+              gap: 20px;
+              margin-top: 20px;
+            }
+            .payment-method {
+              flex: 1;
+              max-width: 200px;
+            }
+            .payment-method-title {
+              font-size: 11px;
+              font-weight: bold;
+              color: #1e40af;
+              text-transform: uppercase;
+              margin-bottom: 8px;
+            }
+            .payment-method-value {
+              background: #f8f9fa;
+              padding: 10px;
+              border-radius: 4px;
+              border: 1px solid #e5e7eb;
+              font-size: 10px;
+            }
+            .totals-table {
+              min-width: 300px;
+            }
+            .totals-table table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+            .totals-table td {
+              padding: 8px 12px;
+              font-size: 11px;
+              border-bottom: 1px solid #e5e7eb;
+            }
+            .totals-table .total-label {
+              text-align: right;
+              font-weight: 500;
+              text-transform: uppercase;
+            }
+            .totals-table .total-amount {
+              text-align: right;
+              font-weight: 600;
+              min-width: 100px;
+            }
+            .totals-table .subtotal-row {
+              background: #f8f9fa;
+            }
+            .totals-table .total-row {
+              background: #1e40af;
+              color: white;
+              font-size: 13px;
+              font-weight: bold;
+            }
+            .totals-table .total-row td {
               border-bottom: none;
             }
-            .terms-section {
-              clear: both;
+            .totals-table .paid-row {
+              background: #22c55e;
+              color: white;
+              font-weight: bold;
+            }
+            .totals-table .paid-row td {
+              border-bottom: none;
+            }
+            .totals-table .due-row {
+              background: #f59e0b;
+              color: white;
+              font-size: 14px;
+              font-weight: bold;
+            }
+            .totals-table .due-row td {
+              border-bottom: none;
+              padding: 12px;
+            }
+            .totals-table .deposit-row {
+              color: #ea580c;
+              font-weight: 600;
+            }
+            .thank-you {
               margin-top: 40px;
               padding: 20px;
-              background: #f9fafb;
+              background: #f8f9fa;
+              border-radius: 4px;
+              border: 1px solid #e5e7eb;
+              text-align: center;
+            }
+            .thank-you-title {
+              font-size: 14px;
+              font-weight: bold;
+              color: #1e40af;
+              margin-bottom: 10px;
+            }
+            .thank-you-text {
+              font-size: 10px;
+              line-height: 1.6;
+              color: #555;
+            }
+            .terms-section {
+              margin-top: 30px;
+              padding: 15px;
+              background: #f8f9fa;
               border-radius: 4px;
               border: 1px solid #e5e7eb;
             }
             .terms-title {
-              font-size: 14px;
-              font-weight: 600;
+              font-size: 11px;
+              font-weight: bold;
               color: #1e40af;
               margin-bottom: 10px;
               text-align: center;
+              text-transform: uppercase;
             }
             .terms-content {
-              font-size: 10px;
-              line-height: 1.4;
-              color: #4b5563;
+              font-size: 9px;
+              line-height: 1.5;
+              color: #555;
             }
             .terms-content ol {
               margin: 0;
-              padding-left: 15px;
+              padding-left: 20px;
             }
             .terms-content li {
-              margin-bottom: 4px;
-            }
-            .clearfix::after {
-              content: "";
-              display: table;
-              clear: both;
+              margin-bottom: 5px;
             }
           </style>
         </head>
         <body>
           <div class="invoice-container">
-
-            <div class="invoice-title">
-              <h2>TAX INVOICE</h2>
+            
+            <!-- Header -->
+            <div class="header">
+              <div class="company-info">
+                <h1 class="company-name">Mowercentre</h1>
+                <div class="company-details">
+                  <strong>ABN:</strong> 97 161 289 069<br>
+                  <strong>HAMPTON</strong><br>
+                  87 Ludstone Street / Hampton<br>
+                  VIC 3188 / Australia<br><br>
+                  <strong>Email:</strong> hamptonmowerpower@gmail.com<br>
+                  <strong>Web:</strong> www.hamptonmowerpower.com.au<br>
+                  <strong>Phone:</strong> 03-95986741
+                </div>
+              </div>
+              <div class="invoice-title-section">
+                <h2 class="invoice-title">INVOICE</h2>
+                <div class="order-info">
+                  <div><strong>ORDER NO:</strong> #${escapeHtml(job.jobNumber)}</div>
+                  <div><strong>ORDER DATE:</strong> ${new Date(job.createdAt).toLocaleString('en-AU', { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit', 
+                    hour: '2-digit', 
+                    minute: '2-digit', 
+                    second: '2-digit',
+                    hour12: false 
+                  }).replace(',', '')}</div>
+                  ${job.completedAt ? `<div><strong>COMPLETED:</strong> ${new Date(job.completedAt).toLocaleString('en-AU', { 
+                    year: 'numeric', 
+                    month: '2-digit', 
+                    day: '2-digit',
+                    hour12: false 
+                  })}</div>` : ''}
+                  <div><strong>STATUS:</strong> ${job.status.toUpperCase()}</div>
+                </div>
+              </div>
             </div>
 
-            <div class="invoice-meta">
-              <div>
-                <strong>Job Number:</strong> ${escapeHtml(job.jobNumber)}<br>
-                <strong>Invoice Date:</strong> ${new Date(job.createdAt).toLocaleDateString('en-AU')}<br>
-                <strong>Status:</strong> ${job.status.charAt(0).toUpperCase() + job.status.slice(1)}
-              </div>
-              <div style="text-align: right;">
-                ${job.completedAt ? `<strong>Completion Date:</strong> ${new Date(job.completedAt).toLocaleDateString('en-AU')}` : ''}
-              </div>
-            </div>
-
-            <div class="customer-machine">
-              <div class="customer-info">
-                <h3>Customer Details</h3>
+            <!-- Addresses -->
+            <div class="addresses-section">
+              <div class="address-box">
+                <h3>Customer Address</h3>
                 <p><strong>${escapeHtml(job.customer.name)}</strong></p>
-                <p>${escapeHtml(job.customer.phone)}</p>
                 <p>${escapeHtml(job.customer.address)}</p>
                 ${job.customer.email ? `<p>${escapeHtml(job.customer.email)}</p>` : ''}
+                <p>${escapeHtml(job.customer.phone)}</p>
               </div>
-              <div class="machine-info">
+              <div class="address-box">
                 <h3>Equipment Details</h3>
                 <p><strong>Type:</strong> ${escapeHtml(job.machineCategory)}</p>
                 <p><strong>Brand:</strong> ${escapeHtml(job.machineBrand)}</p>
@@ -229,85 +365,110 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
               </div>
             </div>
 
-            <div class="problem-section">
-              <h3 style="margin-top: 0; color: #92400e;">Problem Description</h3>
-              <p>${escapeHtml(job.problemDescription)}</p>
-              ${job.notes ? `<p><strong>Additional Notes:</strong> ${escapeHtml(job.notes)}</p>` : ''}
+            <!-- Problem & Service -->
+            <div class="problem-service-section">
+              <div class="section-title">Problem Description</div>
+              <div class="section-content">
+                ${escapeHtml(job.problemDescription)}
+                ${job.notes ? `<br><br><strong>Notes:</strong> ${escapeHtml(job.notes)}` : ''}
+              </div>
+              
+              ${(job.servicePerformed || job.recommendations) ? `
+              <div class="section-title" style="margin-top: 15px;">Service Completed</div>
+              <div class="section-content" style="border-left-color: #22c55e;">
+                ${job.servicePerformed ? `<strong>Work Performed:</strong> ${escapeHtml(job.servicePerformed)}` : ''}
+                ${job.recommendations ? `<br><br><strong>Recommendations:</strong> ${escapeHtml(job.recommendations)}` : ''}
+              </div>
+              ` : ''}
             </div>
 
-            ${(job.servicePerformed || job.recommendations) ? `
-            <div class="service-section">
-              <h3 style="margin-top: 0; color: #16a34a;">Service Completed</h3>
-              ${job.servicePerformed ? `<p><strong>Work Performed:</strong> ${escapeHtml(job.servicePerformed)}</p>` : ''}
-              ${job.recommendations ? `<p><strong>Recommendations:</strong> ${escapeHtml(job.recommendations)}</p>` : ''}
-            </div>
-            ` : ''}
-
+            <!-- Parts Table -->
             ${job.parts.length > 0 ? `
-            ${job.partsRequired ? `<p style="margin-bottom: 15px;"><strong>Parts Required:</strong> ${escapeHtml(job.partsRequired)}</p>` : ''}
-            <h3 style="color: #1e40af; margin-bottom: 10px;">Parts & Materials</h3>
             <table class="parts-table">
               <thead>
                 <tr>
-                  <th>Description</th>
-                  <th class="qty">Qty</th>
-                  <th class="price">Unit Price</th>
-                  <th class="price">Total</th>
+                  <th style="width: 50%;">TITLE</th>
+                  <th style="width: 15%;">SKU</th>
+                  <th class="qty" style="width: 10%;">QTY</th>
+                  <th class="tax" style="width: 10%;">TAX</th>
+                  <th class="price" style="width: 15%;">UNIT PRICE</th>
+                  <th class="price" style="width: 15%;">TOTAL</th>
                 </tr>
               </thead>
               <tbody>
-                ${partsRows}
+                ${job.parts.map(part => `
+                  <tr>
+                    <td>${escapeHtml(part.partName)}</td>
+                    <td>${escapeHtml(part.partId)}</td>
+                    <td class="qty">${part.quantity}</td>
+                    <td class="tax">10%</td>
+                    <td class="price">${formatCurrency(part.unitPrice)}</td>
+                    <td class="price">${formatCurrency(part.totalPrice)}</td>
+                  </tr>
+                `).join('')}
               </tbody>
             </table>
             ` : ''}
 
-            <div class="clearfix">
-              <div class="totals">
+            <!-- Payment Method & Totals -->
+            <div class="payment-totals">
+              <div class="payment-method">
+                <div class="payment-method-title">Payment Method</div>
+                <div class="payment-method-value">
+                  ${job.serviceDeposit > 0 ? 'Partial Payment' : 'Cash / Card'}
+                </div>
+              </div>
+              <div class="totals-table">
                 <table>
                   ${job.parts.length > 0 ? `
-                  <tr>
-                    <td class="total-label">Parts Subtotal:</td>
+                  <tr class="subtotal-row">
+                    <td class="total-label">Sub Total:</td>
                     <td class="total-amount">${formatCurrency(job.partsSubtotal)}</td>
                   </tr>
                   ` : ''}
-                  <tr>
-                    <td class="total-label">Labour (${job.labourHours} hrs @ ${formatCurrency(job.labourRate)}/hr):</td>
+                  <tr class="subtotal-row">
+                    <td class="total-label">Labour (${job.labourHours}h @ ${formatCurrency(job.labourRate)}/h):</td>
                     <td class="total-amount">${formatCurrency(job.labourHours * job.labourRate)}</td>
                   </tr>
-                  <tr>
-                    <td class="total-label">Subtotal (excl. GST):</td>
-                    <td class="total-amount">${formatCurrency(job.subtotal)}</td>
-                  </tr>
-                  <tr>
-                    <td class="total-label">GST (10%):</td>
+                  <tr class="subtotal-row">
+                    <td class="total-label">Tax (GST 10%):</td>
                     <td class="total-amount">${formatCurrency(job.gst)}</td>
                   </tr>
-                  <tr class="grand-total">
-                    <td class="total-label">TOTAL AMOUNT:</td>
+                  <tr class="total-row">
+                    <td class="total-label">Total:</td>
                     <td class="total-amount">${formatCurrency(job.grandTotal)}</td>
                   </tr>
-                  ${job.quotationAmount && job.quotationAmount > 0 ? `
-                  <tr>
-                    <td class="total-label">Quotation Amount:</td>
-                    <td class="total-amount">${formatCurrency(job.quotationAmount)}</td>
-                  </tr>
-                  ` : ''}
                   ${job.serviceDeposit && job.serviceDeposit > 0 ? `
-                  <tr style="color: #ea580c;">
-                    <td class="total-label">Service Deposit:</td>
-                    <td class="total-amount">-${formatCurrency(job.serviceDeposit)}</td>
+                  <tr class="paid-row">
+                    <td class="total-label">Paid:</td>
+                    <td class="total-amount">${formatCurrency(job.serviceDeposit)}</td>
                   </tr>
-                  <tr class="grand-total" style="background: #16a34a;">
-                    <td class="total-label">AMOUNT DUE:</td>
+                  <tr class="due-row">
+                    <td class="total-label">Amount Due:</td>
                     <td class="total-amount">${formatCurrency(Math.max(0, job.grandTotal - job.serviceDeposit))}</td>
                   </tr>
-                  ` : ''}
+                  ` : `
+                  <tr class="due-row">
+                    <td class="total-label">Amount Due:</td>
+                    <td class="total-amount">${formatCurrency(job.grandTotal)}</td>
+                  </tr>
+                  `}
                 </table>
               </div>
             </div>
 
+            <!-- Thank You Message -->
+            <div class="thank-you">
+              <div class="thank-you-title">Thanks for your business.</div>
+              <div class="thank-you-text">
+                We truly appreciate your trust, and we'll do our best to continue to give you the service you deserve.<br>
+                We look forward to serving you again.
+              </div>
+            </div>
+
+            <!-- Terms -->
             <div class="terms-section">
-              <div class="terms-title">REPAIR CONTRACT CONDITIONS</div>
+              <div class="terms-title">Repair Contract Conditions</div>
               <div class="terms-content">
                 <ol>
                   <li>All domestic customer service work is guaranteed for 90 days from completion date.</li>
