@@ -394,7 +394,6 @@ const styles: Record<string, React.CSSProperties> = {
     background: '#FFFFFF',
     padding: '12mm',
     maxWidth: '210mm',
-    minHeight: '297mm',
     margin: '0 auto',
     pageBreakAfter: 'auto',
   },

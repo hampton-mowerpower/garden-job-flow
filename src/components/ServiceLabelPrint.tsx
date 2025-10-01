@@ -1,6 +1,7 @@
 import React from 'react';
 import { Job } from '@/types/job';
 import { format } from 'date-fns';
+import QRCode from 'qrcode';
 
 interface ServiceLabelPrintProps {
   job: Job;
@@ -8,84 +9,111 @@ interface ServiceLabelPrintProps {
   quantity: number;
 }
 
-export const printServiceLabel = ({ job, template, quantity }: ServiceLabelPrintProps) => {
+export const printServiceLabel = async ({ job, template, quantity }: ServiceLabelPrintProps) => {
   const printWindow = window.open('', '_blank');
   if (!printWindow) return;
 
   const jobUrl = `${window.location.origin}/jobs/${job.id}`;
 
-  // Generate QR code data URI using canvas
-  const generateQRCodeDataURI = (text: string): string => {
-    // Simple QR-like placeholder - in production, this would use a proper QR library
-    // For now, we'll use a data URI placeholder
-    return `data:image/svg+xml,${encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
-        <rect width="100" height="100" fill="white"/>
-        <rect x="10" y="10" width="10" height="10" fill="black"/>
-        <rect x="30" y="10" width="10" height="10" fill="black"/>
-        <rect x="50" y="10" width="10" height="10" fill="black"/>
-        <rect x="70" y="10" width="10" height="10" fill="black"/>
-        <rect x="10" y="30" width="10" height="10" fill="black"/>
-        <rect x="70" y="30" width="10" height="10" fill="black"/>
-        <rect x="10" y="50" width="10" height="10" fill="black"/>
-        <rect x="30" y="50" width="10" height="10" fill="black"/>
-        <rect x="50" y="50" width="10" height="10" fill="black"/>
-        <rect x="70" y="50" width="10" height="10" fill="black"/>
-        <rect x="10" y="70" width="10" height="10" fill="black"/>
-        <rect x="30" y="70" width="10" height="10" fill="black"/>
-        <rect x="50" y="70" width="10" height="10" fill="black"/>
-        <rect x="70" y="70" width="10" height="10" fill="black"/>
-        <text x="50" y="95" text-anchor="middle" font-size="6" font-family="monospace">${text.substring(0, 20)}</text>
-      </svg>
-    `)}`;
-  };
+  // Generate QR code data URI
+  let qrCodeImage = '';
+  try {
+    qrCodeImage = await QRCode.toDataURL(jobUrl, { 
+      width: 200, 
+      margin: 1,
+      errorCorrectionLevel: 'M'
+    });
+  } catch (err) {
+    console.error('Error generating QR code:', err);
+    qrCodeImage = 'data:image/gif;base64,R0lGODlhAQABAAAAACw=';
+  }
 
-  const qrCodeImage = generateQRCodeDataURI(jobUrl);
+  // Format parts required
+  const partsRequired = job.parts && job.parts.length > 0
+    ? job.parts.map(p => `${p.partName} × ${p.quantity}`).join(', ')
+    : 'None';
 
-  // Thermal Large (62×100mm)
+  // Check if quotation was requested
+  const hasQuotation = job.quotationAmount && job.quotationAmount > 0;
+
+  // Thermal Large (62×100mm) - Updated with sections like PDF 222
   const thermalLargeLabel = `
-    <div style="width: 100mm; height: 62mm; padding: 4mm; font-family: Arial, sans-serif; font-size: 10px; border: 1px solid #000;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3mm;">
-        <div style="flex: 1;">
-          <div style="font-weight: bold; font-size: 14px; margin-bottom: 2mm;">WORK ORDER</div>
-          <div style="font-size: 16px; font-weight: bold;">${job.jobNumber}</div>
-        </div>
-        <div style="width: 25mm; height: 25mm; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc;">
-          <img src="${qrCodeImage}" alt="QR Code" style="width: 100%; height: 100%;">
-        </div>
+    <div style="width: 100mm; padding: 5mm; font-family: Arial, sans-serif; font-size: 10px; border: 2px solid #000; box-sizing: border-box; page-break-after: always;">
+      <div style="text-align: center; margin-bottom: 4mm;">
+        <div style="font-size: 18px; font-weight: bold; border: 2px solid #000; padding: 3mm;">${escapeHtml(job.jobNumber)}</div>
       </div>
-      <div style="margin-bottom: 2mm;">
+      
+      <div style="margin-bottom: 3mm; font-size: 11px;">
         <strong>Customer:</strong> ${escapeHtml(job.customer.name)}<br>
         <strong>Phone:</strong> ${escapeHtml(job.customer.phone)}
       </div>
-      <div style="margin-bottom: 2mm; padding: 2mm; background: #f0f0f0; border: 1px solid #ccc;">
-        <strong>Equipment:</strong> ${escapeHtml(job.machineBrand)} ${escapeHtml(job.machineModel)}<br>
-        ${job.machineSerial ? `<strong>Serial:</strong> ${escapeHtml(job.machineSerial)}<br>` : ''}
-        <strong>Category:</strong> ${escapeHtml(job.machineCategory)}
+      
+      <div style="margin-bottom: 3mm; padding: 2mm; background: #f5f5f5; border-left: 4px solid #333;">
+        <strong>Machine Details:</strong><br>
+        ${escapeHtml(job.machineCategory)} - ${escapeHtml(job.machineBrand)} ${escapeHtml(job.machineModel)}
+        ${job.machineSerial ? `<br><strong>Serial:</strong> ${escapeHtml(job.machineSerial)}` : ''}
       </div>
-      <div style="font-size: 8px; margin-top: 2mm;">
-        <strong>Booked:</strong> ${format(new Date(job.createdAt), 'dd MMM yyyy')} 
-        ${job.problemDescription ? ' · ⚠ Concern Noted' : ''}
+      
+      ${job.servicePerformed ? `
+      <div style="margin-bottom: 3mm; padding: 2mm; background: #e3f2fd; border-left: 4px solid #2196F3;">
+        <strong>Service Notes:</strong><br>
+        ${escapeHtml(job.servicePerformed)}
+      </div>
+      ` : ''}
+      
+      ${job.parts && job.parts.length > 0 ? `
+      <div style="margin-bottom: 3mm; padding: 2mm; background: #f3e5f5; border-left: 4px solid #9c27b0;">
+        <strong>Parts Required:</strong><br>
+        ${escapeHtml(partsRequired)}
+      </div>
+      ` : ''}
+      
+      ${job.problemDescription ? `
+      <div style="margin-bottom: 3mm; padding: 2mm; background: #fff3e0; border-left: 4px solid #ff9800;">
+        <strong>Problem/Fault:</strong><br>
+        ${escapeHtml(job.problemDescription)}
+      </div>
+      ` : ''}
+      
+      ${hasQuotation ? `
+      <div style="margin-bottom: 3mm; padding: 2mm; background: #ffeb3b; border: 2px solid #f57f17; font-weight: bold;">
+        ⚠️ QUOTATION REQUESTED: $${job.quotationAmount?.toFixed(2)}
+      </div>
+      ` : ''}
+      
+      <div style="text-align: center; font-size: 8px; margin-top: 3mm; padding-top: 2mm; border-top: 1px solid #ccc;">
+        <strong>Hampton Mowerpower</strong><br>
+        87 Ludstone Street, Hampton VIC 3188<br>
+        03-95986741 | ABN: 97 161 289 069<br>
+        hamptonmowerpower@gmail.com<br>
+        Created: ${format(new Date(job.createdAt), 'dd/MM/yyyy')}
       </div>
     </div>
   `;
 
-  // Thermal Small (58×40mm)
+  // Thermal Small (58×40mm) - Compact version
   const thermalSmallLabel = `
-    <div style="width: 58mm; height: 40mm; padding: 2mm; font-family: Arial, sans-serif; font-size: 8px; border: 1px solid #000;">
-      <div style="display: flex; justify-content: space-between; margin-bottom: 2mm;">
-        <div>
-          <div style="font-weight: bold; font-size: 12px;">${job.jobNumber}</div>
-          <div style="margin-top: 1mm;">${escapeHtml(job.customer.name)}</div>
-          <div>${escapeHtml(job.customer.phone)}</div>
-        </div>
-        <div style="width: 15mm; height: 15mm;">
-          <img src="${qrCodeImage}" alt="QR Code" style="width: 100%; height: 100%;">
-        </div>
+    <div style="width: 58mm; padding: 2mm; font-family: Arial, sans-serif; font-size: 8px; border: 1px solid #000; box-sizing: border-box; page-break-after: always;">
+      <div style="font-weight: bold; font-size: 11px; text-align: center; margin-bottom: 2mm; border-bottom: 1px solid #000; padding-bottom: 1mm;">
+        ${escapeHtml(job.jobNumber)}
       </div>
-      <div style="font-size: 7px; background: #f0f0f0; padding: 1mm;">
-        ${escapeHtml(job.machineBrand)} ${escapeHtml(job.machineModel)} · ${escapeHtml(job.machineCategory)}
+      <div style="font-size: 8px; margin-bottom: 1mm;">
+        <strong>${escapeHtml(job.customer.name)}</strong><br>
+        ${escapeHtml(job.customer.phone)}
       </div>
+      <div style="font-size: 7px; background: #f0f0f0; padding: 1mm; margin-bottom: 1mm;">
+        ${escapeHtml(job.machineCategory)} - ${escapeHtml(job.machineBrand)} ${escapeHtml(job.machineModel)}
+      </div>
+      ${job.problemDescription ? `
+      <div style="font-size: 7px; background: #fff3e0; padding: 1mm; margin-bottom: 1mm;">
+        <strong>Issue:</strong> ${escapeHtml(job.problemDescription.substring(0, 50))}${job.problemDescription.length > 50 ? '...' : ''}
+      </div>
+      ` : ''}
+      ${hasQuotation ? `
+      <div style="font-size: 7px; background: #ffeb3b; padding: 1mm; font-weight: bold;">
+        QUOTATION: $${job.quotationAmount?.toFixed(2)}
+      </div>
+      ` : ''}
     </div>
   `;
 

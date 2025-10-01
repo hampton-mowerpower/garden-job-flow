@@ -309,9 +309,9 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     }
   };
 
-  const handleServiceLabelPrint = (quantity: number, template: 'thermal-large' | 'thermal-small' | 'a4') => {
+  const handleServiceLabelPrint = async (quantity: number, template: 'thermal-large' | 'thermal-small' | 'a4') => {
     if (savedJob) {
-      printServiceLabel({ job: savedJob, quantity, template });
+      await printServiceLabel({ job: savedJob, quantity, template });
       toast({
         title: "Service Label Printed",
         description: `Printed ${quantity} label(s) using ${template} template`,
