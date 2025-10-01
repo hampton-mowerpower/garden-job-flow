@@ -6,6 +6,7 @@ import { Navigation } from '@/components/Navigation';
 import { JobManager } from '@/components/JobManager';
 import { PartsCatalogue } from '@/components/parts/PartsCatalogue';
 import { ReportsManager } from '@/components/reports/ReportsManager';
+import { CustomerManager } from '@/components/CustomerManager';
 import { Toaster } from '@/components/ui/toaster';
 
 const { useState } = React;
@@ -40,10 +41,7 @@ function AppContent() {
       case 'customers':
         return (
           <div className="container mx-auto p-6">
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold mb-4">Customer Management</h2>
-              <p className="text-muted-foreground">Customer management functionality coming soon...</p>
-            </div>
+            <CustomerManager />
           </div>
         );
       case 'parts':

@@ -14,6 +14,7 @@ const translations: Record<Language, Record<string, string>> = {
   en: {
     // Navigation
     'nav.jobs': 'Job Management',
+    'nav.customers': 'Customers',
     'nav.parts': 'Parts Catalogue',
     'nav.machines': 'Machine Management',
     'nav.reports': 'Reports',
@@ -68,6 +69,22 @@ const translations: Record<Language, Record<string, string>> = {
     'customer.email': 'Email',
     'customer.notes': 'Customer Notes',
     'customer.required': 'required',
+    'customer.management': 'Customer Management',
+    'customer.manage': 'Manage customer information and reminders',
+    'customer.none': 'No customers found',
+    
+    // Reminders
+    'reminder.schedule': 'Schedule Reminder',
+    'reminder.send': 'Send Reminder',
+    'reminder.type': 'Reminder Type',
+    'reminder.date': 'Reminder Date',
+    'reminder.message': 'Message (Optional)',
+    'reminder.message.placeholder': 'Custom reminder message',
+    'reminder.service': 'Service Due',
+    'reminder.collection': 'Collection Ready',
+    'reminder.scheduled': 'Reminder scheduled successfully',
+    'reminder.failed': 'Failed to create reminder',
+    'reminder.date.required': 'Please select a reminder date',
     
     // Machine Information
     'machine.info': 'Machine Information',
@@ -171,6 +188,7 @@ const translations: Record<Language, Record<string, string>> = {
   zh: {
     // Navigation
     'nav.jobs': '工作管理',
+    'nav.customers': '客户',
     'nav.parts': '配件目录',
     'nav.machines': '机器管理',
     'nav.reports': '报告',
@@ -225,6 +243,22 @@ const translations: Record<Language, Record<string, string>> = {
     'customer.email': '电子邮箱',
     'customer.notes': '客户备注',
     'customer.required': '必填',
+    'customer.management': '客户管理',
+    'customer.manage': '管理客户信息和提醒',
+    'customer.none': '未找到客户',
+    
+    // Reminders
+    'reminder.schedule': '安排提醒',
+    'reminder.send': '发送提醒',
+    'reminder.type': '提醒类型',
+    'reminder.date': '提醒日期',
+    'reminder.message': '消息（可选）',
+    'reminder.message.placeholder': '自定义提醒消息',
+    'reminder.service': '服务到期',
+    'reminder.collection': '准备取货',
+    'reminder.scheduled': '提醒安排成功',
+    'reminder.failed': '创建提醒失败',
+    'reminder.date.required': '请选择提醒日期',
     
     // Machine Information
     'machine.info': '机器信息',
