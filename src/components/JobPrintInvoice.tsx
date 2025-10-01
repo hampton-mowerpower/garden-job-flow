@@ -283,8 +283,8 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
               Please reference the Invoice # with all payments.
             </p>
             <p style={styles.termsText}>
-              <strong>Warranty:</strong> All repairs carry a 90-day warranty on workmanship and parts fitted. 
-              Warranty does not cover wear and tear, misuse, or lack of maintenance. Customer must retain this invoice for warranty claims.
+              <strong>Warranty:</strong> All domestic customer service work is guaranteed for 90 days from completion date. 
+              All commercial customer service work is covered by floor warranty only (as provided by the manufacturer or distributor).
             </p>
           </div>
 
@@ -293,14 +293,14 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
             <div style={styles.footerGrid}>
               <div>
                 <strong>Hampton Mowerpower</strong><br />
-                ABN 76 152 505 423<br />
-                7/39 Islington St, Collingwood VIC 3066
+                ABN 97 161 289 069<br />
+                87 Ludstone Street, Hampton VIC 3188, Australia
               </div>
               <div style={styles.footerRight}>
                 <strong>Contact</strong><br />
-                accounts@hamptonmowerpower.com.au<br />
-                03 9419 8190<br />
-                hamptonmowerpower.com.au
+                hamptonmowerpower@gmail.com<br />
+                03-95986741<br />
+                www.hamptonmowerpower.com.au
               </div>
             </div>
             <div style={styles.footerThankYou}>
@@ -360,14 +360,14 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
               <div style={styles.footerGrid}>
                 <div>
                   <strong>Hampton Mowerpower</strong><br />
-                  ABN 76 152 505 423<br />
-                  7/39 Islington St, Collingwood VIC 3066
+                  ABN 97 161 289 069<br />
+                  87 Ludstone Street, Hampton VIC 3188, Australia
                 </div>
                 <div style={styles.footerRight}>
                   <strong>Contact</strong><br />
-                  accounts@hamptonmowerpower.com.au<br />
-                  03 9419 8190<br />
-                  hamptonmowerpower.com.au
+                  hamptonmowerpower@gmail.com<br />
+                  03-95986741<br />
+                  www.hamptonmowerpower.com.au
                 </div>
               </div>
               <div style={styles.footerThankYou}>
@@ -762,7 +762,7 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
   };
 
   return (
-    <>
+    <div className="flex gap-2">
       <Button
         onClick={handlePrint}
         variant="outline"
@@ -772,10 +772,19 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
         <FileText className="h-4 w-4" />
         Print Invoice
       </Button>
+      <Button
+        onClick={handlePrint}
+        variant="outline"
+        size="sm"
+        className="gap-2"
+      >
+        <FileText className="h-4 w-4" />
+        Download PDF
+      </Button>
       <div style={{ display: 'none' }}>
         <InvoiceContent ref={componentRef} job={job} />
       </div>
-    </>
+    </div>
   );
 };
 

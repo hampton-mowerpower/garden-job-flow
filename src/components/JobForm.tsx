@@ -20,10 +20,11 @@ import { jobBookingDB } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { JobPrintLabel } from './JobPrintLabel';
 import { JobPrintInvoice } from './JobPrintInvoice';
+import { ServiceLabelPrintDialog } from './ServiceLabelPrintDialog';
+import { printServiceLabel } from './ServiceLabelPrint';
 import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ServiceLabelPrintDialog } from './ServiceLabelPrintDialog';
 
 import { MachineManager } from './MachineManager';
 import { initializeChecklists, getUniversalChecklist, getCategoryChecklist } from '@/data/serviceChecklist';
@@ -96,6 +97,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [checklistUniversal, setChecklistUniversal] = useState<ChecklistItem[]>([]);
   const [checklistCategory, setChecklistCategory] = useState<ChecklistItem[]>([]);
   const [hasAccount, setHasAccount] = useState(false);
+  const [showLabelDialog, setShowLabelDialog] = useState(false);
+  const [newJobData, setNewJobData] = useState<Job | null>(null);
   
   // Calculations
   const selectedCategory = HAMPTON_MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
@@ -308,11 +311,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
 
   const handleServiceLabelPrint = (quantity: number, template: 'thermal-large' | 'thermal-small' | 'a4') => {
     if (savedJob) {
-      // Handle printing logic here
-      console.log('Printing service label:', { job: savedJob, quantity, template });
+      printServiceLabel({ job: savedJob, quantity, template });
       toast({
-        title: "Service Label",
-        description: `Printing ${quantity} label(s) using ${template} template`,
+        title: "Service Label Printed",
+        description: `Printed ${quantity} label(s) using ${template} template`,
       });
     }
   };

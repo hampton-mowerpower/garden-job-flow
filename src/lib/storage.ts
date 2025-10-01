@@ -354,6 +354,28 @@ class JobBookingDB {
       models: {}
     };
   }
+
+  // Print settings
+  async savePrintSettings(settings: {
+    autoPrintLabel?: boolean;
+    defaultLabelTemplate?: 'thermal-large' | 'thermal-small' | 'a4';
+    defaultLabelQuantity?: number;
+  }): Promise<void> {
+    return this.saveSetting('printSettings', settings);
+  }
+
+  async getPrintSettings(): Promise<{
+    autoPrintLabel: boolean;
+    defaultLabelTemplate: 'thermal-large' | 'thermal-small' | 'a4';
+    defaultLabelQuantity: number;
+  }> {
+    const settings = await this.getSetting('printSettings');
+    return settings || {
+      autoPrintLabel: false,
+      defaultLabelTemplate: 'thermal-large',
+      defaultLabelQuantity: 1,
+    };
+  }
 }
 
 export const jobBookingDB = new JobBookingDB();

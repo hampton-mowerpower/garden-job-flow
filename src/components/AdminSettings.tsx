@@ -28,6 +28,11 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
   const [parts, setParts] = useState<JobPart[]>([]);
   const [quickDescriptions, setQuickDescriptions] = useState<string[]>([]);
   const [newDescription, setNewDescription] = useState('');
+  const [printSettings, setPrintSettings] = useState({
+    autoPrintLabel: false,
+    defaultLabelTemplate: 'thermal-large' as 'thermal-large' | 'thermal-small' | 'a4',
+    defaultLabelQuantity: 1,
+  });
 
   useEffect(() => {
     loadSettings();
@@ -41,12 +46,14 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
       const customCategories = await jobBookingDB.getCustomCategories();
       const customParts = await jobBookingDB.getCustomParts();
       const descriptions = await jobBookingDB.getQuickDescriptions();
+      const printSettingsData = await jobBookingDB.getPrintSettings();
       
       if (customCategories.length > 0) {
         setCategories(customCategories);
       }
       
       setQuickDescriptions(descriptions);
+      setPrintSettings(printSettingsData);
       
       // Convert DEFAULT_PARTS and A4_PARTS to JobPart format
       const allParts = [...DEFAULT_PARTS, ...A4_PARTS];
@@ -186,6 +193,23 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
     setQuickDescriptions(updated);
   };
 
+  const savePrintSettings = async () => {
+    try {
+      await jobBookingDB.savePrintSettings(printSettings);
+      toast({
+        title: "Success",
+        description: "Print settings saved successfully"
+      });
+    } catch (error) {
+      console.error('Error saving print settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save print settings",
+        variant: "destructive"
+      });
+    }
+  };
+
   const exportData = async () => {
     try {
       await jobBookingDB.init();
@@ -300,10 +324,11 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
         </div>
 
         <Tabs defaultValue="categories" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="categories">Categories & Rates</TabsTrigger>
             <TabsTrigger value="parts">Parts Management</TabsTrigger>
             <TabsTrigger value="descriptions">Quick Descriptions</TabsTrigger>
+            <TabsTrigger value="print">Print Settings</TabsTrigger>
             <TabsTrigger value="export">Data Export</TabsTrigger>
           </TabsList>
 
@@ -416,6 +441,87 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
                       </Button>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="print">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  Print & Label Settings
+                  <Button variant="default" size="sm" onClick={savePrintSettings}>
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Changes
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="space-y-1">
+                      <Label className="text-base font-semibold">Auto-Print Service Label</Label>
+                      <p className="text-sm text-muted-foreground">
+                        Automatically prompt to print service label when creating new jobs
+                      </p>
+                    </div>
+                    <Select
+                      value={printSettings.autoPrintLabel ? 'on' : 'off'}
+                      onValueChange={(val) => setPrintSettings({ ...printSettings, autoPrintLabel: val === 'on' })}
+                    >
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="on">On</SelectItem>
+                        <SelectItem value="off">Off</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Default Label Template</Label>
+                      <Select
+                        value={printSettings.defaultLabelTemplate}
+                        onValueChange={(val: any) => setPrintSettings({ ...printSettings, defaultLabelTemplate: val })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="thermal-large">Thermal (62×100mm)</SelectItem>
+                          <SelectItem value="thermal-small">Thermal (58×40mm)</SelectItem>
+                          <SelectItem value="a4">A4 Sticker Sheet</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Default Quantity</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={10}
+                        value={printSettings.defaultLabelQuantity}
+                        onChange={(e) => setPrintSettings({ 
+                          ...printSettings, 
+                          defaultLabelQuantity: parseInt(e.target.value) || 1 
+                        })}
+                      />
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="bg-muted p-4 rounded-lg">
+                    <h4 className="font-semibold mb-2">Label Print Preview</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Service labels include: Work Order #, Customer name/phone, Equipment details, 
+                      Serial, Drop-off date, QR code for job lookup.
+                    </p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
