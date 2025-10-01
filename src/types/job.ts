@@ -42,10 +42,17 @@ export interface JobPart {
 
 // Checklist item for service tasks
 export interface ChecklistItem {
+  id: string; // unique ID for each item
   label: string;
   checked: boolean;
   note?: string;
-  category?: 'universal' | string; // 'universal' or specific category name
+  isCustom?: boolean; // true if user-added
+}
+
+export interface ServiceChecklist {
+  universal: ChecklistItem[];
+  category: ChecklistItem[];
+  categoryName?: string;
 }
 
 export interface Job {
@@ -75,8 +82,11 @@ export interface Job {
   // Computed parts list for display
   partsRequired?: string; // computed from parts array
   
-  // Service checklist
-  checklist?: ChecklistItem[]; // universal + category-specific checks
+  // Service checklist (split into universal + category)
+  checklistUniversal?: ChecklistItem[];
+  checklistCategory?: ChecklistItem[];
+  equipmentCategory?: string;
+  equipmentModel?: string;
   
   // Pricing
   parts: JobPart[];

@@ -24,14 +24,9 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
     const balanceDue = Math.max(0, job.grandTotal - amountPaid);
 
     // Get checked checklist items only
-    const checkedUniversal = (job.checklist || []).filter(
-      item => item.checked && item.category === 'universal'
-    );
-    const checkedCategory = (job.checklist || []).filter(
-      item => item.checked && item.category !== 'universal'
-    );
-
-    const categoryName = checkedCategory.length > 0 ? checkedCategory[0].category : '';
+    const checkedUniversal = (job.checklistUniversal || []).filter(item => item.checked);
+    const checkedCategory = (job.checklistCategory || []).filter(item => item.checked);
+    const categoryName = job.equipmentCategory || '';
 
     return (
       <div ref={ref} className="invoice-print-wrapper">
@@ -46,10 +41,10 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
                 style={styles.logo}
               />
               <div style={styles.companyLine}>
-                Hampton Mowerpower · ABN 76 152 505 423 · 
-                7/39 Islington St, Collingwood VIC 3066 · 
-                accounts@hamptonmowerpower.com.au · 03 9419 8190 · 
-                hamptonmowerpower.com.au
+                Hampton Mowerpower · ABN 97 161 289 069 · 
+                87 Ludstone Street, Hampton VIC 3188, Australia · 
+                hamptonmowerpower@gmail.com · 03-95986741 · 
+                www.hamptonmowerpower.com.au
               </div>
             </div>
             <div style={styles.headerRight}>

@@ -132,10 +132,10 @@ export const JobPrintLabel: React.FC<JobPrintLabelProps> = ({ job }) => {
             </div>
             
             <div class="footer">
-              <strong>HAMPTON MOWERPOWER</strong><br>
-              Garden Equipment Sales & Service<br>
-              87 Ludstone Street, Hampton 3188<br>
-              (03) 9598 6741 | ABN: 97 161 289 069<br>
+              <strong>Hampton Mowerpower</strong><br>
+              87 Ludstone Street, Hampton VIC 3188<br>
+              03-95986741 | ABN: 97 161 289 069<br>
+              hamptonmowerpower@gmail.com<br>
               Created: ${new Date(job.createdAt).toLocaleDateString('en-AU')}
             </div>
           </div>

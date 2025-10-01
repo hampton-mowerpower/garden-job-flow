@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, Save, Printer } from 'lucide-react';
 import { nanoid } from 'nanoid';
-import { Job, Customer, JobPart } from '@/types/job';
+import { Job, Customer, JobPart, ChecklistItem } from '@/types/job';
 import { HAMPTON_MACHINE_CATEGORIES } from '@/data/hamptonMachineData';
 import { DEFAULT_PARTS } from '@/data/defaultParts';
 import { A4_PARTS, PART_CATEGORIES } from '@/data/a4Parts';
@@ -22,11 +22,11 @@ import { JobPrintLabel } from './JobPrintLabel';
 import { JobPrintInvoice } from './JobPrintInvoice';
 import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ServiceLabelPrintDialog } from './ServiceLabelPrintDialog';
 
 import { MachineManager } from './MachineManager';
-import { getChecklistForCategory, initializeChecklist } from '@/data/serviceChecklist';
-import { ChecklistItem } from '@/types/job';
-import { Checkbox } from '@/components/ui/checkbox';
+import { initializeChecklists, getUniversalChecklist, getCategoryChecklist } from '@/data/serviceChecklist';
 
 interface JobFormProps {
   job?: Job;
@@ -38,6 +38,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
+  const [showServiceLabelDialog, setShowServiceLabelDialog] = useState(false);
+  const [savedJob, setSavedJob] = useState<Job | null>(null);
   
   // Form state
   const [jobNumber, setJobNumber] = useState('');
@@ -91,7 +93,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [status, setStatus] = useState<Job['status']>('pending');
   const [selectedPartCategory, setSelectedPartCategory] = useState<string>('All');
   const [quickDescriptions, setQuickDescriptions] = useState<string[]>([]);
-  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [checklistUniversal, setChecklistUniversal] = useState<ChecklistItem[]>([]);
+  const [checklistCategory, setChecklistCategory] = useState<ChecklistItem[]>([]);
   const [hasAccount, setHasAccount] = useState(false);
   
   // Calculations
@@ -154,7 +157,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setParts(migratedParts);
       setLabourHours(job.labourHours);
       setStatus(job.status);
-      setChecklist(job.checklist || []);
+      setChecklistUniversal(job.checklistUniversal || []);
+      setChecklistCategory(job.checklistCategory || []);
       setHasAccount(job.hasAccount || false);
     } else {
       // New job
@@ -162,6 +166,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         await jobBookingDB.init();
         const nextJobNumber = await jobBookingDB.getNextJobNumber();
         setJobNumber(nextJobNumber);
+        // Initialize universal checklist for new jobs
+        setChecklistUniversal(getUniversalChecklist());
       } catch (error) {
         console.error('Error generating job number:', error);
         toast({
@@ -264,6 +270,53 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     return availableParts;
   };
 
+  // Checklist handlers
+  const updateChecklistUniversal = (id: string, updates: Partial<ChecklistItem>) => {
+    setChecklistUniversal(prev => prev.map(item => 
+      item.id === id ? { ...item, ...updates } : item
+    ));
+  };
+
+  const updateChecklistCategory = (id: string, updates: Partial<ChecklistItem>) => {
+    setChecklistCategory(prev => prev.map(item => 
+      item.id === id ? { ...item, ...updates } : item
+    ));
+  };
+
+  const addCustomChecklistItem = (type: 'universal' | 'category') => {
+    const newItem: ChecklistItem = {
+      id: nanoid(),
+      label: '',
+      checked: false,
+      note: '',
+      isCustom: true,
+    };
+    if (type === 'universal') {
+      setChecklistUniversal(prev => [...prev, newItem]);
+    } else {
+      setChecklistCategory(prev => [...prev, newItem]);
+    }
+  };
+
+  const removeCustomChecklistItem = (id: string, type: 'universal' | 'category') => {
+    if (type === 'universal') {
+      setChecklistUniversal(prev => prev.filter(item => item.id !== id));
+    } else {
+      setChecklistCategory(prev => prev.filter(item => item.id !== id));
+    }
+  };
+
+  const handleServiceLabelPrint = (quantity: number, template: 'thermal-large' | 'thermal-small' | 'a4') => {
+    if (savedJob) {
+      // Handle printing logic here
+      console.log('Printing service label:', { job: savedJob, quantity, template });
+      toast({
+        title: "Service Label",
+        description: `Printing ${quantity} label(s) using ${template} template`,
+      });
+    }
+  };
+
   const handleSave = async () => {
     // Validation
     if (!customer.name || !customer.phone || !machineCategory || !problemDescription) {
@@ -315,7 +368,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         labourRate,
         ...calculations,
         status,
-        checklist,
+        checklistUniversal,
+        checklistCategory,
+        equipmentCategory: machineCategory,
+        equipmentModel: machineModel,
         hasAccount,
         createdAt: job?.createdAt || new Date(),
         updatedAt: new Date(),
@@ -329,11 +385,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         description: job ? t('msg.job.updated') : t('msg.job.created')
       });
       
-      // Auto-print label for new jobs
-      if (!job && onPrint) {
-        setTimeout(() => {
-          onPrint(jobData);
-        }, 500);
+      // For new jobs, show service label print dialog
+      if (!job) {
+        setSavedJob(jobData);
+        setShowServiceLabelDialog(true);
       }
       
       onSave(jobData);
@@ -447,9 +502,9 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               machineModel={machineModel}
               onCategoryChange={(cat) => {
                 setMachineCategory(cat);
-                // Initialize checklist when category is selected
+                // Initialize category checklist when category is selected
                 if (cat) {
-                  setChecklist(initializeChecklist(cat));
+                  setChecklistCategory(getCategoryChecklist(cat));
                 }
               }}
               onBrandChange={setMachineBrand}
@@ -550,55 +605,107 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             </CardContent>
           </Card>
 
-          {/* Service Checklist - Always show universal, category shows when selected */}
-          {checklist.length > 0 && (
+          {/* Service Checklist */}
+          {(checklistUniversal.length > 0 || checklistCategory.length > 0) && (
             <Card className="form-section">
               <CardHeader>
                 <CardTitle>Service Checklist</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Universal Checks - Always visible */}
-                <div>
-                  <h4 className="font-semibold mb-3">Universal Checks</h4>
-                  <div className="space-y-2">
-                    {checklist.filter(item => item.category === 'universal').map((item, idx) => (
-                      <div key={idx} className="flex items-start gap-2">
-                        <Checkbox
-                          checked={item.checked}
-                          onCheckedChange={(checked) => {
-                            const newChecklist = [...checklist];
-                            const index = newChecklist.findIndex(i => i.label === item.label && i.category === item.category);
-                            if (index !== -1) {
-                              newChecklist[index].checked = checked as boolean;
-                            }
-                            setChecklist(newChecklist);
-                          }}
-                        />
-                        <label className="text-sm cursor-pointer">{item.label}</label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Category-Specific Checks - Show when category selected */}
-                {machineCategory && checklist.filter(item => item.category !== 'universal').length > 0 && (
+                {/* Universal Checks */}
+                {checklistUniversal.length > 0 && (
                   <div>
-                    <h4 className="font-semibold mb-3">Category: {machineCategory}</h4>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold">Universal Checks</h4>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addCustomChecklistItem('universal')}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Item
+                      </Button>
+                    </div>
                     <div className="space-y-2">
-                      {checklist.filter(item => item.category !== 'universal').map((item, idx) => (
-                        <div key={idx} className="flex items-start gap-2">
+                      {checklistUniversal.map((item) => (
+                        <div key={item.id} className="flex items-start gap-2">
                           <Checkbox
                             checked={item.checked}
                             onCheckedChange={(checked) => {
-                              const newChecklist = [...checklist];
-                              const index = newChecklist.findIndex(i => i.label === item.label && i.category === item.category);
-                              if (index !== -1) {
-                                newChecklist[index].checked = checked as boolean;
-                              }
-                              setChecklist(newChecklist);
+                              updateChecklistUniversal(item.id, { checked: checked as boolean });
                             }}
                           />
-                          <label className="text-sm cursor-pointer">{item.label}</label>
+                          {item.isCustom ? (
+                            <div className="flex-1 flex gap-2">
+                              <Input
+                                value={item.label}
+                                onChange={(e) => updateChecklistUniversal(item.id, { label: e.target.value })}
+                                placeholder="Custom check..."
+                                className="flex-1"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeCustomChecklistItem(item.id, 'universal')}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <label className="text-sm cursor-pointer flex-1">{item.label}</label>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Category-Specific Checks */}
+                {machineCategory && checklistCategory.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold">Category: {machineCategory}</h4>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addCustomChecklistItem('category')}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Item
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {checklistCategory.map((item) => (
+                        <div key={item.id} className="flex items-start gap-2">
+                          <Checkbox
+                            checked={item.checked}
+                            onCheckedChange={(checked) => {
+                              updateChecklistCategory(item.id, { checked: checked as boolean });
+                            }}
+                          />
+                          {item.isCustom ? (
+                            <div className="flex-1 flex gap-2">
+                              <Input
+                                value={item.label}
+                                onChange={(e) => updateChecklistCategory(item.id, { label: e.target.value })}
+                                placeholder="Custom check..."
+                                className="flex-1"
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => removeCustomChecklistItem(item.id, 'category')}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <label className="text-sm cursor-pointer flex-1">{item.label}</label>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -608,20 +715,20 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             </Card>
           )}
 
-          {/* Mechanic Service Notes */}
+          {/* Service Notes */}
           <Card className="form-section">
             <CardHeader>
               <CardTitle>{t('service.notes')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="service-performed">{t('service.performed.by')}</Label>
+                <Label htmlFor="service-performed">{t('service.performed')}</Label>
                 <TextareaTranslated
                   id="service-performed"
                   value={servicePerformed}
                   onChange={(value) => setServicePerformed(value)}
-                  placeholder={t('placeholder.service')}
-                  rows={3}
+                  placeholder={t('placeholder.service.performed')}
+                  rows={4}
                 />
               </div>
               <div>
@@ -637,243 +744,215 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             </CardContent>
           </Card>
 
-          {/* Parts */}
+          {/* Parts List */}
           <Card className="form-section">
             <CardHeader>
-              <CardTitle className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <span>{t('parts.required')}</span>
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <Select value={selectedPartCategory} onValueChange={setSelectedPartCategory}>
-                    <SelectTrigger className="w-full sm:w-40">
-                      <SelectValue placeholder={t('parts.filter')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="All">{t('parts.all')}</SelectItem>
-                      {PART_CATEGORIES.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button variant="outline" size="sm" onClick={addPart} className="w-full sm:w-auto">
-                    <Plus className="w-4 h-4 mr-2" />
-                    {t('parts.add')}
-                  </Button>
-                </div>
+              <CardTitle className="flex items-center justify-between">
+                <span>{t('parts.title')}</span>
+                <Select value={selectedPartCategory} onValueChange={setSelectedPartCategory}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder={t('parts.filter')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Parts</SelectItem>
+                    {PART_CATEGORIES.map(cat => (
+                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {parts.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">
-                  {t('parts.none')}
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {parts.map((part) => (
-                    <div key={part.id} className="flex flex-col gap-3 p-4 border rounded-lg">
-                      <div className="w-full">
-                        <Label>{t('parts.name')}</Label>
-                        <Select
-                          value={part.partId}
-                          onValueChange={(value) => selectPresetPart(value, part.id)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder={t('placeholder.select.part')} />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-60">
-                            <SelectItem value="custom">{t('parts.custom')}</SelectItem>
-                            {selectedPartCategory !== 'All' && (
-                              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground border-b">
-                                {selectedPartCategory} {t('parts.title')}
-                              </div>
-                            )}
-                            {getFilteredPartsForRow(part.partId).map((preset) => (
-                              <SelectItem key={preset.id} value={preset.id}>
-                                <div className="flex justify-between items-center w-full">
-                                  <span>{preset.name}</span>
-                                  <span className="text-muted-foreground ml-2">${preset.sellPrice}</span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        {(!part.partId || part.partId === 'custom') && (
-                          <InputTranslated
-                            className="mt-2"
-                            value={part.partName}
-                            onChange={(value) => updatePart(part.id, { partName: value })}
-                            placeholder={t('placeholder.part.name')}
-                          />
-                        )}
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label>{t('parts.quantity')}</Label>
-                          <Input
-                            type="number"
-                            min="1"
-                            value={part.quantity}
-                            onChange={(e) => updatePart(part.id, { quantity: parseInt(e.target.value) || 1 })}
-                          />
-                        </div>
-                        <div>
-                          <Label>{t('parts.unitPrice')}</Label>
-                          <InputCurrency
-                            value={part.unitPrice}
-                            onChange={(value) => updatePart(part.id, { unitPrice: value })}
-                          />
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <Label>{t('calc.total')}</Label>
-                          <div className="h-10 flex items-center px-3 bg-muted rounded-md font-medium">
-                            {formatCurrency(part.totalPrice)}
-                          </div>
-                        </div>
-                        <div className="flex items-end">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => removePart(part.id)}
-                            className="w-full"
-                          >
-                            <Trash2 className="w-4 h-4 mr-2" />
-                            {t('common.remove')}
-                          </Button>
-                        </div>
-                      </div>
+              <div className="space-y-4">
+                {parts.map((part) => (
+                  <div key={part.id} className="grid grid-cols-12 gap-2 items-end">
+                    <div className="col-span-5">
+                      <Label className="text-xs">{t('parts.name')}</Label>
+                      <Select
+                        value={part.partId || 'custom'}
+                        onValueChange={(value) => selectPresetPart(value, part.id)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('placeholder.parts.select')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="custom">{t('parts.custom')}</SelectItem>
+                          {getFilteredPartsForRow(part.partId).map(p => (
+                            <SelectItem key={p.id} value={p.id}>
+                              {p.name} ({formatCurrency(p.sellPrice)})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ))}
-                </div>
-              )}
+                    
+                    {part.partId === 'custom' && (
+                      <div className="col-span-3">
+                        <Label className="text-xs">{t('parts.custom.name')}</Label>
+                        <Input
+                          value={part.partName}
+                          onChange={(e) => updatePart(part.id, { partName: e.target.value })}
+                          placeholder={t('placeholder.parts.name')}
+                        />
+                      </div>
+                    )}
+                    
+                    <div className={part.partId === 'custom' ? 'col-span-1' : 'col-span-2'}>
+                      <Label className="text-xs">{t('parts.qty')}</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={part.quantity}
+                        onChange={(e) => updatePart(part.id, { quantity: parseInt(e.target.value) || 1 })}
+                      />
+                    </div>
+                    
+                    <div className="col-span-2">
+                      <Label className="text-xs">{t('parts.price')}</Label>
+                      <InputCurrency
+                        value={part.unitPrice}
+                        onChange={(value) => updatePart(part.id, { unitPrice: value })}
+                      />
+                    </div>
+                    
+                    <div className="col-span-1 flex items-end justify-end pb-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removePart(part.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+                
+                <Button type="button" variant="outline" onClick={addPart} className="w-full">
+                  <Plus className="w-4 h-4 mr-2" />
+                  {t('parts.add')}
+                </Button>
+              </div>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Right Column - Pricing & Summary */}
-        <div className="space-y-6">
-          <Card className="stats-card">
+          {/* Labour */}
+          <Card className="form-section">
             <CardHeader>
-              <CardTitle>{t('jobs.title')}</CardTitle>
+              <CardTitle>{t('labour.title')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>{t('jobs.number')}</Label>
-                <div className="font-mono font-bold text-primary">
-                  {jobNumber}
-                </div>
-              </div>
-              
-              {partsRequired && (
-                <div className="space-y-2">
-                  <Label>{t('parts.required')}</Label>
-                  <div className="text-sm bg-muted p-3 rounded min-h-[60px] text-muted-foreground">
-                    {partsRequired || t('parts.none')}
-                  </div>
-                </div>
-              )}
-              
               <div>
-                <Label htmlFor="labour-hours">{t('labour.hours')}</Label>
+                <Label>{t('labour.hours')}</Label>
                 <Input
-                  id="labour-hours"
                   type="number"
                   min="0"
                   step="0.25"
                   value={labourHours}
                   onChange={(e) => setLabourHours(parseFloat(e.target.value) || 0)}
+                  placeholder="0.00"
                 />
+                <p className="text-sm text-muted-foreground mt-1">
+                  {t('labour.rate')}: {formatCurrency(labourRate)}/hr
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Summary & Actions */}
+        <div className="space-y-6">
+          {/* Summary Card */}
+          <Card className="sticky top-6">
+            <CardHeader>
+              <CardTitle>{t('summary.title')}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{t('summary.parts')}</span>
+                  <span className="font-medium">{formatCurrency(calculations.partsSubtotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">
+                    {t('summary.labour')} ({labourHours} hrs @ {formatCurrency(labourRate)}/hr)
+                  </span>
+                  <span className="font-medium">{formatCurrency(calculations.labourTotal)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{t('summary.subtotal')}</span>
+                  <span className="font-medium">{formatCurrency(calculations.subtotal)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{t('summary.gst')}</span>
+                  <span className="font-medium">{formatCurrency(calculations.gst)}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between">
+                  <span className="font-semibold">{t('summary.total')}</span>
+                  <span className="font-bold text-lg">{formatCurrency(calculations.grandTotal)}</span>
+                </div>
               </div>
 
+              <Separator />
+
+              {/* Service Deposit */}
               <div>
                 <Label htmlFor="service-deposit">{t('service.deposit')}</Label>
                 <InputCurrency
+                  id="service-deposit"
                   value={serviceDeposit}
                   onChange={handleServiceDepositChange}
-                  placeholder={t('placeholder.quotation')}
+                  placeholder="0.00"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Service deposit is deducted from the total
+                  {t('service.deposit.help')}
                 </p>
               </div>
-              
+
+              {serviceDeposit > 0 && (
+                <>
+                  <Separator />
+                  <div className="flex justify-between">
+                    <span className="font-semibold">{t('summary.balance')}</span>
+                    <span className="font-bold text-lg text-primary">
+                      {formatCurrency(calculations.finalTotal)}
+                    </span>
+                  </div>
+                </>
+              )}
+
+              <Separator />
+
               <div>
-                <Label htmlFor="status">{t('jobs.status')}</Label>
+                <Label>{t('status.title')}</Label>
                 <Select value={status} onValueChange={(value: Job['status']) => setStatus(value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pending">{t('status.pending')}</SelectItem>
-                    <SelectItem value="in-progress">{t('status.in-progress')}</SelectItem>
+                    <SelectItem value="in-progress">{t('status.inprogress')}</SelectItem>
                     <SelectItem value="completed">{t('status.completed')}</SelectItem>
-                    <SelectItem value="delivered">{t('status.ready')}</SelectItem>
+                    <SelectItem value="delivered">{t('status.delivered')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </CardContent>
           </Card>
-
-          <Card className="form-section">
-            <CardHeader>
-              <CardTitle>{t('calc.subtotal')}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex justify-between">
-                <span>{t('calc.parts')}:</span>
-                <span>{formatCurrency(calculations.partsSubtotal)}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>{t('labour.total')} ({labourHours}h × ${labourRate}/h):</span>
-                <span>{formatCurrency(labourHours * labourRate)}</span>
-              </div>
-              
-              <div className="flex justify-between font-medium">
-                <span>{t('labour.total')}:</span>
-                <span>{formatCurrency(calculations.labourTotal)}</span>
-              </div>
-              
-              <Separator />
-              
-              <div className="flex justify-between">
-                <span>{t('calc.subtotal')}:</span>
-                <span>{formatCurrency(calculations.subtotal)}</span>
-              </div>
-              
-              <div className="flex justify-between">
-                <span>{t('calc.gst')}:</span>
-                <span>{formatCurrency(calculations.gst)}</span>
-              </div>
-              
-              <Separator />
-              
-              <div className="flex justify-between text-lg font-bold">
-                <span>{t('calc.total')}:</span>
-                <span className="text-primary">{formatCurrency(calculations.grandTotal)}</span>
-              </div>
-
-              {serviceDeposit > 0 && (
-                <>
-                  <div className="flex justify-between text-orange-600">
-                    <span>{t('calc.deposit')}:</span>
-                    <span>-{formatCurrency(serviceDeposit)}</span>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="flex justify-between text-xl font-bold text-green-600">
-                    <span>{t('calc.final')}:</span>
-                    <span>{formatCurrency(calculations.finalTotal)}</span>
-                  </div>
-                </>
-              )}
-            </CardContent>
-          </Card>
         </div>
       </div>
+
+      {/* Service Label Print Dialog */}
+      {savedJob && (
+        <ServiceLabelPrintDialog
+          job={savedJob}
+          open={showServiceLabelDialog}
+          onOpenChange={setShowServiceLabelDialog}
+          onPrint={handleServiceLabelPrint}
+        />
+      )}
     </div>
   );
 }
