@@ -502,7 +502,7 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
     <!-- Service Checklist -->
     ${relevantChecklist.length > 0 ? `
     <div class="checklist-section">
-      <div class="panel-title">SERVICE CHECKLIST - ${escapeHtml(job.machineCategory.toUpperCase())}</div>
+      <div class="panel-title">SERVICE CHECKLIST - ${escapeHtml((job.machineCategory || '').toUpperCase())}</div>
       <div class="checklist-grid">
         ${SERVICE_CHECKLISTS.universal.map(item => `<div class="checklist-item">${escapeHtml(item)}</div>`).join('')}
         ${relevantChecklist.map(item => `<div class="checklist-item">${escapeHtml(item)}</div>`).join('')}
