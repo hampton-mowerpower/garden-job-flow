@@ -24,6 +24,9 @@ import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 import { MachineManager } from './MachineManager';
+import { getChecklistForCategory, initializeChecklist } from '@/data/serviceChecklist';
+import { ChecklistItem } from '@/types/job';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface JobFormProps {
   job?: Job;
@@ -88,6 +91,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [status, setStatus] = useState<Job['status']>('pending');
   const [selectedPartCategory, setSelectedPartCategory] = useState<string>('All');
   const [quickDescriptions, setQuickDescriptions] = useState<string[]>([]);
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [hasAccount, setHasAccount] = useState(false);
   
   // Calculations
   const selectedCategory = HAMPTON_MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
@@ -149,6 +154,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setParts(migratedParts);
       setLabourHours(job.labourHours);
       setStatus(job.status);
+      setChecklist(job.checklist || []);
+      setHasAccount(job.hasAccount || false);
     } else {
       // New job
       try {
@@ -308,6 +315,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         labourRate,
         ...calculations,
         status,
+        checklist,
+        hasAccount,
         createdAt: job?.createdAt || new Date(),
         updatedAt: new Date(),
         completedAt: status === 'completed' ? new Date() : job?.completedAt
@@ -413,6 +422,16 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                   placeholder={t('placeholder.customer.email')}
                 />
               </div>
+              <div className="flex items-center gap-2 pt-2">
+                <Checkbox
+                  id="has-account"
+                  checked={hasAccount}
+                  onCheckedChange={(checked) => setHasAccount(checked as boolean)}
+                />
+                <Label htmlFor="has-account" className="cursor-pointer">
+                  Account Customer (30-day payment terms)
+                </Label>
+              </div>
             </CardContent>
           </Card>
 
@@ -426,9 +445,19 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               machineCategory={machineCategory}
               machineBrand={machineBrand}
               machineModel={machineModel}
-              onCategoryChange={setMachineCategory}
+              onCategoryChange={(cat) => {
+                setMachineCategory(cat);
+                if (cat && machineModel) {
+                  setChecklist(initializeChecklist(cat));
+                }
+              }}
               onBrandChange={setMachineBrand}
-              onModelChange={setMachineModel}
+              onModelChange={(model) => {
+                setMachineModel(model);
+                if (machineCategory && model && checklist.length === 0) {
+                  setChecklist(initializeChecklist(machineCategory));
+                }
+              }}
             />
               <div>
                 <Label htmlFor="machine-serial">{t('machine.serial')}</Label>
@@ -524,6 +553,59 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               </div>
             </CardContent>
           </Card>
+
+          {/* Service Checklist */}
+          {machineCategory && machineModel && checklist.length > 0 && (
+            <Card className="form-section">
+              <CardHeader>
+                <CardTitle>Service Checklist</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h4 className="font-semibold mb-3">Universal Checks</h4>
+                  <div className="space-y-2">
+                    {checklist.filter(item => item.category === 'universal').map((item, idx) => (
+                      <div key={idx} className="flex items-start gap-2">
+                        <Checkbox
+                          checked={item.checked}
+                          onCheckedChange={(checked) => {
+                            const newChecklist = [...checklist];
+                            const index = newChecklist.findIndex(i => i.label === item.label && i.category === item.category);
+                            if (index !== -1) {
+                              newChecklist[index].checked = checked as boolean;
+                            }
+                            setChecklist(newChecklist);
+                          }}
+                        />
+                        <label className="text-sm">{item.label}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold mb-3">Category: {machineCategory}</h4>
+                  <div className="space-y-2">
+                    {checklist.filter(item => item.category !== 'universal').map((item, idx) => (
+                      <div key={idx} className="flex items-start gap-2">
+                        <Checkbox
+                          checked={item.checked}
+                          onCheckedChange={(checked) => {
+                            const newChecklist = [...checklist];
+                            const index = newChecklist.findIndex(i => i.label === item.label && i.category === item.category);
+                            if (index !== -1) {
+                              newChecklist[index].checked = checked as boolean;
+                            }
+                            setChecklist(newChecklist);
+                          }}
+                        />
+                        <label className="text-sm">{item.label}</label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Mechanic Service Notes */}
           <Card className="form-section">

@@ -40,6 +40,14 @@ export interface JobPart {
   category?: string;
 }
 
+// Checklist item for service tasks
+export interface ChecklistItem {
+  label: string;
+  checked: boolean;
+  note?: string;
+  category?: 'universal' | string; // 'universal' or specific category name
+}
+
 export interface Job {
   id: string;
   jobNumber: string;
@@ -67,6 +75,9 @@ export interface Job {
   // Computed parts list for display
   partsRequired?: string; // computed from parts array
   
+  // Service checklist
+  checklist?: ChecklistItem[]; // universal + category-specific checks
+  
   // Pricing
   parts: JobPart[];
   labourHours: number;
@@ -84,6 +95,9 @@ export interface Job {
   createdAt: Date;
   updatedAt: Date;
   completedAt?: Date;
+  
+  // Customer account settings
+  hasAccount?: boolean; // true if customer has 30-day account terms
 }
 
 export interface JobBookingStats {
