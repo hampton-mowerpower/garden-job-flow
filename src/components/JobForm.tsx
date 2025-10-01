@@ -640,19 +640,19 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                     </div>
                     <div className="space-y-2">
                       {checklistUniversal.map((item) => (
-                        <div key={item.id} className="flex items-start gap-2">
-                          <Checkbox
-                            checked={item.checked}
-                            onCheckedChange={(checked) => {
-                              updateChecklistUniversal(item.id, { checked: checked as boolean });
-                            }}
-                          />
-                          {item.isCustom ? (
+                        <div key={item.id} className="space-y-1">
+                          <div className="flex items-start gap-2">
+                            <Checkbox
+                              checked={item.checked}
+                              onCheckedChange={(checked) => {
+                                updateChecklistUniversal(item.id, { checked: checked as boolean });
+                              }}
+                            />
                             <div className="flex-1 flex gap-2">
                               <Input
                                 value={item.label}
                                 onChange={(e) => updateChecklistUniversal(item.id, { label: e.target.value })}
-                                placeholder="Custom check..."
+                                placeholder="Check item..."
                                 className="flex-1"
                               />
                               <Button
@@ -664,8 +664,16 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                                 <Trash2 className="h-3 w-3" />
                               </Button>
                             </div>
-                          ) : (
-                            <label className="text-sm cursor-pointer flex-1">{item.label}</label>
+                          </div>
+                          {item.checked && (
+                            <div className="ml-6">
+                              <Input
+                                value={item.note || ''}
+                                onChange={(e) => updateChecklistUniversal(item.id, { note: e.target.value })}
+                                placeholder="Optional note..."
+                                className="text-xs"
+                              />
+                            </div>
                           )}
                         </div>
                       ))}
@@ -690,19 +698,19 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                     </div>
                     <div className="space-y-2">
                       {checklistCategory.map((item) => (
-                        <div key={item.id} className="flex items-start gap-2">
-                          <Checkbox
-                            checked={item.checked}
-                            onCheckedChange={(checked) => {
-                              updateChecklistCategory(item.id, { checked: checked as boolean });
-                            }}
-                          />
-                          {item.isCustom ? (
+                        <div key={item.id} className="space-y-1">
+                          <div className="flex items-start gap-2">
+                            <Checkbox
+                              checked={item.checked}
+                              onCheckedChange={(checked) => {
+                                updateChecklistCategory(item.id, { checked: checked as boolean });
+                              }}
+                            />
                             <div className="flex-1 flex gap-2">
                               <Input
                                 value={item.label}
                                 onChange={(e) => updateChecklistCategory(item.id, { label: e.target.value })}
-                                placeholder="Custom check..."
+                                placeholder="Check item..."
                                 className="flex-1"
                               />
                               <Button
@@ -714,8 +722,16 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                                 <Trash2 className="h-3 w-3" />
                               </Button>
                             </div>
-                          ) : (
-                            <label className="text-sm cursor-pointer flex-1">{item.label}</label>
+                          </div>
+                          {item.checked && (
+                            <div className="ml-6">
+                              <Input
+                                value={item.note || ''}
+                                onChange={(e) => updateChecklistCategory(item.id, { note: e.target.value })}
+                                placeholder="Optional note..."
+                                className="text-xs"
+                              />
+                            </div>
                           )}
                         </div>
                       ))}

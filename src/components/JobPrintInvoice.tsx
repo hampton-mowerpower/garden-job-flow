@@ -388,24 +388,24 @@ InvoiceContent.displayName = 'InvoiceContent';
 const styles: Record<string, React.CSSProperties> = {
   page: {
     fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
-    fontSize: '14px',
-    lineHeight: '1.5',
+    fontSize: '13px',
+    lineHeight: '1.4',
     color: '#0F172A',
     background: '#FFFFFF',
-    padding: '16mm',
+    padding: '12mm',
     maxWidth: '210mm',
     minHeight: '297mm',
     margin: '0 auto',
-    pageBreakAfter: 'always',
+    pageBreakAfter: 'auto',
   },
   
   // Header
   header: {
     display: 'grid',
     gridTemplateColumns: '1fr auto',
-    gap: '24px',
-    marginBottom: '24px',
-    paddingBottom: '16px',
+    gap: '16px',
+    marginBottom: '16px',
+    paddingBottom: '12px',
     borderBottom: '1px solid #E2E8F0',
   },
   headerLeft: {
@@ -414,13 +414,13 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '12px',
   },
   logo: {
-    maxWidth: '280px',
+    maxWidth: '240px',
     height: 'auto',
   },
   companyLine: {
-    fontSize: '11px',
+    fontSize: '10px',
     color: '#64748B',
-    lineHeight: '1.4',
+    lineHeight: '1.3',
   },
   headerRight: {
     textAlign: 'right',
@@ -465,14 +465,16 @@ const styles: Record<string, React.CSSProperties> = {
   panelsGrid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '16px',
-    marginBottom: '24px',
+    gap: '12px',
+    marginBottom: '16px',
   },
   panel: {
-    padding: '12px',
+    padding: '10px',
     border: '1px solid #E2E8F0',
     borderRadius: '4px',
     background: '#FAFBFC',
+    breakInside: 'avoid',
+    pageBreakInside: 'avoid',
   },
   panelTitle: {
     fontSize: '11px',
@@ -493,11 +495,13 @@ const styles: Record<string, React.CSSProperties> = {
 
   // Concern Sections
   concernSection: {
-    marginBottom: '16px',
-    padding: '12px',
-    paddingLeft: '16px',
+    marginBottom: '12px',
+    padding: '10px',
+    paddingLeft: '14px',
     borderLeft: '3px solid #0F172A',
     background: '#F8FAFC',
+    breakInside: 'avoid',
+    pageBreakInside: 'avoid',
   },
   concernTitle: {
     fontSize: '11px',
@@ -516,16 +520,16 @@ const styles: Record<string, React.CSSProperties> = {
   table: {
     width: '100%',
     borderCollapse: 'collapse',
-    marginBottom: '24px',
-    fontSize: '13px',
+    marginBottom: '16px',
+    fontSize: '12px',
   },
   tableHeaderRow: {
     background: '#F8FAFC',
   },
   tableHeader: {
-    padding: '10px 8px',
+    padding: '7px 6px',
     borderBottom: '2px solid #E2E8F0',
-    fontSize: '12px',
+    fontSize: '11px',
     fontWeight: '600',
     color: '#64748B',
     textTransform: 'uppercase',
@@ -533,9 +537,11 @@ const styles: Record<string, React.CSSProperties> = {
   },
   tableRow: {
     borderBottom: '1px solid #E2E8F0',
+    breakInside: 'avoid',
+    pageBreakInside: 'avoid',
   },
   tableCell: {
-    padding: '10px 8px',
+    padding: '7px 6px',
     color: '#0F172A',
   },
   alignLeft: {
@@ -549,20 +555,26 @@ const styles: Record<string, React.CSSProperties> = {
   totalsWrapper: {
     display: 'flex',
     justifyContent: 'flex-end',
-    marginBottom: '24px',
+    marginBottom: '16px',
+    breakInside: 'avoid',
+    pageBreakInside: 'avoid',
   },
   totalsCard: {
     width: '300px',
-    padding: '16px',
+    padding: '14px',
     border: '1px solid #E2E8F0',
     borderRadius: '4px',
     background: '#FAFBFC',
+    breakInside: 'avoid',
+    pageBreakInside: 'avoid',
   },
   totalsRow: {
     display: 'flex',
     justifyContent: 'space-between',
-    padding: '6px 0',
-    fontSize: '13px',
+    padding: '5px 0',
+    fontSize: '12px',
+    breakInside: 'avoid',
+    pageBreakInside: 'avoid',
   },
   totalsLabel: {
     color: '#64748B',
@@ -588,11 +600,13 @@ const styles: Record<string, React.CSSProperties> = {
 
   // Payment Details
   paymentDetails: {
-    marginBottom: '20px',
-    padding: '16px',
+    marginBottom: '14px',
+    padding: '12px',
     border: '1px solid #E2E8F0',
     borderRadius: '4px',
     background: '#F8FAFC',
+    breakInside: 'avoid',
+    pageBreakInside: 'avoid',
   },
   paymentTitle: {
     fontSize: '12px',
@@ -611,11 +625,13 @@ const styles: Record<string, React.CSSProperties> = {
 
   // Terms
   terms: {
-    marginBottom: '24px',
-    padding: '16px',
+    marginBottom: '12px',
+    padding: '12px',
     border: '1px solid #E2E8F0',
     borderRadius: '4px',
     background: '#FAFBFC',
+    breakInside: 'avoid',
+    pageBreakInside: 'avoid',
   },
   termsTitle: {
     fontSize: '12px',
@@ -634,8 +650,11 @@ const styles: Record<string, React.CSSProperties> = {
   // Footer
   footer: {
     marginTop: 'auto',
-    paddingTop: '16px',
+    paddingTop: '12px',
     borderTop: '1px solid #E2E8F0',
+    marginBottom: '0',
+    breakInside: 'avoid',
+    pageBreakInside: 'avoid',
   },
   footerGrid: {
     display: 'grid',
@@ -729,11 +748,71 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
       <html>
         <head>
           <title>Invoice - ${job.jobNumber}</title>
+          <meta charset="UTF-8">
           <style>
-            @media print {
-              @page { size: A4; margin: 0; }
-              body { margin: 0; }
+            /* Print-optimized CSS for pagination control */
+            @page { 
+              size: A4; 
+              margin: 12mm;
             }
+            
+            @media print {
+              body { 
+                margin: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+              
+              /* Prevent splits - keep elements together */
+              table { 
+                page-break-inside: auto;
+              }
+              
+              tr, td, th { 
+                page-break-inside: avoid;
+                break-inside: avoid;
+              }
+              
+              .line, .amount, .total-row { 
+                break-inside: avoid;
+                page-break-inside: avoid;
+              }
+              
+              /* Keep totals block together */
+              .totals, .totals * { 
+                break-inside: avoid;
+                page-break-inside: avoid;
+              }
+              
+              /* Prevent header orphans */
+              h1, h2, h3, .section-title { 
+                break-after: avoid;
+                page-break-after: avoid;
+              }
+              
+              /* Keep sections together */
+              .notes, .footer { 
+                break-inside: avoid;
+              }
+              
+              /* Widow/orphan control */
+              p, .amount { 
+                orphans: 2;
+                widows: 2;
+              }
+              
+              /* Remove extra page breaks at the end */
+              .invoice-page:last-child,
+              .checklist-page:last-child {
+                page-break-after: auto !important;
+              }
+              
+              /* Ensure last element has no bottom margin */
+              footer {
+                margin-bottom: 0 !important;
+              }
+            }
+            
             ${Array.from(document.styleSheets)
               .map(styleSheet => {
                 try {

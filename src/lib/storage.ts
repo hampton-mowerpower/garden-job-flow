@@ -371,11 +371,12 @@ class JobBookingDB {
   }> {
     const settings = await this.getSetting('printSettings');
     return settings || {
-      autoPrintLabel: false,
+      autoPrintLabel: true, // Default to true for better UX
       defaultLabelTemplate: 'thermal-large',
       defaultLabelQuantity: 1,
     };
   }
 }
+
 
 export const jobBookingDB = new JobBookingDB();
