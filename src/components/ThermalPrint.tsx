@@ -2,7 +2,6 @@ import React from 'react';
 import { Job } from '@/types/job';
 import { formatCurrency } from '@/lib/calculations';
 import { format } from 'date-fns';
-import QRCode from 'qrcode';
 
 interface ThermalPrintProps {
   job: Job;
@@ -12,13 +11,6 @@ interface ThermalPrintProps {
 
 export const printThermal = async (props: ThermalPrintProps) => {
   const { job, type, width = 80 } = props;
-  
-  // Generate QR code
-  const jobUrl = `${window.location.origin}/job/${job.id}`;
-  const qrCodeDataUrl = await QRCode.toDataURL(jobUrl, {
-    width: width === 80 ? 200 : 150,
-    margin: 1,
-  });
 
   // Open print window
   const printWindow = window.open('', '_blank');
@@ -27,8 +19,8 @@ export const printThermal = async (props: ThermalPrintProps) => {
   }
 
   const html = type === 'service-label' 
-    ? generateServiceLabelHTML(job, qrCodeDataUrl, width)
-    : generateCollectionReceiptHTML(job, qrCodeDataUrl, width);
+    ? generateServiceLabelHTML(job, width)
+    : generateCollectionReceiptHTML(job, width);
 
   printWindow.document.write(html);
   printWindow.document.close();
@@ -42,7 +34,7 @@ export const printThermal = async (props: ThermalPrintProps) => {
   setTimeout(() => printWindow.close(), 1000);
 };
 
-const generateServiceLabelHTML = (job: Job, qrCodeDataUrl: string, width: number): string => {
+const generateServiceLabelHTML = (job: Job, width: number): string => {
   const partsRequired = job.parts
     .filter(part => part.partName && part.partName.trim() !== '' && part.quantity > 0)
     .map(part => `${part.partName.trim()} × ${part.quantity || 1}`)
@@ -78,6 +70,8 @@ const generateServiceLabelHTML = (job: Job, qrCodeDataUrl: string, width: number
       padding: 2mm 1mm;
       font-size: ${width === 80 ? '11pt' : '9pt'};
       line-height: 1.3;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     .header {
       text-align: center;
@@ -97,14 +91,6 @@ const generateServiceLabelHTML = (job: Job, qrCodeDataUrl: string, width: number
       margin: 3mm 0;
       letter-spacing: 2px;
     }
-    .qr-code {
-      text-align: center;
-      margin: 3mm 0;
-    }
-    .qr-code img {
-      max-width: ${width === 80 ? '60mm' : '45mm'};
-      height: auto;
-    }
     .section {
       margin: 2mm 0;
       border-top: 1px dashed #000;
@@ -114,9 +100,13 @@ const generateServiceLabelHTML = (job: Job, qrCodeDataUrl: string, width: number
       font-weight: bold;
       display: inline-block;
       width: ${width === 80 ? '30mm' : '22mm'};
+      vertical-align: top;
     }
     .value {
-      display: inline;
+      display: inline-block;
+      max-width: ${width === 80 ? '45mm' : '32mm'};
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     .quotation-alert {
       background: #000;
@@ -139,10 +129,6 @@ const generateServiceLabelHTML = (job: Job, qrCodeDataUrl: string, width: number
   <div class="abn">ABN 97 161 289 069</div>
   
   <div class="job-id">${escapeHtml(job.jobNumber)}</div>
-  
-  <div class="qr-code">
-    <img src="${qrCodeDataUrl}" alt="QR Code" />
-  </div>
   
   <div class="section">
     <div><span class="label">Customer:</span> <span class="value">${escapeHtml(job.customer.name)}</span></div>
@@ -187,7 +173,7 @@ const generateServiceLabelHTML = (job: Job, qrCodeDataUrl: string, width: number
 `;
 };
 
-const generateCollectionReceiptHTML = (job: Job, qrCodeDataUrl: string, width: number): string => {
+const generateCollectionReceiptHTML = (job: Job, width: number): string => {
   const amountPaid = job.serviceDeposit || 0;
   const balanceDue = Math.max(0, job.grandTotal - amountPaid);
   const isPaid = balanceDue === 0;
@@ -219,6 +205,8 @@ const generateCollectionReceiptHTML = (job: Job, qrCodeDataUrl: string, width: n
       padding: 2mm 1mm;
       font-size: ${width === 80 ? '11pt' : '9pt'};
       line-height: 1.3;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     .header {
       text-align: center;
@@ -237,14 +225,6 @@ const generateCollectionReceiptHTML = (job: Job, qrCodeDataUrl: string, width: n
       font-weight: bold;
       margin: 2mm 0;
     }
-    .qr-code {
-      text-align: center;
-      margin: 2mm 0;
-    }
-    .qr-code img {
-      max-width: ${width === 80 ? '50mm' : '40mm'};
-      height: auto;
-    }
     .section {
       margin: 2mm 0;
       border-top: 1px dashed #000;
@@ -254,6 +234,8 @@ const generateCollectionReceiptHTML = (job: Job, qrCodeDataUrl: string, width: n
       display: flex;
       justify-content: space-between;
       margin: 1mm 0;
+      word-wrap: break-word;
+      overflow-wrap: break-word;
     }
     .bold {
       font-weight: bold;
@@ -275,10 +257,21 @@ const generateCollectionReceiptHTML = (job: Job, qrCodeDataUrl: string, width: n
       border: 3px double #000;
     }
     .footer {
-      text-align: center;
+      text-align: left;
       margin-top: 5mm;
-      font-size: ${width === 80 ? '10pt' : '9pt'};
-      font-style: italic;
+      font-size: ${width === 80 ? '8pt' : '7pt'};
+      line-height: 1.4;
+    }
+    .shop-info {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 2mm;
+      font-size: ${width === 80 ? '9pt' : '8pt'};
+    }
+    .conditions {
+      font-size: ${width === 80 ? '7pt' : '6pt'};
+      line-height: 1.3;
+      margin-top: 2mm;
     }
     .cut-line {
       text-align: center;
@@ -292,11 +285,7 @@ const generateCollectionReceiptHTML = (job: Job, qrCodeDataUrl: string, width: n
   <div class="subheader">COLLECTION RECEIPT</div>
   <div class="subheader">ABN 97 161 289 069 | 03-9598-6741</div>
   
-  <div class="job-id">#${escapeHtml(job.jobNumber)}</div>
-  
-  <div class="qr-code">
-    <img src="${qrCodeDataUrl}" alt="QR Code" />
-  </div>
+  <div class="job-id">${escapeHtml(job.jobNumber)}</div>
   
   <div class="section">
     <div class="bold">${escapeHtml(job.customer.name)}</div>
@@ -349,7 +338,22 @@ const generateCollectionReceiptHTML = (job: Job, qrCodeDataUrl: string, width: n
     <div>${format(new Date(), 'dd/MM/yyyy HH:mm')}</div>
   </div>
   
-  <div class="footer">Thank you for your business!</div>
+  <div class="footer">
+    <div class="shop-info">
+      HAMPTON MOWERPOWER<br>
+      A.B.N. 97 161 289 069<br>
+      GARDEN EQUIPMENT SALES & SERVICE<br>
+      87 Ludstone Street, Hampton 3188<br>
+      Phone: 03 9598 6741   Fax: 03 9521 9581<br>
+      www.hamptonmowerpower.com.au
+    </div>
+    <div class="conditions">
+      <strong>REPAIR CONTRACT CONDITIONS</strong><br>
+      1. Please carry out at my cost any work and supply any parts and materials necessary to repair the problem(s) listed above.<br>
+      2. The owner or his agent is requested to make any claim for faulty workmanship or detective materials within fourteen (14) days of notification that the repair job has been delivered or completed.<br>
+      3. Acceptance of goods for repairs or quotation is subject to the conditions of the disposal of Uncollected Goods Act 1961. The act confers on the repair agent the right of sale after an interval or not less than one month from the date on which the goods are ready for re-delivery or the date on which the owner is informed.
+    </div>
+  </div>
   
   <div class="cut-line">✂ -------------------------------- ✂</div>
 </body>

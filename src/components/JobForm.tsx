@@ -27,6 +27,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Checkbox } from '@/components/ui/checkbox';
 
 import { ThermalPrintButton } from './ThermalPrintButton';
+import { PrintPromptDialog } from './PrintPromptDialog';
 import { MachineManager } from './MachineManager';
 import { initializeChecklists, getUniversalChecklist, getCategoryChecklist } from '@/data/serviceChecklist';
 import { format } from 'date-fns';
@@ -42,6 +43,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
   const [showServiceLabelDialog, setShowServiceLabelDialog] = useState(false);
+  const [showPrintPromptDialog, setShowPrintPromptDialog] = useState(false);
   const [savedJob, setSavedJob] = useState<Job | null>(null);
   
   // Form state
@@ -69,10 +71,11 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [depositDate, setDepositDate] = useState('');
   const [depositMethod, setDepositMethod] = useState('');
   
-  // Bi-directional sync handlers with validation
+  // One-way sync: Quotation → Service Deposit only
   const handleQuotationChange = (value: number) => {
     const sanitizedValue = Math.max(0, value || 0);
     setQuotationAmount(sanitizedValue);
+    // Auto-fill service deposit when quotation is set
     setServiceDeposit(sanitizedValue);
   };
 
@@ -86,13 +89,11 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         description: `Service deposit cannot exceed the total amount of ${formatCurrency(maxDeposit)}`,
         variant: "destructive"
       });
-      const cappedValue = maxDeposit;
-      setServiceDeposit(cappedValue);
-      setQuotationAmount(cappedValue);
+      setServiceDeposit(maxDeposit);
     } else {
       setServiceDeposit(sanitizedValue);
-      setQuotationAmount(sanitizedValue);
     }
+    // No reverse sync to quotation
   };
   
   const [parts, setParts] = useState<JobPart[]>([]);
@@ -338,7 +339,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     // Validation
     if (!customer.name || !customer.phone || !machineCategory || !problemDescription) {
       toast({
-        title: t('msg.validation'),
+        title: t('msg.validation.error'),
         description: t('msg.validation.required'),
         variant: "destructive"
       });
@@ -346,27 +347,27 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     }
 
     setIsLoading(true);
-    
+
     try {
-      // Create or update customer
-      const customerId = job?.customerId || `cust-${Date.now()}`;
+      const customerId = customer.id || nanoid();
       const customerData: Customer = {
         id: customerId,
-        name: customer.name!,
-        phone: customer.phone!,
+        name: customer.name,
+        phone: customer.phone,
         address: customer.address || '',
         email: customer.email,
         notes: customer.notes,
-        createdAt: job?.customer.createdAt || new Date(),
+        createdAt: customer.createdAt || new Date(),
         updatedAt: new Date()
       };
       
       await jobBookingDB.saveCustomer(customerData);
+
+      const labourRateForCategory = HAMPTON_MACHINE_CATEGORIES.find(c => c.name === machineCategory)?.labourRate || 100;
       
-      // Create job
       const jobData: Job = {
-        id: job?.id || `job-${Date.now()}`,
-        jobNumber,
+        id: job?.id || nanoid(),
+        jobNumber: jobNumber || `JB${Date.now()}`,
         customerId,
         customer: customerData,
         machineCategory,
@@ -379,40 +380,34 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         recommendations,
         serviceDeposit,
         quotationAmount,
-        partsRequired, // Store computed parts list
+        discountType,
+        discountValue,
+        depositDate: depositDate ? new Date(depositDate) : undefined,
+        depositMethod,
         parts,
         labourHours,
-        labourRate,
-        ...calculations,
-        status,
+        labourRate: labourRateForCategory,
         checklistUniversal,
         checklistCategory,
         equipmentCategory: machineCategory,
-        equipmentModel: machineModel,
-        hasAccount,
+        ...calculations,
+        status,
         createdAt: job?.createdAt || new Date(),
         updatedAt: new Date(),
-        completedAt: status === 'completed' ? new Date() : job?.completedAt
+        completedAt: status === 'completed' && !job?.completedAt ? new Date() : job?.completedAt
       };
-      
+
       await jobBookingDB.saveJob(jobData);
       
       toast({
-        title: t('msg.success'),
+        title: job ? t('msg.job.updated') : t('msg.job.created'),
         description: job ? t('msg.job.updated') : t('msg.job.created')
       });
       
-      // For new jobs, check auto-print settings
-      if (!job) {
-        const printSettings = await jobBookingDB.getPrintSettings();
-        if (printSettings.autoPrintLabel) {
-          setSavedJob(jobData);
-          setShowServiceLabelDialog(true);
-          return; // Don't call onSave yet - wait for dialog
-        }
-      }
+      // Show print prompts after save
+      setSavedJob(jobData);
+      setShowPrintPromptDialog(true);
       
-      onSave(jobData);
     } catch (error) {
       console.error('Error saving job:', error);
       toast({
@@ -1049,6 +1044,19 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         </div>
       </div>
 
+      {/* Print Prompt Dialog */}
+      {savedJob && (
+        <PrintPromptDialog
+          job={savedJob}
+          open={showPrintPromptDialog}
+          onOpenChange={setShowPrintPromptDialog}
+          onComplete={() => {
+            onSave(savedJob);
+            setSavedJob(null);
+          }}
+        />
+      )}
+      
       {/* Service Label Print Dialog */}
       {savedJob && (
         <ServiceLabelPrintDialog
