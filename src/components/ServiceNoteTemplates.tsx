@@ -43,7 +43,6 @@ export const ServiceNoteTemplates: React.FC<ServiceNoteTemplatesProps> = ({
 
   const loadTemplates = async () => {
     try {
-      await jobBookingDB.init();
       const savedTemplates = await jobBookingDB.getServiceTemplates();
       if (savedTemplates.length > 0) {
         setTemplates(savedTemplates);

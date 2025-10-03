@@ -132,6 +132,15 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
   const loadJobs = async () => {
     try {
       setIsLoading(true);
+      
+      // Check if user is authenticated first
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setJobs([]);
+        setIsLoading(false);
+        return;
+      }
+      
       const allJobs = await jobBookingDB.getAllJobs();
       setJobs((allJobs || []).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     } catch (error) {

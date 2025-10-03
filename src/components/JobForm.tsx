@@ -135,11 +135,17 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
 
   const loadQuickDescriptions = async () => {
     try {
-      await jobBookingDB.init();
       const descriptions = await jobBookingDB.getQuickDescriptions();
       setQuickDescriptions(descriptions);
     } catch (error) {
       console.error('Error loading quick descriptions:', error);
+      // Use defaults if loading fails
+      setQuickDescriptions([
+        'Full Service Required',
+        'Blade Sharpen',
+        'Won\'t Start',
+        'Runs Rough'
+      ]);
     }
   };
 
@@ -177,13 +183,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     } else {
       // New job
       try {
-        await jobBookingDB.init();
         const nextJobNumber = await jobBookingDB.getNextJobNumber();
         setJobNumber(nextJobNumber);
         // Initialize universal checklist for new jobs
         setChecklistUniversal(getUniversalChecklist());
       } catch (error) {
         console.error('Error generating job number:', error);
+        // Fallback job number
+        setJobNumber(`JB${new Date().getFullYear()}-0001`);
         toast({
           title: "Error",
           description: "Failed to generate job number",

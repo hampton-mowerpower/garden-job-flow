@@ -29,7 +29,6 @@ export const PartsManager: React.FC<PartsManagerProps> = ({ onPartsUpdate }) => 
 
   const loadParts = async () => {
     try {
-      await jobBookingDB.init();
       const customParts = await jobBookingDB.getCustomParts();
       
       // Convert built-in parts to Part format

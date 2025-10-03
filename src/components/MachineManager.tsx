@@ -50,7 +50,6 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
 
   const loadCustomData = async () => {
     try {
-      await jobBookingDB.init();
       const data = await jobBookingDB.getCustomMachineData();
       setCustomData(data);
     } catch (error) {

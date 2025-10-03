@@ -40,8 +40,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
 
   const loadSettings = async () => {
     try {
-      await jobBookingDB.init();
-      
       // Load custom categories and parts
       const customCategories = await jobBookingDB.getCustomCategories();
       const customParts = await jobBookingDB.getCustomParts();
@@ -212,7 +210,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
 
   const exportData = async () => {
     try {
-      await jobBookingDB.init();
       const jobs = await jobBookingDB.getAllJobs();
       const customers = await jobBookingDB.getAllCustomers();
       
@@ -253,7 +250,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
 
   const exportCSV = async () => {
     try {
-      await jobBookingDB.init();
       const jobs = await jobBookingDB.getAllJobs();
       
       const csvHeaders = [
