@@ -133,12 +133,13 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
     try {
       setIsLoading(true);
       const allJobs = await jobBookingDB.getAllJobs();
-      setJobs(allJobs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
+      setJobs((allJobs || []).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
     } catch (error) {
       console.error('Error loading jobs:', error);
+      setJobs([]); // Ensure jobs is always an array
       toast({
         title: 'Error',
-        description: 'Failed to load jobs',
+        description: 'Failed to load jobs. Please check your connection and try refreshing.',
         variant: 'destructive'
       });
     } finally {

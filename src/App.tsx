@@ -8,6 +8,7 @@ import { PartsCatalogue } from '@/components/parts/PartsCatalogue';
 import { ReportsManager } from '@/components/reports/ReportsManager';
 import { CustomerManager } from '@/components/CustomerManager';
 import { Toaster } from '@/components/ui/toaster';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const { useState } = React;
 
@@ -89,12 +90,14 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <LanguageProvider>
-        <AppContent />
-        <Toaster />
-      </LanguageProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <LanguageProvider>
+          <AppContent />
+          <Toaster />
+        </LanguageProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
