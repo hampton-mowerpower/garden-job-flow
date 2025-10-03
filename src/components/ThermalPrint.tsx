@@ -127,23 +127,25 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
     .job-number-label {
       text-align: center;
       font-weight: 900;
-      font-size: ${width === 79 ? '14px' : '12px'};
+      font-size: ${width === 79 ? '15px' : '13px'};
       margin-top: 4mm;
       margin-bottom: 2mm;
       letter-spacing: 2px;
+      text-transform: uppercase;
     }
     .job-id {
       text-align: center;
-      font-size: ${width === 79 ? '32px' : '26px'};
+      font-size: ${width === 79 ? '28px' : '22px'};
       font-weight: 900;
       margin-bottom: 4mm;
-      letter-spacing: 3px;
+      letter-spacing: 2px;
       padding: 4mm 2mm;
       border: 3px solid #000;
       white-space: nowrap;
-      overflow: hidden;
-      text-overflow: clip;
+      overflow: visible;
+      display: block;
       max-width: 100%;
+      box-sizing: border-box;
     }
     .section {
       margin: 3mm 0;
@@ -153,20 +155,21 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
     }
     .section-title {
       font-weight: 900;
-      font-size: ${width === 79 ? '14px' : '12px'};
-      margin-bottom: 2mm;
+      font-size: ${width === 79 ? '15px' : '13px'};
+      margin-bottom: 3mm;
       text-transform: uppercase;
       background: #000;
       color: #fff;
-      padding: 2mm;
-      letter-spacing: 1px;
+      padding: 3mm 2mm;
+      letter-spacing: 1.5px;
     }
     .label {
       font-weight: 900;
       display: inline-block;
       width: ${width === 79 ? '32mm' : '24mm'};
       vertical-align: top;
-      font-size: ${width === 79 ? '13px' : '11px'};
+      font-size: ${width === 79 ? '14px' : '12px'};
+      text-transform: uppercase;
     }
     .value {
       display: inline-block;
@@ -174,7 +177,18 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
       word-wrap: break-word;
       overflow-wrap: anywhere;
       font-weight: 900;
-      font-size: ${width === 79 ? '13px' : '11px'};
+      font-size: ${width === 79 ? '14px' : '12px'};
+      text-transform: uppercase;
+    }
+    .list-item {
+      display: block;
+      margin: 3mm 0;
+      line-height: 2;
+      font-weight: 900;
+      font-size: ${width === 79 ? '14px' : '12px'};
+      text-transform: uppercase;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
     }
     .quotation-alert {
       background: #ffeb3b;
@@ -240,7 +254,7 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
   
   <div class="section">
     <div class="section-title">WORK REQUESTED</div>
-    ${workRequested.map(item => `<div class="value" style="margin: 2mm 0; line-height: 1.8;">• ${escapeHtml(item)}</div>`).join('')}
+    ${workRequested.map(item => `<div class="list-item">${escapeHtml(item)}</div>`).join('')}
   </div>
   
   ${job.servicePerformed ? `
@@ -253,7 +267,7 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
   ${partsRequired !== 'N/A' ? `
   <div class="section">
     <div class="section-title">PARTS REQUIRED</div>
-    ${partsRequired.split('\n').map(part => `<div class="value" style="margin: 2mm 0; line-height: 1.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(part)}</div>`).join('')}
+    ${partsRequired.split('\n').map(part => `<div class="list-item">${escapeHtml(part)}</div>`).join('')}
   </div>
   ` : ''}
   
@@ -325,13 +339,13 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
       text-align: center;
       font-weight: 900;
       margin-bottom: 3mm;
-      font-size: ${width === 79 ? '22px' : '18px'};
+      font-size: ${width === 79 ? '24px' : '20px'};
       letter-spacing: 2px;
       text-transform: uppercase;
     }
     .subheader {
       text-align: center;
-      font-size: ${width === 79 ? '15px' : '12px'};
+      font-size: ${width === 79 ? '16px' : '13px'};
       margin-bottom: 3mm;
       font-weight: 900;
       background: #000;
@@ -343,21 +357,25 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
     .job-number-label {
       text-align: center;
       font-weight: 900;
-      font-size: ${width === 79 ? '13px' : '11px'};
+      font-size: ${width === 79 ? '15px' : '13px'};
       margin-top: 3mm;
       margin-bottom: 2mm;
       letter-spacing: 2px;
+      text-transform: uppercase;
     }
     .job-id {
       text-align: center;
-      font-size: ${width === 79 ? '32px' : '26px'};
+      font-size: ${width === 79 ? '28px' : '22px'};
       font-weight: 900;
       margin-bottom: 4mm;
-      letter-spacing: 3px;
+      letter-spacing: 2px;
       padding: 4mm 2mm;
       border: 3px solid #000;
       white-space: nowrap;
-      overflow: hidden;
+      overflow: visible;
+      display: block;
+      max-width: 100%;
+      box-sizing: border-box;
     }
     .section {
       margin: 3mm 0;
@@ -367,12 +385,12 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
     }
     .section-title {
       font-weight: 900;
-      font-size: ${width === 79 ? '15px' : '12px'};
+      font-size: ${width === 79 ? '16px' : '13px'};
       margin-bottom: 3mm;
       text-transform: uppercase;
       background: #000;
       color: #fff;
-      padding: 2mm;
+      padding: 3mm 2mm;
       letter-spacing: 1.5px;
     }
     .row {
@@ -380,10 +398,12 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
       justify-content: space-between;
       margin: 1.5mm 0;
       font-weight: 900;
-      font-size: ${width === 79 ? '12px' : '10px'};
+      font-size: ${width === 79 ? '13px' : '11px'};
+      text-transform: uppercase;
     }
     .bold {
       font-weight: 900;
+      text-transform: uppercase;
     }
     .total-row {
       font-size: ${width === 79 ? '18px' : '15px'};
@@ -463,8 +483,8 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   <div class="job-id">${escapeHtml(job.jobNumber)}</div>
   
   <div class="section">
-    <div class="bold">${escapeHtml(job.customer.name)}</div>
-    <div>${escapeHtml(job.machineBrand)} ${escapeHtml(job.machineModel)}</div>
+    <div class="bold" style="font-size: ${width === 79 ? '14px' : '12px'};">${escapeHtml(job.customer.name.toUpperCase())}</div>
+    <div style="font-size: ${width === 79 ? '13px' : '11px'}; font-weight: 900; text-transform: uppercase;">${escapeHtml(job.machineBrand)} ${escapeHtml(job.machineModel)}</div>
   </div>
   
   <div class="section">
