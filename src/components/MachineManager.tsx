@@ -3,7 +3,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MACHINE_CATEGORIES } from '@/data/machineCategories';
-import { jobBookingDB } from '@/lib/storage';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface MachineManagerProps {
   machineCategory: string;
@@ -28,87 +29,185 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
   onBrandChange,
   onModelChange
 }) => {
+  const { toast } = useToast();
   const [customData, setCustomData] = useState<CustomMachineData>({
     categories: [],
     brands: {},
     models: {}
   });
-  const [isOtherBrand, setIsOtherBrand] = useState(false);
-  const [customBrandInput, setCustomBrandInput] = useState('');
-  const [customModelInput, setCustomModelInput] = useState('');
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   useEffect(() => {
     loadCustomData();
   }, []);
 
+  // Auto-save brand when typed
   useEffect(() => {
-    setIsOtherBrand(machineBrand === 'other');
-    if (machineBrand !== 'other') {
-      setCustomBrandInput('');
+    if (machineBrand && machineCategory && !isStandardBrand(machineBrand)) {
+      saveBrand(machineBrand, machineCategory);
     }
-  }, [machineBrand]);
+  }, [machineBrand, machineCategory]);
+
+  // Auto-save model when typed
+  useEffect(() => {
+    if (machineModel && machineCategory && machineBrand) {
+      saveModel(machineModel, machineCategory, machineBrand);
+    }
+  }, [machineModel, machineCategory, machineBrand]);
+
+  const isStandardBrand = (brand: string): boolean => {
+    const selectedCategory = MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
+    return selectedCategory?.commonBrands.includes(brand) || false;
+  };
 
   const loadCustomData = async () => {
     try {
-      const data = await jobBookingDB.getCustomMachineData();
-      setCustomData(data);
+      setIsLoadingData(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('custom_machine_data')
+        .select('*')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      const newCustomData: CustomMachineData = {
+        categories: [],
+        brands: {},
+        models: {}
+      };
+
+      data?.forEach((item) => {
+        if (item.data_type === 'category') {
+          if (!newCustomData.categories.includes(item.value)) {
+            newCustomData.categories.push(item.value);
+          }
+        } else if (item.data_type === 'brand' && item.category) {
+          if (!newCustomData.brands[item.category]) {
+            newCustomData.brands[item.category] = [];
+          }
+          if (!newCustomData.brands[item.category].includes(item.value)) {
+            newCustomData.brands[item.category].push(item.value);
+          }
+        } else if (item.data_type === 'model' && item.category && item.brand) {
+          if (!newCustomData.models[item.category]) {
+            newCustomData.models[item.category] = {};
+          }
+          if (!newCustomData.models[item.category][item.brand]) {
+            newCustomData.models[item.category][item.brand] = [];
+          }
+          if (!newCustomData.models[item.category][item.brand].includes(item.value)) {
+            newCustomData.models[item.category][item.brand].push(item.value);
+          }
+        }
+      });
+
+      setCustomData(newCustomData);
     } catch (error) {
       console.error('Error loading custom machine data:', error);
+    } finally {
+      setIsLoadingData(false);
     }
   };
 
-  const saveCustomData = async (newData: CustomMachineData) => {
+  const saveCategory = async (category: string) => {
     try {
-      await jobBookingDB.saveCustomMachineData(newData);
-      setCustomData(newData);
-    } catch (error) {
-      console.error('Error saving custom machine data:', error);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if already exists (case-insensitive)
+      const normalizedCategory = category.trim().toLowerCase();
+      if (customData.categories.some(c => c.toLowerCase() === normalizedCategory)) {
+        return;
+      }
+
+      await supabase.from('custom_machine_data').insert({
+        user_id: user.id,
+        data_type: 'category',
+        value: category.trim()
+      });
+
+      await loadCustomData();
+    } catch (error: any) {
+      if (!error.message?.includes('duplicate key')) {
+        console.error('Error saving category:', error);
+      }
     }
   };
 
-  const handleBrandChange = async (value: string) => {
-    if (value === 'other') {
-      setIsOtherBrand(true);
-      onBrandChange('other');
+  const saveBrand = async (brand: string, category: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if already exists (case-insensitive)
+      const normalizedBrand = brand.trim().toLowerCase();
+      const existingBrands = customData.brands[category] || [];
+      if (existingBrands.some(b => b.toLowerCase() === normalizedBrand)) {
+        return;
+      }
+
+      await supabase.from('custom_machine_data').insert({
+        user_id: user.id,
+        data_type: 'brand',
+        category: category,
+        value: brand.trim()
+      });
+
+      await loadCustomData();
+    } catch (error: any) {
+      if (!error.message?.includes('duplicate key')) {
+        console.error('Error saving brand:', error);
+      }
+    }
+  };
+
+  const saveModel = async (model: string, category: string, brand: string) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Check if already exists (case-insensitive)
+      const normalizedModel = model.trim().toLowerCase();
+      const existingModels = customData.models[category]?.[brand] || [];
+      if (existingModels.some(m => m.toLowerCase() === normalizedModel)) {
+        return;
+      }
+
+      await supabase.from('custom_machine_data').insert({
+        user_id: user.id,
+        data_type: 'model',
+        category: category,
+        brand: brand,
+        value: model.trim()
+      });
+
+      await loadCustomData();
+    } catch (error: any) {
+      if (!error.message?.includes('duplicate key')) {
+        console.error('Error saving model:', error);
+      }
+    }
+  };
+
+  const handleCategoryChange = (value: string) => {
+    if (value === 'other-custom') {
+      // Let user type their own category
+      onCategoryChange('');
+      onBrandChange('');
+      onModelChange('');
     } else {
-      setIsOtherBrand(false);
-      onBrandChange(value);
-    }
-    // Clear model when brand changes
-    onModelChange('');
-  };
-
-  const handleCustomBrandSubmit = async () => {
-    if (customBrandInput.trim() && machineCategory) {
-      const newData = { ...customData };
-      if (!newData.brands[machineCategory]) {
-        newData.brands[machineCategory] = [];
-      }
-      if (!newData.brands[machineCategory].includes(customBrandInput.trim())) {
-        newData.brands[machineCategory].push(customBrandInput.trim());
-        await saveCustomData(newData);
-      }
-      onBrandChange(customBrandInput.trim());
-      setIsOtherBrand(false);
-      setCustomBrandInput('');
+      onCategoryChange(value);
+      onBrandChange('');
+      onModelChange('');
     }
   };
 
-  const handleCustomModelSubmit = async () => {
-    if (customModelInput.trim() && machineCategory && machineBrand) {
-      const newData = { ...customData };
-      if (!newData.models[machineCategory]) {
-        newData.models[machineCategory] = {};
-      }
-      if (!newData.models[machineCategory][machineBrand]) {
-        newData.models[machineCategory][machineBrand] = [];
-      }
-      if (!newData.models[machineCategory][machineBrand].includes(customModelInput.trim())) {
-        newData.models[machineCategory][machineBrand].push(customModelInput.trim());
-        await saveCustomData(newData);
-      }
-      onModelChange(customModelInput.trim());
-      setCustomModelInput('');
+  const handleCustomCategoryBlur = async () => {
+    if (machineCategory && !MACHINE_CATEGORIES.find(cat => cat.id === machineCategory)) {
+      await saveCategory(machineCategory);
     }
   };
 
@@ -116,103 +215,81 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
   const availableBrands = selectedCategory ? [
     ...selectedCategory.commonBrands,
     ...(customData.brands[machineCategory] || [])
-  ] : [];
+  ] : (customData.brands[machineCategory] || []);
 
   const availableModels = machineCategory && machineBrand ? 
     customData.models[machineCategory]?.[machineBrand] || [] : [];
+
+  // Combine standard and custom categories
+  const allCategories = [
+    ...MACHINE_CATEGORIES,
+    ...customData.categories.map(cat => ({
+      id: cat,
+      name: cat,
+      labourRate: 0,
+      commonBrands: []
+    }))
+  ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <Label htmlFor="machine-category">Category *</Label>
-        <Select value={machineCategory} onValueChange={onCategoryChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select machine category" />
-          </SelectTrigger>
-          <SelectContent>
-            {MACHINE_CATEGORIES.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
-                {category.name} (${category.labourRate}/hr)
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {machineCategory && !MACHINE_CATEGORIES.find(cat => cat.id === machineCategory) ? (
+          <Input
+            id="machine-category"
+            value={machineCategory}
+            onChange={(e) => onCategoryChange(e.target.value)}
+            onBlur={handleCustomCategoryBlur}
+            placeholder="Enter custom category"
+          />
+        ) : (
+          <Select value={machineCategory} onValueChange={handleCategoryChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select machine category" />
+            </SelectTrigger>
+            <SelectContent>
+              {allCategories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name} {category.labourRate > 0 && `($${category.labourRate}/hr)`}
+                </SelectItem>
+              ))}
+              <SelectItem value="other-custom">Other (Add Custom)</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
       
       <div>
         <Label htmlFor="machine-brand">Brand</Label>
-        <Select value={machineBrand} onValueChange={handleBrandChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select brand" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableBrands.map((brand) => (
-              <SelectItem key={brand} value={brand}>
-                {brand}
-              </SelectItem>
-            ))}
-            <SelectItem value="other">Other (Add New)</SelectItem>
-          </SelectContent>
-        </Select>
-        {isOtherBrand && (
-          <div className="flex gap-2 mt-2">
-            <Input
-              value={customBrandInput}
-              onChange={(e) => setCustomBrandInput(e.target.value)}
-              placeholder="Enter new brand name"
-              onKeyPress={(e) => e.key === 'Enter' && handleCustomBrandSubmit()}
-            />
-            <button
-              type="button"
-              onClick={handleCustomBrandSubmit}
-              className="px-3 py-1 bg-primary text-primary-foreground rounded text-sm hover:bg-primary/90"
-            >
-              Add
-            </button>
-          </div>
-        )}
+        <Input
+          id="machine-brand"
+          value={machineBrand}
+          onChange={(e) => onBrandChange(e.target.value)}
+          placeholder="Type or select brand"
+          list="brand-list"
+        />
+        <datalist id="brand-list">
+          {availableBrands.map((brand) => (
+            <option key={brand} value={brand} />
+          ))}
+        </datalist>
       </div>
 
       <div>
         <Label htmlFor="machine-model">Model</Label>
-        <Select value={machineModel} onValueChange={onModelChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select or enter model" />
-          </SelectTrigger>
-          <SelectContent>
-            {availableModels.map((model) => (
-              <SelectItem key={model} value={model}>
-                {model}
-              </SelectItem>
-            ))}
-            <SelectItem value="custom">Add New Model</SelectItem>
-          </SelectContent>
-        </Select>
-        {machineModel === 'custom' && (
-          <div className="flex gap-2 mt-2">
-            <Input
-              value={customModelInput}
-              onChange={(e) => setCustomModelInput(e.target.value)}
-              placeholder="Enter new model name"
-              onKeyPress={(e) => e.key === 'Enter' && handleCustomModelSubmit()}
-            />
-            <button
-              type="button"
-              onClick={handleCustomModelSubmit}
-              className="px-3 py-1 bg-primary text-primary-foreground rounded text-sm hover:bg-primary/90"
-            >
-              Add
-            </button>
-          </div>
-        )}
-        {machineModel !== 'custom' && machineModel && (
-          <Input
-            className="mt-2"
-            value={machineModel}
-            onChange={(e) => onModelChange(e.target.value)}
-            placeholder="Or type model manually"
-          />
-        )}
+        <Input
+          id="machine-model"
+          value={machineModel}
+          onChange={(e) => onModelChange(e.target.value)}
+          placeholder="Type or select model"
+          list="model-list"
+        />
+        <datalist id="model-list">
+          {availableModels.map((model) => (
+            <option key={model} value={model} />
+          ))}
+        </datalist>
       </div>
     </div>
   );

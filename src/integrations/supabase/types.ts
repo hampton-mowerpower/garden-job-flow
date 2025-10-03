@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      custom_machine_data: {
+        Row: {
+          brand: string | null
+          category: string | null
+          created_at: string
+          data_type: string
+          id: string
+          updated_at: string
+          user_id: string
+          value: string
+        }
+        Insert: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          data_type: string
+          id?: string
+          updated_at?: string
+          user_id: string
+          value: string
+        }
+        Update: {
+          brand?: string | null
+          category?: string | null
+          created_at?: string
+          data_type?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+          value?: string
+        }
+        Relationships: []
+      }
       customers_db: {
         Row: {
           address: string
