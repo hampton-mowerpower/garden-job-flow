@@ -1,6 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Input } from '@/components/ui/input';
-import { Loader } from '@googlemaps/js-api-loader';
 
 declare global {
   interface Window {
@@ -15,6 +14,27 @@ interface GooglePlacesAutocompleteProps {
   className?: string;
 }
 
+// Singleton to load Google Maps API only once
+let googleMapsLoaded = false;
+let googleMapsLoading = false;
+let googleMapsLoadPromise: Promise<void> | null = null;
+
+const loadGoogleMapsAPI = async (): Promise<void> => {
+  if (googleMapsLoaded) return;
+  if (googleMapsLoading && googleMapsLoadPromise) return googleMapsLoadPromise;
+
+  googleMapsLoading = true;
+  googleMapsLoadPromise = new Promise<void>((resolve) => {
+    // Google Places API disabled - use regular input
+    // To enable, add your API key to Supabase Edge Functions secrets
+    googleMapsLoaded = false;
+    googleMapsLoading = false;
+    resolve();
+  });
+
+  return googleMapsLoadPromise;
+};
+
 const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
   value,
   onChange,
@@ -23,27 +43,14 @@ const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const initializeAutocomplete = async () => {
       try {
-        // Get API key from environment - this should be set in your deployment environment
-        const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+        await loadGoogleMapsAPI();
         
-        if (!apiKey) {
-          console.warn('Google Maps API key not found. Please set VITE_GOOGLE_MAPS_API_KEY in your environment variables.');
-          return;
-        }
-
-        const loader = new Loader({
-          apiKey: apiKey,
-          version: 'weekly',
-          libraries: ['places']
-        });
-
-        await loader.load();
-
-        if (inputRef.current && window.google) {
+        if (inputRef.current && window.google?.maps?.places) {
           autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
             componentRestrictions: { country: 'au' },
             fields: ['formatted_address', 'geometry']
@@ -55,21 +62,23 @@ const GooglePlacesAutocomplete: React.FC<GooglePlacesAutocompleteProps> = ({
               onChange(place.formatted_address);
             }
           });
+          
+          setIsReady(true);
         }
       } catch (error) {
-        console.warn('Google Places API not available:', error);
         // Fallback to regular input without autocomplete
+        setIsReady(true);
       }
     };
 
     initializeAutocomplete();
 
     return () => {
-      if (autocompleteRef.current) {
+      if (autocompleteRef.current && window.google?.maps?.event) {
         google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
-  }, [onChange]);
+  }, []);
 
   return (
     <Input

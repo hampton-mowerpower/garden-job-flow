@@ -19,46 +19,54 @@ export function PrintPromptDialog({ job, open, onOpenChange, onComplete }: Print
   const { toast } = useToast();
   const [printServiceLabel, setPrintServiceLabel] = useState(false);
   const [printCollectionReceipt, setPrintCollectionReceipt] = useState(false);
-  const [isPrinting, setIsPrinting] = useState(false);
 
   const handleConfirm = async () => {
-    setIsPrinting(true);
+    // Close dialog immediately, don't wait for printing
+    onOpenChange(false);
+    onComplete();
     
-    try {
-      if (printServiceLabel) {
-        await printThermal({ job, type: 'service-label', width: 80 });
-        toast({
-          title: 'Service Label Sent',
-          description: 'Service label sent to printer'
+    // Print in background without blocking
+    if (printServiceLabel) {
+      printThermal({ job, type: 'service-label', width: 80 })
+        .then(() => {
+          toast({
+            title: 'Service Label Sent',
+            description: 'Service label sent to printer'
+          });
+        })
+        .catch((error) => {
+          console.error('Service label print error:', error);
+          toast({
+            title: 'Service Label Failed',
+            description: 'Failed to print service label',
+            variant: 'destructive'
+          });
         });
-      }
+    }
 
-      if (printCollectionReceipt) {
-        await printThermal({ job, type: 'collection-receipt', width: 80 });
-        toast({
-          title: 'Collection Receipt Sent',
-          description: 'Collection receipt sent to printer'
+    if (printCollectionReceipt) {
+      printThermal({ job, type: 'collection-receipt', width: 80 })
+        .then(() => {
+          toast({
+            title: 'Collection Receipt Sent',
+            description: 'Collection receipt sent to printer'
+          });
+        })
+        .catch((error) => {
+          console.error('Collection receipt print error:', error);
+          toast({
+            title: 'Collection Receipt Failed',
+            description: 'Failed to print collection receipt',
+            variant: 'destructive'
+          });
         });
-      }
+    }
 
-      if (!printServiceLabel && !printCollectionReceipt) {
-        toast({
-          title: 'Saved',
-          description: 'Job saved successfully'
-        });
-      }
-
-      onComplete();
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Print error:', error);
+    if (!printServiceLabel && !printCollectionReceipt) {
       toast({
-        title: 'Print Error',
-        description: 'Failed to print. Please try again.',
-        variant: 'destructive'
+        title: 'Saved',
+        description: 'Job saved successfully'
       });
-    } finally {
-      setIsPrinting(false);
     }
   };
 
@@ -108,12 +116,12 @@ export function PrintPromptDialog({ job, open, onOpenChange, onComplete }: Print
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleSkip} disabled={isPrinting}>
+          <Button variant="outline" onClick={handleSkip}>
             Skip
           </Button>
-          <Button onClick={handleConfirm} disabled={isPrinting}>
+          <Button onClick={handleConfirm}>
             <Printer className="w-4 h-4 mr-2" />
-            {isPrinting ? 'Printing...' : 'Confirm'}
+            Confirm
           </Button>
         </DialogFooter>
       </DialogContent>

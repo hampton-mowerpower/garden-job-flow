@@ -28,9 +28,9 @@ export function ThermalPrintButton({
   const [width, setWidth] = useState<80 | 58>(80);
 
   const handlePrint = async () => {
+    setOpen(false);
     try {
       await printThermal({ job, type, width });
-      setOpen(false);
       toast({
         title: 'Print sent',
         description: `${type === 'service-label' ? 'Service label' : 'Collection receipt'} sent to printer`

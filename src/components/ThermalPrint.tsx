@@ -9,65 +9,36 @@ interface ThermalPrintProps {
   width?: 80 | 58; // mm
 }
 
-export const printThermal = async (props: ThermalPrintProps) => {
+export const printThermal = async (props: ThermalPrintProps): Promise<void> => {
   const { job, type, width = 80 } = props;
 
-  return new Promise<void>((resolve, reject) => {
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      reject(new Error('Failed to open print window. Please allow popups for this site.'));
-      return;
-    }
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    throw new Error('Failed to open print window. Please allow popups for this site.');
+  }
 
-    const html = type === 'service-label' 
-      ? generateServiceLabelHTML(job, width)
-      : generateCollectionReceiptHTML(job, width);
+  const html = type === 'service-label' 
+    ? generateServiceLabelHTML(job, width)
+    : generateCollectionReceiptHTML(job, width);
 
-    printWindow.document.write(html);
-    printWindow.document.close();
-    
-    // Wait for content to load before printing
-    printWindow.onload = () => {
+  printWindow.document.write(html);
+  printWindow.document.close();
+  
+  // Non-blocking: Print immediately without waiting
+  setTimeout(() => {
+    try {
+      printWindow.print();
+      // Auto-close after printing
       setTimeout(() => {
-        try {
-          printWindow.print();
-          
-          // Listen for after print to close window
-          printWindow.onafterprint = () => {
-            printWindow.close();
-            resolve();
-          };
-          
-          // Fallback: close after delay if onafterprint doesn't fire
-          setTimeout(() => {
-            if (!printWindow.closed) {
-              printWindow.close();
-            }
-            resolve();
-          }, 2000);
-        } catch (error) {
+        if (!printWindow.closed) {
           printWindow.close();
-          reject(error);
         }
-      }, 100);
-    };
-    
-    // Fallback if onload doesn't fire
-    setTimeout(() => {
-      if (!printWindow.closed) {
-        try {
-          printWindow.print();
-          setTimeout(() => {
-            printWindow.close();
-            resolve();
-          }, 2000);
-        } catch (error) {
-          printWindow.close();
-          reject(error);
-        }
-      }
-    }, 1000);
-  });
+      }, 500);
+    } catch (error) {
+      console.error('Print error:', error);
+      printWindow.close();
+    }
+  }, 300);
 };
 
 const generateServiceLabelHTML = (job: Job, width: number): string => {
