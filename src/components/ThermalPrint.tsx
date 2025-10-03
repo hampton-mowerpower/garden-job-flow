@@ -78,7 +78,7 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
     ? `QUOTATION REQUESTED: ${formatCurrency(job.quotationAmount)}`
     : '';
 
-  // Calculate safe content width (printable area for TM-T82II)
+  // Calculate safe content width (printable area for TM-T82II - 79mm width, ~72mm safe area)
   const safeWidth = width === 79 ? 72 : 54;
 
   return `
@@ -142,6 +142,8 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
       border: 3px solid #000;
       white-space: nowrap;
       overflow: hidden;
+      text-overflow: clip;
+      max-width: 100%;
     }
     .section {
       margin: 3mm 0;
@@ -238,7 +240,7 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
   
   <div class="section">
     <div class="section-title">WORK REQUESTED</div>
-    ${workRequested.map(item => `<div class="value" style="margin: 1mm 0;">${escapeHtml(item)}</div>`).join('')}
+    ${workRequested.map(item => `<div class="value" style="margin: 2mm 0; line-height: 1.8;">• ${escapeHtml(item)}</div>`).join('')}
   </div>
   
   ${job.servicePerformed ? `
@@ -251,7 +253,7 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
   ${partsRequired !== 'N/A' ? `
   <div class="section">
     <div class="section-title">PARTS REQUIRED</div>
-    ${partsRequired.split('\n').map(part => `<div class="value" style="margin: 1mm 0;">${escapeHtml(part)}</div>`).join('')}
+    ${partsRequired.split('\n').map(part => `<div class="value" style="margin: 2mm 0; line-height: 1.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(part)}</div>`).join('')}
   </div>
   ` : ''}
   
@@ -267,8 +269,8 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
   <div class="footer">
     <strong>HAMPTON MOWERPOWER</strong><br>
     87 Ludstone Street, Hampton VIC 3188<br>
-    Phone: 03-95986741 | ABN: 97 161 289 069<br>
-    Email: hamptonmowerpower@gmail.com<br>
+    Phone: 03-9598-6741 | ABN: 97 161 289 069<br>
+    www.hamptonmowerpower.com.au<br>
     Created: ${format(new Date(job.createdAt), 'dd/MM/yyyy HH:mm')}
   </div>
 </body>
@@ -468,15 +470,11 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   <div class="section">
     <div class="section-title">PAYMENT SUMMARY</div>
     ${paymentAmount > 0 ? `
-    <div class="row bold" style="font-size: ${width === 79 ? '14px' : '12px'};">
-      <span>${paymentLabel}:</span>
-      <span>${formatCurrency(paymentAmount)}</span>
+    <div class="bold" style="font-size: ${width === 79 ? '14px' : '12px'}; text-align: center; margin: 2mm 0; line-height: 1.8;">
+      ${paymentLabel}: ${formatCurrency(paymentAmount)}<br>
+      <span style="font-size: ${width === 79 ? '11px' : '10px'};">(INCL. ${formatCurrency(paymentGST)} GST)</span>
     </div>
-    <div class="row" style="font-size: ${width === 79 ? '11px' : '10px'}; margin-top: 1mm;">
-      <span>(INCL. ${formatCurrency(paymentGST)} GST)</span>
-      <span></span>
-    </div>
-    ` : '<div style="font-size: 12px; font-weight: 900;">No payment recorded</div>'}
+    ` : '<div style="font-size: 12px; font-weight: 900; text-align: center;">No payment recorded</div>'}
   </div>
   
   ${isPaid ? `
@@ -490,11 +488,11 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   <div class="conditions">
     <div class="conditions-title">REPAIR CONTRACT CONDITIONS</div>
     <div style="margin-bottom: 2mm; line-height: 1.7;">
-      <strong>1.</strong> All quotes are valid for 30 days from date of issue.<br><br>
+      <strong>1.</strong> All quotes are valid for 30 days from date of issue. This does not limit your rights under the Australian Consumer Law.<br><br>
       <strong>2.</strong> All domestic customer service work is guaranteed for 90 days from completion date. All commercial customer service work is covered by floor warranty only (as provided by the manufacturer or distributor).<br><br>
-      <strong>3.</strong> We are not responsible for consequential damage or loss of use.<br><br>
+      <strong>3.</strong> We are not responsible for consequential damage or loss of use, to the extent permitted by law.<br><br>
       <strong>4.</strong> Payment is due upon collection unless account terms are agreed.<br><br>
-      <strong>5.</strong> Goods not collected within 90 days may be disposed of to recover costs.
+      <strong>5.</strong> If goods are uncollected after notice, we may act under applicable Uncollected Goods legislation to sell or dispose of them and account for proceeds.
     </div>
   </div>
   
@@ -507,10 +505,10 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   
   <div class="footer">
     <strong>HAMPTON MOWERPOWER</strong><br>
-    A.B.N. 97 161 289 069<br>
+    ABN 97 161 289 069<br>
+    03-9598-6741<br>
     GARDEN EQUIPMENT SALES & SERVICE<br>
     87 Ludstone Street, Hampton 3188<br>
-    Phone: 03 9598 6741<br>
     www.hamptonmowerpower.com.au<br>
     Date: ${format(new Date(), 'dd/MM/yyyy HH:mm')}
   </div>
