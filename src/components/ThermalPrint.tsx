@@ -12,26 +12,62 @@ interface ThermalPrintProps {
 export const printThermal = async (props: ThermalPrintProps) => {
   const { job, type, width = 80 } = props;
 
-  // Open print window
-  const printWindow = window.open('', '_blank');
-  if (!printWindow) {
-    throw new Error('Failed to open print window');
-  }
+  return new Promise<void>((resolve, reject) => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      reject(new Error('Failed to open print window. Please allow popups for this site.'));
+      return;
+    }
 
-  const html = type === 'service-label' 
-    ? generateServiceLabelHTML(job, width)
-    : generateCollectionReceiptHTML(job, width);
+    const html = type === 'service-label' 
+      ? generateServiceLabelHTML(job, width)
+      : generateCollectionReceiptHTML(job, width);
 
-  printWindow.document.write(html);
-  printWindow.document.close();
-  
-  // Wait for content to load
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  printWindow.print();
-  
-  // Close after printing
-  setTimeout(() => printWindow.close(), 1000);
+    printWindow.document.write(html);
+    printWindow.document.close();
+    
+    // Wait for content to load before printing
+    printWindow.onload = () => {
+      setTimeout(() => {
+        try {
+          printWindow.print();
+          
+          // Listen for after print to close window
+          printWindow.onafterprint = () => {
+            printWindow.close();
+            resolve();
+          };
+          
+          // Fallback: close after delay if onafterprint doesn't fire
+          setTimeout(() => {
+            if (!printWindow.closed) {
+              printWindow.close();
+            }
+            resolve();
+          }, 2000);
+        } catch (error) {
+          printWindow.close();
+          reject(error);
+        }
+      }, 100);
+    };
+    
+    // Fallback if onload doesn't fire
+    setTimeout(() => {
+      if (!printWindow.closed) {
+        try {
+          printWindow.print();
+          setTimeout(() => {
+            printWindow.close();
+            resolve();
+          }, 2000);
+        } catch (error) {
+          printWindow.close();
+          reject(error);
+        }
+      }
+    }, 1000);
+  });
 };
 
 const generateServiceLabelHTML = (job: Job, width: number): string => {

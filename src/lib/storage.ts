@@ -1,196 +1,179 @@
 import { Job, Customer, JobBookingStats, MachineCategory, JobPart } from '@/types/job';
-
-const DB_NAME = 'JobBookingSystem';
-const DB_VERSION = 2;
+import { supabase } from '@/integrations/supabase/client';
 
 class JobBookingDB {
-  private db: IDBDatabase | null = null;
-
   async init(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => {
-        this.db = request.result;
-        resolve();
-      };
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        const oldVersion = event.oldVersion;
-
-        // Create customers store
-        if (!db.objectStoreNames.contains('customers')) {
-          const customerStore = db.createObjectStore('customers', { keyPath: 'id' });
-          customerStore.createIndex('name', 'name', { unique: false });
-          customerStore.createIndex('phone', 'phone', { unique: false });
-        }
-
-        // Create jobs store
-        if (!db.objectStoreNames.contains('jobs')) {
-          const jobStore = db.createObjectStore('jobs', { keyPath: 'id' });
-          jobStore.createIndex('jobNumber', 'jobNumber', { unique: true });
-          jobStore.createIndex('customerId', 'customerId', { unique: false });
-          jobStore.createIndex('status', 'status', { unique: false });
-          jobStore.createIndex('createdAt', 'createdAt', { unique: false });
-        }
-
-        // Create settings store for categories, parts, templates
-        if (!db.objectStoreNames.contains('settings')) {
-          db.createObjectStore('settings', { keyPath: 'key' });
-        }
-
-        // Version 2 upgrades - ensure settings store exists
-        if (oldVersion < 2) {
-          if (!db.objectStoreNames.contains('settings')) {
-            db.createObjectStore('settings', { keyPath: 'key' });
-          }
-          console.log('Database upgraded to version 2 - settings store ready');
-        }
-      };
-    });
+    // No initialization needed for Supabase
+    return Promise.resolve();
   }
 
   // Customer operations
   async saveCustomer(customer: Customer): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    const { error } = await supabase
+      .from('customers_db')
+      .upsert({
+        id: customer.id,
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email || null,
+        address: customer.address,
+        notes: customer.notes || null
+      });
     
-    const transaction = this.db.transaction(['customers'], 'readwrite');
-    const store = transaction.objectStore('customers');
-    
-    return new Promise((resolve, reject) => {
-      const request = store.put(customer);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    if (error) throw error;
   }
 
   async getCustomer(id: string): Promise<Customer | null> {
-    if (!this.db) throw new Error('Database not initialized');
+    const { data, error } = await supabase
+      .from('customers_db')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
     
-    const transaction = this.db.transaction(['customers'], 'readonly');
-    const store = transaction.objectStore('customers');
+    if (error) throw error;
+    if (!data) return null;
     
-    return new Promise((resolve, reject) => {
-      const request = store.get(id);
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error);
-    });
+    return {
+      id: data.id,
+      name: data.name,
+      phone: data.phone,
+      email: data.email || '',
+      address: data.address,
+      notes: data.notes || '',
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at)
+    };
   }
 
   async searchCustomers(query: string): Promise<Customer[]> {
-    if (!this.db) throw new Error('Database not initialized');
+    const { data, error } = await supabase
+      .from('customers_db')
+      .select('*')
+      .or(`name.ilike.%${query}%,phone.ilike.%${query}%,address.ilike.%${query}%`)
+      .order('name');
     
-    const transaction = this.db.transaction(['customers'], 'readonly');
-    const store = transaction.objectStore('customers');
-    const customers: Customer[] = [];
-    
-    return new Promise((resolve, reject) => {
-      const request = store.openCursor();
-      request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest).result;
-        if (cursor) {
-          const customer = cursor.value as Customer;
-          if (
-            customer.name.toLowerCase().includes(query.toLowerCase()) ||
-            customer.phone.includes(query) ||
-            customer.address.toLowerCase().includes(query.toLowerCase())
-          ) {
-            customers.push(customer);
-          }
-          cursor.continue();
-        } else {
-          resolve(customers);
-        }
-      };
-      request.onerror = () => reject(request.error);
-    });
+    if (error) throw error;
+    return (data || []).map(d => ({
+      id: d.id,
+      name: d.name,
+      phone: d.phone,
+      email: d.email || '',
+      address: d.address,
+      notes: d.notes || '',
+      createdAt: new Date(d.created_at),
+      updatedAt: new Date(d.updated_at)
+    }));
   }
 
   async getAllCustomers(): Promise<Customer[]> {
-    if (!this.db) throw new Error('Database not initialized');
+    const { data, error } = await supabase
+      .from('customers_db')
+      .select('*')
+      .order('name');
     
-    const transaction = this.db.transaction(['customers'], 'readonly');
-    const store = transaction.objectStore('customers');
-    const customers: Customer[] = [];
-    
-    return new Promise((resolve, reject) => {
-      const request = store.openCursor();
-      request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest).result;
-        if (cursor) {
-          customers.push(cursor.value);
-          cursor.continue();
-        } else {
-          resolve(customers);
-        }
-      };
-      request.onerror = () => reject(request.error);
-    });
+    if (error) throw error;
+    return (data || []).map(d => ({
+      id: d.id,
+      name: d.name,
+      phone: d.phone,
+      email: d.email || '',
+      address: d.address,
+      notes: d.notes || '',
+      createdAt: new Date(d.created_at),
+      updatedAt: new Date(d.updated_at)
+    }));
   }
 
   // Job operations
   async saveJob(job: Job): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    // First save customer
+    await this.saveCustomer(job.customer);
     
-    const transaction = this.db.transaction(['jobs'], 'readwrite');
-    const store = transaction.objectStore('jobs');
+    const { error } = await supabase
+      .from('jobs_db')
+      .upsert([{
+        id: job.id,
+        job_number: job.jobNumber,
+        customer_id: job.customer.id,
+        machine_category: job.machineCategory,
+        machine_brand: job.machineBrand,
+        machine_model: job.machineModel,
+        machine_serial: job.machineSerial || null,
+        problem_description: job.problemDescription,
+        service_performed: job.servicePerformed || null,
+        notes: job.notes || null,
+        recommendations: job.recommendations || null,
+        parts_required: job.partsRequired || null,
+        labour_hours: job.labourHours,
+        labour_rate: job.labourRate,
+        parts_subtotal: job.partsSubtotal,
+        labour_total: job.labourTotal,
+        subtotal: job.subtotal,
+        discount_type: job.discountType || null,
+        discount_value: job.discountValue || 0,
+        gst: job.gst,
+        grand_total: job.grandTotal,
+        service_deposit: job.serviceDeposit || 0,
+        deposit_date: job.depositDate ? new Date(job.depositDate).toISOString() : null,
+        deposit_method: job.depositMethod || null,
+        quotation_amount: job.quotationAmount || null,
+        status: job.status,
+        created_at: new Date(job.createdAt).toISOString(),
+        updated_at: new Date().toISOString()
+      }]);
     
-    return new Promise((resolve, reject) => {
-      const request = store.put(job);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    if (error) throw error;
   }
 
   async getJob(id: string): Promise<Job | null> {
-    if (!this.db) throw new Error('Database not initialized');
+    const { data: jobData, error } = await supabase
+      .from('jobs_db')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
     
-    const transaction = this.db.transaction(['jobs'], 'readonly');
-    const store = transaction.objectStore('jobs');
+    if (error) throw error;
+    if (!jobData) return null;
     
-    return new Promise((resolve, reject) => {
-      const request = store.get(id);
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error);
-    });
+    const customer = await this.getCustomer(jobData.customer_id);
+    if (!customer) return null;
+    
+    return this.mapJobFromDb(jobData, customer);
   }
 
   async getJobByNumber(jobNumber: string): Promise<Job | null> {
-    if (!this.db) throw new Error('Database not initialized');
+    const { data: jobData, error } = await supabase
+      .from('jobs_db')
+      .select('*')
+      .eq('job_number', jobNumber)
+      .maybeSingle();
     
-    const transaction = this.db.transaction(['jobs'], 'readonly');
-    const store = transaction.objectStore('jobs');
-    const index = store.index('jobNumber');
+    if (error) throw error;
+    if (!jobData) return null;
     
-    return new Promise((resolve, reject) => {
-      const request = index.get(jobNumber);
-      request.onsuccess = () => resolve(request.result || null);
-      request.onerror = () => reject(request.error);
-    });
+    const customer = await this.getCustomer(jobData.customer_id);
+    if (!customer) return null;
+    
+    return this.mapJobFromDb(jobData, customer);
   }
 
   async getAllJobs(): Promise<Job[]> {
-    if (!this.db) throw new Error('Database not initialized');
+    const { data: jobsData, error } = await supabase
+      .from('jobs_db')
+      .select('*')
+      .order('created_at', { ascending: false });
     
-    const transaction = this.db.transaction(['jobs'], 'readonly');
-    const store = transaction.objectStore('jobs');
+    if (error) throw error;
+    
     const jobs: Job[] = [];
+    for (const jobData of jobsData || []) {
+      const customer = await this.getCustomer(jobData.customer_id);
+      if (customer) {
+        jobs.push(this.mapJobFromDb(jobData, customer));
+      }
+    }
     
-    return new Promise((resolve, reject) => {
-      const request = store.openCursor();
-      request.onsuccess = (event) => {
-        const cursor = (event.target as IDBRequest).result;
-        if (cursor) {
-          jobs.push(cursor.value);
-          cursor.continue();
-        } else {
-          resolve(jobs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-        }
-      };
-      request.onerror = () => reject(request.error);
-    });
+    return jobs;
   }
 
   async searchJobs(query: string): Promise<Job[]> {
@@ -228,16 +211,48 @@ class JobBookingDB {
   }
 
   async deleteJob(id: string): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
+    const { error } = await supabase
+      .from('jobs_db')
+      .delete()
+      .eq('id', id);
     
-    const transaction = this.db.transaction(['jobs'], 'readwrite');
-    const store = transaction.objectStore('jobs');
-    
-    return new Promise((resolve, reject) => {
-      const request = store.delete(id);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    if (error) throw error;
+  }
+
+  // Helper function to map database row to Job object
+  private mapJobFromDb(jobData: any, customer: Customer): Job {
+    return {
+      id: jobData.id,
+      jobNumber: jobData.job_number,
+      customerId: jobData.customer_id,
+      customer,
+      machineCategory: jobData.machine_category,
+      machineBrand: jobData.machine_brand,
+      machineModel: jobData.machine_model,
+      machineSerial: jobData.machine_serial || '',
+      problemDescription: jobData.problem_description,
+      servicePerformed: jobData.service_performed || '',
+      notes: jobData.notes || '',
+      recommendations: jobData.recommendations || '',
+      partsRequired: jobData.parts_required || '',
+      parts: [],
+      labourHours: jobData.labour_hours,
+      labourRate: jobData.labour_rate,
+      partsSubtotal: jobData.parts_subtotal,
+      labourTotal: jobData.labour_total,
+      subtotal: jobData.subtotal,
+      discountType: jobData.discount_type || undefined,
+      discountValue: jobData.discount_value || 0,
+      gst: jobData.gst,
+      grandTotal: jobData.grand_total,
+      serviceDeposit: jobData.service_deposit || 0,
+      depositDate: jobData.deposit_date || undefined,
+      depositMethod: jobData.deposit_method || undefined,
+      quotationAmount: jobData.quotation_amount || undefined,
+      status: jobData.status,
+      createdAt: jobData.created_at,
+      updatedAt: jobData.updated_at
+    };
   }
 
   // Utility function to generate next job number
@@ -259,31 +274,14 @@ class JobBookingDB {
     return { customers, jobs };
   }
 
-  // Settings operations
+  // Settings operations - use localStorage for settings (not user-specific)
   async getSetting(key: string): Promise<any> {
-    if (!this.db) throw new Error('Database not initialized');
-    
-    const transaction = this.db.transaction(['settings'], 'readonly');
-    const store = transaction.objectStore('settings');
-    
-    return new Promise((resolve, reject) => {
-      const request = store.get(key);
-      request.onsuccess = () => resolve(request.result?.value || null);
-      request.onerror = () => reject(request.error);
-    });
+    const value = localStorage.getItem(`jobBooking_${key}`);
+    return value ? JSON.parse(value) : null;
   }
 
   async saveSetting(key: string, value: any): Promise<void> {
-    if (!this.db) throw new Error('Database not initialized');
-    
-    const transaction = this.db.transaction(['settings'], 'readwrite');
-    const store = transaction.objectStore('settings');
-    
-    return new Promise((resolve, reject) => {
-      const request = store.put({ key, value });
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    });
+    localStorage.setItem(`jobBooking_${key}`, JSON.stringify(value));
   }
 
   async saveCustomCategories(categories: MachineCategory[]): Promise<void> {
