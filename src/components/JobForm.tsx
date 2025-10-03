@@ -902,7 +902,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         {/* Right Column - Summary & Actions */}
         <div className="space-y-6">
           {/* Summary Card */}
-          <Card className="sticky top-6">
+          <Card>
             <CardHeader>
               <CardTitle>{t('summary.title')}</CardTitle>
             </CardHeader>
