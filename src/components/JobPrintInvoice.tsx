@@ -221,6 +221,16 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
                   {formatCurrency(job.subtotal / 1.1)}
                 </span>
               </div>
+              {job.discountValue && job.discountValue > 0 && (
+                <div style={{...styles.totalsRow, color: '#16a34a'}}>
+                  <span style={styles.totalsLabel}>
+                    Discount {job.discountType === 'PERCENT' ? `(${job.discountValue}%)` : ''}:
+                  </span>
+                  <span style={styles.totalsValue}>
+                    -{formatCurrency(job.discountType === 'PERCENT' ? (job.subtotal / 1.1) * (job.discountValue / 100) : job.discountValue)}
+                  </span>
+                </div>
+              )}
               <div style={styles.totalsRow}>
                 <span style={styles.totalsLabel}>GST (10%):</span>
                 <span style={styles.totalsValue}>
@@ -234,12 +244,23 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
                 </span>
               </div>
               {job.serviceDeposit && job.serviceDeposit > 0 && (
-                <div style={styles.totalsRow}>
-                  <span style={styles.totalsLabel}>Deposit/Prepaid:</span>
-                  <span style={styles.totalsValue}>
-                    -{formatCurrency(job.serviceDeposit)}
-                  </span>
-                </div>
+                <>
+                  <div style={styles.totalsRow}>
+                    <span style={styles.totalsLabel}>Deposit/Prepaid:</span>
+                    <span style={styles.totalsValue}>
+                      -{formatCurrency(job.serviceDeposit)}
+                    </span>
+                  </div>
+                  {job.depositDate && (
+                    <div style={{...styles.totalsRow, fontSize: '9pt'}}>
+                      <span style={styles.totalsLabel}>
+                        Received: {format(new Date(job.depositDate), 'dd/MM/yyyy')}
+                        {job.depositMethod && ` (${job.depositMethod})`}
+                      </span>
+                      <span></span>
+                    </div>
+                  )}
+                </>
               )}
               <div style={styles.totalsRow}>
                 <span style={styles.totalsLabel}>Amount Paid:</span>

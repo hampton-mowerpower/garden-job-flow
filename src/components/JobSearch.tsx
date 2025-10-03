@@ -3,17 +3,25 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Eye, Edit, Download, Trash2 } from 'lucide-react';
+import { Search, Eye, Edit, Download, Trash2, RotateCcw } from 'lucide-react';
 import { Job } from '@/types/job';
 import { formatCurrency } from '@/lib/calculations';
 import { jobBookingDB } from '@/lib/storage';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { JobPrintLabel } from './JobPrintLabel';
 import { JobPrintInvoice } from './JobPrintInvoice';
+import { ThermalPrintButton } from './ThermalPrintButton';
 
 interface JobSearchProps {
   onSelectJob: (job: Job) => void;
   onEditJob: (job: Job) => void;
+}
+
+interface SearchPrefs {
+  searchQuery: string;
+  sortBy: string;
+  filterStatus: string;
 }
 
 export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
@@ -22,6 +30,23 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
+
+  // Load search preferences from database
+  useEffect(() => {
+    loadSearchPreferences();
+  }, []);
+
+  // Save search preferences to database (debounced)
+  useEffect(() => {
+    if (!prefsLoaded) return; // Don't save until initial load is complete
+    
+    const timer = setTimeout(() => {
+      saveSearchPreferences();
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, prefsLoaded]);
 
   useEffect(() => {
     loadJobs();
@@ -31,6 +56,79 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
     filterJobs();
   }, [searchQuery, jobs]);
 
+  const loadSearchPreferences = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        setPrefsLoaded(true);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('job_search_prefs')
+        .select('prefs')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      if (data?.prefs) {
+        const prefs = data.prefs as unknown as SearchPrefs;
+        setSearchQuery(prefs.searchQuery || '');
+      }
+    } catch (error) {
+      console.error('Error loading search preferences:', error);
+    } finally {
+      setPrefsLoaded(true);
+    }
+  };
+
+  const saveSearchPreferences = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const prefs: SearchPrefs = {
+        searchQuery,
+        sortBy: 'date',
+        filterStatus: 'all'
+      };
+
+      const { error } = await supabase
+        .from('job_search_prefs')
+        .upsert({
+          user_id: user.id,
+          prefs: prefs as any
+        }, {
+          onConflict: 'user_id'
+        });
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Error saving search preferences:', error);
+    }
+  };
+
+  const resetPreferences = async () => {
+    setSearchQuery('');
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase
+        .from('job_search_prefs')
+        .delete()
+        .eq('user_id', user.id);
+
+      toast({
+        title: 'Reset complete',
+        description: 'Search preferences have been reset'
+      });
+    } catch (error) {
+      console.error('Error resetting preferences:', error);
+    }
+  };
+
   const loadJobs = async () => {
     try {
       setIsLoading(true);
@@ -39,9 +137,9 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
     } catch (error) {
       console.error('Error loading jobs:', error);
       toast({
-        title: "Error",
-        description: "Failed to load jobs",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to load jobs',
+        variant: 'destructive'
       });
     } finally {
       setIsLoading(false);
@@ -81,8 +179,8 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
     URL.revokeObjectURL(url);
     
     toast({
-      title: "Success",
-      description: "Jobs exported successfully"
+      title: 'Success',
+      description: 'Jobs exported successfully'
     });
   };
 
@@ -95,15 +193,15 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
       await jobBookingDB.deleteJob(job.id);
       await loadJobs();
       toast({
-        title: "Success",
-        description: "Job deleted successfully"
+        title: 'Success',
+        description: 'Job deleted successfully'
       });
     } catch (error) {
       console.error('Error deleting job:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete job",
-        variant: "destructive"
+        title: 'Error',
+        description: 'Failed to delete job',
+        variant: 'destructive'
       });
     }
   };
@@ -134,10 +232,16 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Job Search & Management</span>
-            <Button variant="outline" onClick={handleExportJobs} className="gap-2">
-              <Download className="h-4 w-4" />
-              Export Jobs
-            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={resetPreferences} className="gap-2">
+                <RotateCcw className="h-4 w-4" />
+                Reset
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportJobs} className="gap-2">
+                <Download className="h-4 w-4" />
+                Export
+              </Button>
+            </div>
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -211,6 +315,10 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
                         <div className="flex gap-1">
                           <JobPrintLabel job={job} />
                           <JobPrintInvoice job={job} />
+                        </div>
+                        <div className="flex gap-1">
+                          <ThermalPrintButton job={job} type="service-label" size="sm" variant="ghost" />
+                          <ThermalPrintButton job={job} type="collection-receipt" size="sm" variant="ghost" />
                         </div>
                         <Button
                           variant="outline"

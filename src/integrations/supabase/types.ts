@@ -92,12 +92,40 @@ export type Database = {
           },
         ]
       }
+      job_search_prefs: {
+        Row: {
+          created_at: string
+          id: string
+          prefs: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          prefs?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          prefs?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       jobs_db: {
         Row: {
           assigned_technician: string | null
           completed_at: string | null
           created_at: string
           customer_id: string
+          deposit_date: string | null
+          deposit_method: string | null
+          discount_type: string | null
+          discount_value: number | null
           grand_total: number
           gst: number
           id: string
@@ -126,6 +154,10 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           customer_id: string
+          deposit_date?: string | null
+          deposit_method?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
           grand_total?: number
           gst?: number
           id?: string
@@ -154,6 +186,10 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           customer_id?: string
+          deposit_date?: string | null
+          deposit_method?: string | null
+          discount_type?: string | null
+          discount_value?: number | null
           grand_total?: number
           gst?: number
           id?: string

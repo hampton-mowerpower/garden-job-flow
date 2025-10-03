@@ -26,8 +26,10 @@ import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Checkbox } from '@/components/ui/checkbox';
 
+import { ThermalPrintButton } from './ThermalPrintButton';
 import { MachineManager } from './MachineManager';
 import { initializeChecklists, getUniversalChecklist, getCategoryChecklist } from '@/data/serviceChecklist';
+import { format } from 'date-fns';
 
 interface JobFormProps {
   job?: Job;
@@ -62,6 +64,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [recommendations, setRecommendations] = useState('');
   const [serviceDeposit, setServiceDeposit] = useState(0);
   const [quotationAmount, setQuotationAmount] = useState(0);
+  const [discountType, setDiscountType] = useState<'PERCENT' | 'AMOUNT'>('PERCENT');
+  const [discountValue, setDiscountValue] = useState(0);
+  const [depositDate, setDepositDate] = useState('');
+  const [depositMethod, setDepositMethod] = useState('');
   
   // Bi-directional sync handlers with validation
   const handleQuotationChange = (value: number) => {
@@ -103,7 +109,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   // Calculations
   const selectedCategory = HAMPTON_MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
   const labourRate = selectedCategory?.labourRate || 0;
-  const baseCalculations = calculateJobTotals(parts, labourHours, labourRate);
+  const baseCalculations = calculateJobTotals(parts, labourHours, labourRate, discountType, discountValue);
   
   // Apply service deposit deduction to final total
   const calculations = {
@@ -151,6 +157,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setRecommendations(job.recommendations || '');
       setServiceDeposit(job.serviceDeposit || 0);
       setQuotationAmount(job.quotationAmount || 0);
+      setDiscountType(job.discountType || 'PERCENT');
+      setDiscountValue(job.discountValue || 0);
+      setDepositDate(job.depositDate ? format(new Date(job.depositDate), 'yyyy-MM-dd') : '');
+      setDepositMethod(job.depositMethod || '');
       
       // Migrate parts to include stable IDs if missing
       const migratedParts = job.parts.map(part => ({
@@ -427,18 +437,20 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             {job ? t('jobs.update.details') : t('jobs.create.service')}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {job && (
-            <>
-              <JobPrintLabel job={job} />
-              <JobPrintInvoice job={job} />
-            </>
-          )}
-          <Button onClick={handleSave} disabled={isLoading} className="flex-1 sm:flex-initial">
-            <Save className="w-4 h-4 mr-2" />
-            {isLoading ? t('jobs.saving') : t('jobs.save')}
-          </Button>
-        </div>
+      <div className="flex flex-wrap gap-2">
+        {job && (
+          <>
+            <JobPrintLabel job={job} />
+            <JobPrintInvoice job={job} />
+            <ThermalPrintButton job={job} type="service-label" size="sm" />
+            <ThermalPrintButton job={job} type="collection-receipt" size="sm" />
+          </>
+        )}
+        <Button onClick={handleSave} disabled={isLoading} className="flex-1 sm:flex-initial">
+          <Save className="w-4 h-4 mr-2" />
+          {isLoading ? t('jobs.saving') : t('jobs.save')}
+        </Button>
+      </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -911,6 +923,39 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                   <span className="text-muted-foreground">{t('summary.subtotal')}</span>
                   <span className="font-medium">{formatCurrency(calculations.subtotal)}</span>
                 </div>
+                
+                {/* Discount Section */}
+                <div className="space-y-2 pt-2 pb-2 border-t">
+                  <Label className="text-xs">Discount</Label>
+                  <div className="flex gap-2">
+                    <Select value={discountType} onValueChange={(v: 'PERCENT' | 'AMOUNT') => setDiscountType(v)}>
+                      <SelectTrigger className="w-[100px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="PERCENT">%</SelectItem>
+                        <SelectItem value="AMOUNT">$</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="number"
+                      min="0"
+                      step={discountType === 'PERCENT' ? '1' : '0.01'}
+                      max={discountType === 'PERCENT' ? '100' : undefined}
+                      value={discountValue}
+                      onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
+                      placeholder="0"
+                      className="flex-1"
+                    />
+                  </div>
+                  {calculations.discountAmount > 0 && (
+                    <div className="flex justify-between text-sm text-green-600">
+                      <span>Discount Applied:</span>
+                      <span>-{formatCurrency(calculations.discountAmount)}</span>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t('summary.gst')}</span>
                   <span className="font-medium">{formatCurrency(calculations.gst)}</span>
@@ -925,17 +970,50 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               <Separator />
 
               {/* Service Deposit */}
-              <div>
-                <Label htmlFor="service-deposit">{t('service.deposit')}</Label>
-                <InputCurrency
-                  id="service-deposit"
-                  value={serviceDeposit}
-                  onChange={handleServiceDepositChange}
-                  placeholder="0.00"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  {t('service.deposit.help')}
-                </p>
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="service-deposit">{t('service.deposit')}</Label>
+                  <InputCurrency
+                    id="service-deposit"
+                    value={serviceDeposit}
+                    onChange={handleServiceDepositChange}
+                    placeholder="0.00"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t('service.deposit.help')}
+                  </p>
+                </div>
+                
+                {serviceDeposit > 0 && (
+                  <>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label htmlFor="deposit-date" className="text-xs">Date Received</Label>
+                        <Input
+                          id="deposit-date"
+                          type="date"
+                          value={depositDate}
+                          onChange={(e) => setDepositDate(e.target.value)}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="deposit-method" className="text-xs">Payment Method</Label>
+                        <Select value={depositMethod} onValueChange={setDepositMethod}>
+                          <SelectTrigger id="deposit-method">
+                            <SelectValue placeholder="Select..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cash">Cash</SelectItem>
+                            <SelectItem value="card">Card</SelectItem>
+                            <SelectItem value="eftpos">EFTPOS</SelectItem>
+                            <SelectItem value="transfer">Bank Transfer</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
 
               {serviceDeposit > 0 && (

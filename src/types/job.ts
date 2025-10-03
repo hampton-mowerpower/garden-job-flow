@@ -78,6 +78,10 @@ export interface Job {
   // Service pricing
   serviceDeposit?: number; // deposit paid by customer
   quotationAmount?: number; // quotation amount for inspection
+  discountType?: 'PERCENT' | 'AMOUNT'; // discount type
+  discountValue?: number; // discount amount or percentage
+  depositDate?: Date; // date deposit was received
+  depositMethod?: string; // payment method for deposit
   
   // Computed parts list for display
   partsRequired?: string; // computed from parts array
