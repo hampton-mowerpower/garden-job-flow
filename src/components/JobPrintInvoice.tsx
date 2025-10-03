@@ -4,7 +4,7 @@ import { formatCurrency } from '@/lib/calculations';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
-import hamptonLogo from '@/assets/hampton-logo.png';
+import hamptonLogo from '@/assets/hampton-logo-new.jpg';
 
 interface JobPrintInvoiceProps {
   job: Job;
@@ -161,53 +161,96 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
           <table style={styles.table}>
             <thead>
               <tr style={styles.tableHeaderRow}>
-                <th style={{...styles.tableHeader, ...styles.alignLeft}}>Item</th>
+                <th style={{...styles.tableHeader, ...styles.alignLeft}}>Type</th>
                 <th style={{...styles.tableHeader, ...styles.alignLeft}}>Description</th>
-                <th style={{...styles.tableHeader, ...styles.alignRight}}>Qty</th>
-                <th style={{...styles.tableHeader, ...styles.alignRight}}>Unit (ex GST)</th>
-                <th style={{...styles.tableHeader, ...styles.alignRight}}>GST %</th>
+                <th style={{...styles.tableHeader, ...styles.alignRight}}>Qty/Hours</th>
+                <th style={{...styles.tableHeader, ...styles.alignRight}}>Unit Price</th>
+                <th style={{...styles.tableHeader, ...styles.alignRight}}>Line GST</th>
                 <th style={{...styles.tableHeader, ...styles.alignRight}}>Line Total</th>
               </tr>
             </thead>
             <tbody>
-              {/* Parts */}
-              {job.parts.map((part, index) => {
-                const unitExGST = part.unitPrice / 1.1;
-                const lineTotal = unitExGST * part.quantity;
-                return (
-                  <tr key={part.id || index} style={styles.tableRow}>
-                    <td style={{...styles.tableCell, ...styles.alignLeft}}>Part</td>
-                    <td style={{...styles.tableCell, ...styles.alignLeft}}>{part.partName}</td>
-                    <td style={{...styles.tableCell, ...styles.alignRight}}>{part.quantity}</td>
-                    <td style={{...styles.tableCell, ...styles.alignRight}}>
-                      {formatCurrency(unitExGST)}
-                    </td>
-                    <td style={{...styles.tableCell, ...styles.alignRight}}>10%</td>
-                    <td style={{...styles.tableCell, ...styles.alignRight}}>
-                      {formatCurrency(lineTotal)}
+              {/* Parts Section */}
+              {job.parts.length > 0 && (
+                <>
+                  <tr style={{...styles.tableRow, ...styles.groupHeader}}>
+                    <td colSpan={6} style={{...styles.tableCell, ...styles.alignLeft, fontWeight: 700}}>
+                      PARTS
                     </td>
                   </tr>
-                );
-              })}
+                  {job.parts.map((part, index) => {
+                    const unitExGST = part.unitPrice / 1.1;
+                    const lineTotal = unitExGST * part.quantity;
+                    const lineGST = lineTotal * 0.1;
+                    return (
+                      <tr key={part.id || index} style={styles.tableRow}>
+                        <td style={{...styles.tableCell, ...styles.alignLeft}}>Parts</td>
+                        <td style={{...styles.tableCell, ...styles.alignLeft}}>{part.partName}</td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>{part.quantity}</td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {formatCurrency(unitExGST)}
+                        </td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {formatCurrency(lineGST)}
+                        </td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {formatCurrency(lineTotal)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                  <tr style={{...styles.tableRow, ...styles.subtotalRow}}>
+                    <td colSpan={5} style={{...styles.tableCell, ...styles.alignRight, fontWeight: 700}}>
+                      Parts Subtotal (ex GST):
+                    </td>
+                    <td style={{...styles.tableCell, ...styles.alignRight, fontWeight: 700}}>
+                      {formatCurrency(job.partsSubtotal / 1.1)}
+                    </td>
+                  </tr>
+                </>
+              )}
 
-              {/* Labour */}
+              {/* Labour Section */}
               {job.labourHours > 0 && (
-                <tr style={styles.tableRow}>
-                  <td style={{...styles.tableCell, ...styles.alignLeft}}>Labour</td>
-                  <td style={{...styles.tableCell, ...styles.alignLeft}}>
-                    Service & Repair Work
-                  </td>
-                  <td style={{...styles.tableCell, ...styles.alignRight}}>
-                    {job.labourHours.toFixed(2)}
-                  </td>
-                  <td style={{...styles.tableCell, ...styles.alignRight}}>
-                    {formatCurrency(job.labourRate / 1.1)}
-                  </td>
-                  <td style={{...styles.tableCell, ...styles.alignRight}}>10%</td>
-                  <td style={{...styles.tableCell, ...styles.alignRight}}>
-                    {formatCurrency(job.labourTotal / 1.1)}
-                  </td>
-                </tr>
+                <>
+                  <tr style={{...styles.tableRow, ...styles.groupHeader}}>
+                    <td colSpan={6} style={{...styles.tableCell, ...styles.alignLeft, fontWeight: 700}}>
+                      LABOUR
+                    </td>
+                  </tr>
+                  {(() => {
+                    const labourExGST = job.labourTotal / 1.1;
+                    const labourGST = labourExGST * 0.1;
+                    return (
+                      <tr style={styles.tableRow}>
+                        <td style={{...styles.tableCell, ...styles.alignLeft}}>Labour</td>
+                        <td style={{...styles.tableCell, ...styles.alignLeft}}>
+                          Service & Repair Work
+                        </td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {job.labourHours.toFixed(2)}
+                        </td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {formatCurrency(job.labourRate / 1.1)}
+                        </td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {formatCurrency(labourGST)}
+                        </td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {formatCurrency(labourExGST)}
+                        </td>
+                      </tr>
+                    );
+                  })()}
+                  <tr style={{...styles.tableRow, ...styles.subtotalRow}}>
+                    <td colSpan={5} style={{...styles.tableCell, ...styles.alignRight, fontWeight: 700}}>
+                      Labour Subtotal (ex GST):
+                    </td>
+                    <td style={{...styles.tableCell, ...styles.alignRight, fontWeight: 700}}>
+                      {formatCurrency(job.labourTotal / 1.1)}
+                    </td>
+                  </tr>
+                </>
               )}
             </tbody>
           </table>
@@ -216,9 +259,9 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
           <div style={styles.totalsWrapper}>
             <div style={styles.totalsCard}>
               <div style={styles.totalsRow}>
-                <span style={styles.totalsLabel}>Subtotal (ex GST):</span>
+                <span style={styles.totalsLabel}>Subtotal (Parts + Labour, ex GST):</span>
                 <span style={styles.totalsValue}>
-                  {formatCurrency(job.subtotal / 1.1)}
+                  {formatCurrency((job.partsSubtotal + job.labourTotal) / 1.1)}
                 </span>
               </div>
               {job.discountValue && job.discountValue > 0 && (
@@ -227,36 +270,30 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
                     Discount {job.discountType === 'PERCENT' ? `(${job.discountValue}%)` : ''}:
                   </span>
                   <span style={styles.totalsValue}>
-                    -{formatCurrency(job.discountType === 'PERCENT' ? (job.subtotal / 1.1) * (job.discountValue / 100) : job.discountValue)}
+                    -{formatCurrency(job.discountType === 'PERCENT' ? ((job.partsSubtotal + job.labourTotal) / 1.1) * (job.discountValue / 100) : job.discountValue)}
                   </span>
                 </div>
               )}
               <div style={styles.totalsRow}>
-                <span style={styles.totalsLabel}>GST (10%):</span>
+                <span style={styles.totalsLabel}>GST Total (sum of line GST):</span>
                 <span style={styles.totalsValue}>
                   {formatCurrency(job.gst)}
                 </span>
               </div>
               <div style={{...styles.totalsRow, ...styles.totalsBold}}>
-                <span style={styles.totalsLabel}>Total (inc GST):</span>
+                <span style={styles.totalsLabel}>Grand Total (inc GST):</span>
                 <span style={styles.totalsValue}>
                   {formatCurrency(job.grandTotal)}
                 </span>
               </div>
               {job.serviceDeposit && job.serviceDeposit > 0 && (
                 <div style={styles.totalsRow}>
-                  <span style={styles.totalsLabel}>Deposit/Prepaid:</span>
+                  <span style={styles.totalsLabel}>Deposit Paid:</span>
                   <span style={styles.totalsValue}>
                     -{formatCurrency(job.serviceDeposit)}
                   </span>
                 </div>
               )}
-              <div style={styles.totalsRow}>
-                <span style={styles.totalsLabel}>Amount Paid:</span>
-                <span style={styles.totalsValue}>
-                  -{formatCurrency(amountPaid)}
-                </span>
-              </div>
               <div style={{...styles.totalsRow, ...styles.totalsBold, ...styles.balanceDue}}>
                 <span style={styles.totalsLabel}>Balance Due:</span>
                 <span style={styles.totalsValue}>
@@ -547,6 +584,14 @@ const styles: Record<string, React.CSSProperties> = {
     borderBottom: '1px solid #E2E8F0',
     breakInside: 'avoid',
     pageBreakInside: 'avoid',
+  },
+  groupHeader: {
+    backgroundColor: '#F8FAFC',
+    borderTop: '2px solid #CBD5E1',
+  },
+  subtotalRow: {
+    backgroundColor: '#F1F5F9',
+    fontWeight: '600',
   },
   tableCell: {
     padding: '7px 6px',

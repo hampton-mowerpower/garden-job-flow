@@ -9,7 +9,7 @@ import JobSearch from '@/components/JobSearch';
 import { AdminSettings } from '@/components/AdminSettings';
 
 const Index = () => {
-  const [activeView, setActiveView] = useState<'dashboard' | 'create' | 'search' | 'admin'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'create' | 'search' | 'admin' | 'view'>('dashboard');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
 
@@ -21,7 +21,7 @@ const Index = () => {
 
   const handleSelectJob = (job: Job) => {
     setSelectedJob(job);
-    setActiveView('dashboard');
+    setActiveView('view');
   };
 
   const handleEditJob = (job: Job) => {
@@ -34,6 +34,34 @@ const Index = () => {
     setSelectedJob(null);
     setActiveView('create');
   };
+
+  if (activeView === 'view' && selectedJob) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-6">
+            <Button
+              variant="outline"
+              onClick={() => setActiveView('search')}
+              className="mb-4"
+            >
+              ← Back to Search
+            </Button>
+            <h1 className="text-3xl font-bold text-primary mb-2">
+              Job Details - #{selectedJob.jobNumber}
+            </h1>
+            <p className="text-muted-foreground">
+              View complete job information and print documents
+            </p>
+          </div>
+          <JobForm 
+            job={selectedJob} 
+            onSave={handleJobSave}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (activeView === 'create') {
     return (

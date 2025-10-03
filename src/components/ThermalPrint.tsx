@@ -2,6 +2,7 @@ import React from 'react';
 import { Job } from '@/types/job';
 import { formatCurrency } from '@/lib/calculations';
 import { format } from 'date-fns';
+import hamptonQRCode from '@/assets/hampton-qr-code.png';
 
 interface ThermalPrintProps {
   job: Job;
@@ -12,14 +13,33 @@ interface ThermalPrintProps {
 export const printThermal = async (props: ThermalPrintProps): Promise<void> => {
   const { job, type, width = 79 } = props;
 
+  // Convert QR code to base64 for embedding
+  const getQRCodeBase64 = async (): Promise<string> => {
+    try {
+      const response = await fetch(hamptonQRCode);
+      const blob = await response.blob();
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const base64 = (reader.result as string).split(',')[1];
+          resolve(base64);
+        };
+        reader.readAsDataURL(blob);
+      });
+    } catch (error) {
+      console.error('Error loading QR code:', error);
+      return '';
+    }
+  };
+
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
     throw new Error('Failed to open print window. Please allow popups for this site.');
   }
 
   const html = type === 'service-label' 
-    ? generateServiceLabelHTML(job, width)
-    : generateCollectionReceiptHTML(job, width);
+    ? await generateServiceLabelHTML(job, width)
+    : await generateCollectionReceiptHTML(job, width, await getQRCodeBase64());
 
   printWindow.document.write(html);
   printWindow.document.close();
@@ -39,7 +59,7 @@ export const printThermal = async (props: ThermalPrintProps): Promise<void> => {
   }, 300);
 };
 
-const generateServiceLabelHTML = (job: Job, width: number): string => {
+const generateServiceLabelHTML = async (job: Job, width: number): Promise<string> => {
   const partsRequired = job.parts
     .filter(part => part.partName && part.partName.trim() !== '' && part.quantity > 0)
     .map(part => `${part.partName.trim()} × ${part.quantity || 1}`)
@@ -235,7 +255,7 @@ const generateServiceLabelHTML = (job: Job, width: number): string => {
 `;
 };
 
-const generateCollectionReceiptHTML = (job: Job, width: number): string => {
+const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase64: string): Promise<string> => {
   // Calculate safe content width (printable area for TM-T82II)
   const safeWidth = width === 79 ? 72 : 54;
   
@@ -447,6 +467,12 @@ const generateCollectionReceiptHTML = (job: Job, width: number): string => {
   <div style="text-align: center; margin-top: 4mm; font-size: ${width === 79 ? '10px' : '9px'}; font-weight: 700;">
     Commercial special discounts and benefits — enquire in store.
   </div>
+  
+  ${qrCodeBase64 ? `
+  <div style="text-align: center; margin-top: 4mm;">
+    <img src="data:image/png;base64,${qrCodeBase64}" alt="Website QR Code" style="width: ${width === 79 ? '30mm' : '25mm'}; height: ${width === 79 ? '30mm' : '25mm'}; margin: 0 auto;" />
+  </div>
+  ` : ''}
   
   <div class="footer">
     <strong>HAMPTON MOWERPOWER</strong><br>
