@@ -135,8 +135,6 @@ class JobBookingDB {
       gst: job.gst,
       grand_total: job.grandTotal,
       service_deposit: job.serviceDeposit || 0,
-      deposit_date: job.depositDate ? new Date(job.depositDate).toISOString() : null,
-      deposit_method: job.depositMethod || null,
       quotation_amount: job.quotationAmount || null,
       status: job.status,
       updated_at: new Date().toISOString()
@@ -280,8 +278,6 @@ class JobBookingDB {
       gst: jobData.gst,
       grandTotal: jobData.grand_total,
       serviceDeposit: jobData.service_deposit || 0,
-      depositDate: jobData.deposit_date || undefined,
-      depositMethod: jobData.deposit_method || undefined,
       quotationAmount: jobData.quotation_amount || undefined,
       status: jobData.status,
       createdAt: jobData.created_at,

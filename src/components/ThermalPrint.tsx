@@ -161,8 +161,8 @@ const generateServiceLabelHTML = (job: Job, width: number): string => {
       background-image: repeating-linear-gradient(
         transparent,
         transparent ${width === 79 ? '6mm' : '5mm'},
-        #999 ${width === 79 ? '6mm' : '5mm'},
-        #999 calc(${width === 79 ? '6mm' : '5mm'} + 1px)
+        #000 ${width === 79 ? '6mm' : '5mm'},
+        #000 calc(${width === 79 ? '6mm' : '5mm'} + 1px)
       );
     }
     .footer {
@@ -238,8 +238,15 @@ const generateServiceLabelHTML = (job: Job, width: number): string => {
 const generateCollectionReceiptHTML = (job: Job, width: number): string => {
   // Calculate safe content width (printable area for TM-T82II)
   const safeWidth = width === 79 ? 72 : 54;
-  const amountPaid = job.serviceDeposit || 0;
-  const balanceDue = Math.max(0, job.grandTotal - amountPaid);
+  
+  // Determine payment type and amount
+  const hasQuotation = job.quotationAmount && job.quotationAmount > 0;
+  const hasDeposit = job.serviceDeposit && job.serviceDeposit > 0;
+  const paymentAmount = hasQuotation ? job.quotationAmount : (hasDeposit ? job.serviceDeposit : 0);
+  const paymentLabel = hasQuotation ? 'Quotation Amount Paid' : 'Deposit Paid';
+  const paymentGST = paymentAmount ? paymentAmount * 0.1 / 1.1 : 0;
+  
+  const balanceDue = Math.max(0, job.grandTotal - paymentAmount);
   const isPaid = balanceDue === 0;
 
   const itemsLines = [
@@ -399,29 +406,21 @@ const generateCollectionReceiptHTML = (job: Job, width: number): string => {
   ` : ''}
   
   <div class="section">
-    <div class="section-title">FINANCIAL SUMMARY</div>
-    <div class="row">
-      <span>Subtotal:</span>
-      <span>${formatCurrency(job.subtotal)}</span>
+    <div class="section-title">PAYMENT SUMMARY</div>
+    ${paymentAmount > 0 ? `
+    <div class="row bold">
+      <span>${paymentLabel}:</span>
+      <span>${formatCurrency(paymentAmount)}</span>
     </div>
+    <div class="row" style="font-size: ${width === 79 ? '9px' : '8px'};">
+      <span>(incl. ${formatCurrency(paymentGST)} GST)</span>
+      <span></span>
+    </div>
+    ` : ''}
     ${job.discountValue && job.discountValue > 0 ? `
     <div class="row">
       <span>Discount ${job.discountType === 'PERCENT' ? `(${job.discountValue}%)` : ''}:</span>
       <span>-${formatCurrency(job.discountType === 'PERCENT' ? job.subtotal * (job.discountValue / 100) : job.discountValue)}</span>
-    </div>
-    ` : ''}
-    <div class="row">
-      <span>GST (10%):</span>
-      <span>${formatCurrency(job.gst)}</span>
-    </div>
-    <div class="row bold">
-      <span>Total:</span>
-      <span>${formatCurrency(job.grandTotal)}</span>
-    </div>
-    ${amountPaid > 0 ? `
-    <div class="row">
-      <span>Deposit Paid:</span>
-      <span>-${formatCurrency(amountPaid)}</span>
     </div>
     ` : ''}
     <div class="row total-row">
@@ -438,12 +437,15 @@ const generateCollectionReceiptHTML = (job: Job, width: number): string => {
     <div class="conditions-title">⚠ REPAIR CONTRACT CONDITIONS ⚠</div>
     <div style="margin-bottom: 2mm;">
       <strong>1.</strong> All quotes are valid for 30 days from date of issue.<br><br>
-      <strong>2.</strong> Goods left for repair become your liability after 30 days of notification.<br><br>
-      <strong>3.</strong> All repairs carry a 3-month warranty on parts and labour.<br><br>
-      <strong>4.</strong> We are not responsible for consequential damage or loss of use.<br><br>
-      <strong>5.</strong> Payment is due upon collection unless account terms are agreed.<br><br>
-      <strong>6.</strong> Goods not collected within 90 days may be disposed of to recover costs.
+      <strong>2.</strong> All domestic customer service work is guaranteed for 90 days from completion date. All commercial customer service work is covered by floor warranty only (as provided by the manufacturer or distributor).<br><br>
+      <strong>3.</strong> We are not responsible for consequential damage or loss of use.<br><br>
+      <strong>4.</strong> Payment is due upon collection unless account terms are agreed.<br><br>
+      <strong>5.</strong> Goods not collected within 90 days may be disposed of to recover costs.
     </div>
+  </div>
+  
+  <div style="text-align: center; margin-top: 4mm; font-size: ${width === 79 ? '10px' : '9px'}; font-weight: 700;">
+    Commercial special discounts and benefits — enquire in store.
   </div>
   
   <div class="footer">
@@ -451,7 +453,7 @@ const generateCollectionReceiptHTML = (job: Job, width: number): string => {
     A.B.N. 97 161 289 069<br>
     GARDEN EQUIPMENT SALES & SERVICE<br>
     87 Ludstone Street, Hampton 3188<br>
-    Phone: 03 9598 6741   Fax: 03 9521 9581<br>
+    Phone: 03 9598 6741<br>
     www.hamptonmowerpower.com.au<br>
     Date: ${format(new Date(), 'dd/MM/yyyy HH:mm')}
   </div>

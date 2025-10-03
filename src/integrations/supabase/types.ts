@@ -122,8 +122,6 @@ export type Database = {
           completed_at: string | null
           created_at: string
           customer_id: string
-          deposit_date: string | null
-          deposit_method: string | null
           discount_type: string | null
           discount_value: number | null
           grand_total: number
@@ -154,8 +152,6 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           customer_id: string
-          deposit_date?: string | null
-          deposit_method?: string | null
           discount_type?: string | null
           discount_value?: number | null
           grand_total?: number
@@ -186,8 +182,6 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           customer_id?: string
-          deposit_date?: string | null
-          deposit_method?: string | null
           discount_type?: string | null
           discount_value?: number | null
           grand_total?: number

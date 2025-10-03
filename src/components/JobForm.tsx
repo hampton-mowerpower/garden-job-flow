@@ -70,8 +70,6 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [quotationAmount, setQuotationAmount] = useState(0);
   const [discountType, setDiscountType] = useState<'PERCENT' | 'AMOUNT'>('PERCENT');
   const [discountValue, setDiscountValue] = useState(0);
-  const [depositDate, setDepositDate] = useState('');
-  const [depositMethod, setDepositMethod] = useState('');
   
   // One-way sync: Quotation → Service Deposit only
   const handleQuotationChange = (value: number) => {
@@ -168,8 +166,6 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setQuotationAmount(job.quotationAmount || 0);
       setDiscountType(job.discountType || 'PERCENT');
       setDiscountValue(job.discountValue || 0);
-      setDepositDate(job.depositDate ? format(new Date(job.depositDate), 'yyyy-MM-dd') : '');
-      setDepositMethod(job.depositMethod || '');
       
       // Migrate parts to include stable IDs if missing
       const migratedParts = job.parts.map(part => ({
@@ -388,8 +384,6 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         quotationAmount,
         discountType,
         discountValue,
-        depositDate: depositDate ? new Date(depositDate) : undefined,
-        depositMethod,
         parts,
         labourHours,
         labourRate: labourRateForCategory,
@@ -983,37 +977,6 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                     {t('service.deposit.help')}
                   </p>
                 </div>
-                
-                {serviceDeposit > 0 && (
-                  <>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <Label htmlFor="deposit-date" className="text-xs">Date Received</Label>
-                        <Input
-                          id="deposit-date"
-                          type="date"
-                          value={depositDate}
-                          onChange={(e) => setDepositDate(e.target.value)}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="deposit-method" className="text-xs">Payment Method</Label>
-                        <Select value={depositMethod} onValueChange={setDepositMethod}>
-                          <SelectTrigger id="deposit-method">
-                            <SelectValue placeholder="Select..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="cash">Cash</SelectItem>
-                            <SelectItem value="card">Card</SelectItem>
-                            <SelectItem value="eftpos">EFTPOS</SelectItem>
-                            <SelectItem value="transfer">Bank Transfer</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </>
-                )}
               </div>
 
               {serviceDeposit > 0 && (

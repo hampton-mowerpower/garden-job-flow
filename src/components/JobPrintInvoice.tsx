@@ -244,23 +244,12 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
                 </span>
               </div>
               {job.serviceDeposit && job.serviceDeposit > 0 && (
-                <>
-                  <div style={styles.totalsRow}>
-                    <span style={styles.totalsLabel}>Deposit/Prepaid:</span>
-                    <span style={styles.totalsValue}>
-                      -{formatCurrency(job.serviceDeposit)}
-                    </span>
-                  </div>
-                  {job.depositDate && (
-                    <div style={{...styles.totalsRow, fontSize: '9pt'}}>
-                      <span style={styles.totalsLabel}>
-                        Received: {format(new Date(job.depositDate), 'dd/MM/yyyy')}
-                        {job.depositMethod && ` (${job.depositMethod})`}
-                      </span>
-                      <span></span>
-                    </div>
-                  )}
-                </>
+                <div style={styles.totalsRow}>
+                  <span style={styles.totalsLabel}>Deposit/Prepaid:</span>
+                  <span style={styles.totalsValue}>
+                    -{formatCurrency(job.serviceDeposit)}
+                  </span>
+                </div>
               )}
               <div style={styles.totalsRow}>
                 <span style={styles.totalsLabel}>Amount Paid:</span>
@@ -285,8 +274,7 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
                 <strong>Bank Transfer:</strong><br />
                 National Australia Bank<br />
                 BSB: 083-004<br />
-                Account: 87-542-9876<br />
-                PayID: accounts@hamptonmowerpower.com.au
+                Account: 87-542-9876
               </div>
               <div>
                 <strong>Accepted Payment Methods:</strong><br />
