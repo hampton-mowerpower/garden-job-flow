@@ -83,27 +83,30 @@ export type Database = {
       job_parts: {
         Row: {
           created_at: string
+          description: string | null
           id: string
           job_id: string
-          part_id: string
+          part_id: string | null
           quantity: number
           total_price: number
           unit_price: number
         }
         Insert: {
           created_at?: string
+          description?: string | null
           id?: string
           job_id: string
-          part_id: string
+          part_id?: string | null
           quantity?: number
           total_price: number
           unit_price: number
         }
         Update: {
           created_at?: string
+          description?: string | null
           id?: string
           job_id?: string
-          part_id?: string
+          part_id?: string | null
           quantity?: number
           total_price?: number
           unit_price?: number

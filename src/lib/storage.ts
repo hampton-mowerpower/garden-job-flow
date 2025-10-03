@@ -185,10 +185,12 @@ class JobBookingDB {
             cataloguePartId = cataloguePart.id;
           }
         }
+        // For custom parts (partId === 'custom'), cataloguePartId stays null
         
         partsToInsert.push({
           job_id: data.id,
           part_id: cataloguePartId,
+          description: part.partName, // Store part name for custom parts
           quantity: part.quantity,
           unit_price: part.unitPrice,
           total_price: part.totalPrice
@@ -338,6 +340,7 @@ class JobBookingDB {
       let category = '';
       
       if (partData.part_id) {
+        // Load from catalogue if part_id exists
         const { data: cataloguePart } = await supabase
           .from('parts_catalogue')
           .select('name, category')
@@ -348,11 +351,15 @@ class JobBookingDB {
           partName = cataloguePart.name;
           category = cataloguePart.category;
         }
+      } else if (partData.description) {
+        // Use stored description for custom parts
+        partName = partData.description;
+        category = 'Custom';
       }
       
       parts.push({
         id: partData.id,
-        partId: partData.part_id || '',
+        partId: partData.part_id || 'custom',
         partName,
         quantity: partData.quantity,
         unitPrice: partData.unit_price,
