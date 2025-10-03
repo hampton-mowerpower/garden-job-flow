@@ -154,7 +154,41 @@ class JobBookingDB {
     
     if (error) throw error;
     
-    return this.mapJobFromDb(data, savedCustomer);
+    // Save job parts to junction table
+    if (job.parts && job.parts.length > 0) {
+      // First, delete existing parts for this job
+      await supabase
+        .from('job_parts')
+        .delete()
+        .eq('job_id', data.id);
+      
+      // Then insert new parts
+      const partsToInsert = job.parts
+        .filter(part => part.partName && part.partName.trim() !== '')
+        .map(part => ({
+          job_id: data.id,
+          part_id: part.partId || null,
+          quantity: part.quantity,
+          unit_price: part.unitPrice,
+          total_price: part.totalPrice
+        }));
+      
+      if (partsToInsert.length > 0) {
+        const { error: partsError } = await supabase
+          .from('job_parts')
+          .insert(partsToInsert);
+        
+        if (partsError) throw partsError;
+      }
+    } else {
+      // If no parts, delete any existing parts for this job
+      await supabase
+        .from('job_parts')
+        .delete()
+        .eq('job_id', data.id);
+    }
+    
+    return this.mapJobFromDb(data, savedCustomer, job.parts);
   }
 
   async getJob(id: string): Promise<Job | null> {
@@ -170,7 +204,10 @@ class JobBookingDB {
     const customer = await this.getCustomer(jobData.customer_id);
     if (!customer) return null;
     
-    return this.mapJobFromDb(jobData, customer);
+    // Load parts from job_parts table
+    const parts = await this.getJobParts(id);
+    
+    return this.mapJobFromDb(jobData, customer, parts);
   }
 
   async getJobByNumber(jobNumber: string): Promise<Job | null> {
@@ -186,7 +223,10 @@ class JobBookingDB {
     const customer = await this.getCustomer(jobData.customer_id);
     if (!customer) return null;
     
-    return this.mapJobFromDb(jobData, customer);
+    // Load parts from job_parts table
+    const parts = await this.getJobParts(jobData.id);
+    
+    return this.mapJobFromDb(jobData, customer, parts);
   }
 
   async getAllJobs(): Promise<Job[]> {
@@ -201,7 +241,8 @@ class JobBookingDB {
     for (const jobData of jobsData || []) {
       const customer = await this.getCustomer(jobData.customer_id);
       if (customer) {
-        jobs.push(this.mapJobFromDb(jobData, customer));
+        const parts = await this.getJobParts(jobData.id);
+        jobs.push(this.mapJobFromDb(jobData, customer, parts));
       }
     }
     
@@ -243,6 +284,13 @@ class JobBookingDB {
   }
 
   async deleteJob(id: string): Promise<void> {
+    // Delete job parts first
+    await supabase
+      .from('job_parts')
+      .delete()
+      .eq('job_id', id);
+    
+    // Then delete the job
     const { error } = await supabase
       .from('jobs_db')
       .delete()
@@ -251,8 +299,51 @@ class JobBookingDB {
     if (error) throw error;
   }
 
+  // Get parts for a specific job
+  private async getJobParts(jobId: string): Promise<JobPart[]> {
+    const { data, error } = await supabase
+      .from('job_parts')
+      .select('*')
+      .eq('job_id', jobId);
+    
+    if (error) throw error;
+    if (!data) return [];
+    
+    // Load part details from parts_catalogue
+    const parts: JobPart[] = [];
+    for (const partData of data) {
+      let partName = 'Unknown Part';
+      let category = '';
+      
+      if (partData.part_id) {
+        const { data: cataloguePart } = await supabase
+          .from('parts_catalogue')
+          .select('name, category')
+          .eq('id', partData.part_id)
+          .maybeSingle();
+        
+        if (cataloguePart) {
+          partName = cataloguePart.name;
+          category = cataloguePart.category;
+        }
+      }
+      
+      parts.push({
+        id: partData.id,
+        partId: partData.part_id || '',
+        partName,
+        quantity: partData.quantity,
+        unitPrice: partData.unit_price,
+        totalPrice: partData.total_price,
+        category
+      });
+    }
+    
+    return parts;
+  }
+
   // Helper function to map database row to Job object
-  private mapJobFromDb(jobData: any, customer: Customer): Job {
+  private mapJobFromDb(jobData: any, customer: Customer, parts: JobPart[] = []): Job {
     return {
       id: jobData.id,
       jobNumber: jobData.job_number,
@@ -267,7 +358,7 @@ class JobBookingDB {
       notes: jobData.notes || '',
       recommendations: jobData.recommendations || '',
       partsRequired: jobData.parts_required || '',
-      parts: [],
+      parts,
       labourHours: jobData.labour_hours,
       labourRate: jobData.labour_rate,
       partsSubtotal: jobData.parts_subtotal,
