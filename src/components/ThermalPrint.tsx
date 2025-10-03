@@ -149,21 +149,22 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
       box-sizing: border-box;
     }
     .section {
-      margin: 3mm 0;
+      margin: 2mm 0;
       border-top: 2px solid #000;
-      padding-top: 3mm;
+      padding-top: 2mm;
       font-weight: 900;
     }
     .section-title {
       font-weight: 900;
-      font-size: ${width === 79 ? '18px' : '15px'};
-      margin-bottom: 3mm;
+      font-size: ${width === 79 ? '16px' : '14px'};
+      margin-bottom: 2mm;
       text-transform: uppercase;
-      background: #000;
-      color: #fff;
-      padding: 4mm 2mm;
+      color: #000;
+      padding: 2mm 0;
+      padding-bottom: 1mm;
       letter-spacing: 2px;
-      text-align: center;
+      text-align: left;
+      border-bottom: 2px solid #000;
     }
     .label {
       font-weight: 900;
@@ -185,8 +186,8 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
     }
     .list-item {
       display: block;
-      margin: 2mm 0;
-      line-height: 1.8;
+      margin: 1mm 0;
+      line-height: 1.6;
       font-weight: 900;
       font-size: ${width === 79 ? '13px' : '11px'};
       text-transform: uppercase;
@@ -355,14 +356,15 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
     }
     .subheader {
       text-align: center;
-      font-size: ${width === 79 ? '18px' : '15px'};
-      margin-bottom: 3mm;
+      font-size: ${width === 79 ? '16px' : '14px'};
+      margin-bottom: 2mm;
       font-weight: 900;
-      background: #000;
-      color: #fff;
-      padding: 4mm 2mm;
+      color: #000;
+      padding: 2mm 0;
+      padding-bottom: 1mm;
       letter-spacing: 2px;
       text-transform: uppercase;
+      border-bottom: 2px solid #000;
     }
     .job-number-label {
       text-align: center;
@@ -388,21 +390,22 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
       box-sizing: border-box;
     }
     .section {
-      margin: 3mm 0;
+      margin: 2mm 0;
       border-top: 2px solid #000;
-      padding-top: 3mm;
+      padding-top: 2mm;
       font-weight: 700;
     }
     .section-title {
       font-weight: 900;
-      font-size: ${width === 79 ? '18px' : '15px'};
-      margin-bottom: 3mm;
+      font-size: ${width === 79 ? '16px' : '14px'};
+      margin-bottom: 2mm;
       text-transform: uppercase;
-      background: #000;
-      color: #fff;
-      padding: 4mm 2mm;
+      color: #000;
+      padding: 2mm 0;
+      padding-bottom: 1mm;
       letter-spacing: 2px;
-      text-align: center;
+      text-align: left;
+      border-bottom: 2px solid #000;
     }
     .row {
       display: block;
@@ -426,15 +429,15 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
     }
     .commercial-banner {
       text-align: center;
-      font-size: ${width === 79 ? '13px' : '11px'};
+      font-size: ${width === 79 ? '12px' : '10px'};
       font-weight: 900;
-      margin: 5mm 0;
-      padding: 4mm;
-      border-top: 3px solid #000;
-      border-bottom: 3px solid #000;
-      background: #f5f5f5;
+      margin: 3mm 0;
+      padding: 2mm;
+      border-top: 2px solid #000;
+      border-bottom: 2px solid #000;
+      background: #fff;
       letter-spacing: 1px;
-      line-height: 1.6;
+      line-height: 1.5;
     }
     .paid-stamp {
       text-align: center;
@@ -458,24 +461,25 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
       padding-top: 3mm;
     }
     .conditions {
-      margin-top: 3mm;
-      padding: 4mm;
-      border: 3px solid #000;
+      margin-top: 2mm;
+      padding: 2mm;
+      border: 2px solid #000;
       font-size: ${width === 79 ? '10px' : '9px'};
-      line-height: 1.6;
-      background: #f5f5f5;
+      line-height: 1.5;
+      background: #fff;
       font-weight: 700;
     }
     .conditions-title {
       font-weight: 900;
-      font-size: ${width === 79 ? '16px' : '13px'};
-      margin-bottom: 3mm;
+      font-size: ${width === 79 ? '14px' : '12px'};
+      margin-bottom: 2mm;
       text-transform: uppercase;
-      background: #000;
-      color: #fff;
-      padding: 4mm 2mm;
-      text-align: center;
+      color: #000;
+      padding: 2mm 0;
+      padding-bottom: 1mm;
+      text-align: left;
       letter-spacing: 2px;
+      border-bottom: 2px solid #000;
     }
     .qr-callout {
       text-align: center;
