@@ -276,7 +276,7 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   const paymentLabel = hasQuotation ? 'Quotation Amount Paid' : 'Deposit Paid';
   const paymentGST = paymentAmount ? paymentAmount * 0.1 / 1.1 : 0;
   
-  const balanceDue = Math.max(0, job.grandTotal - paymentAmount);
+  const balanceDue = job.balanceDue !== undefined ? job.balanceDue : Math.max(0, job.grandTotal - paymentAmount);
   const isPaid = balanceDue === 0;
 
   return `
@@ -454,23 +454,9 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
     ${paymentAmount > 0 ? `
     <div class="row bold">
       <span>${paymentLabel}:</span>
-      <span>${formatCurrency(paymentAmount)}</span>
+      <span>${formatCurrency(paymentAmount)} (incl. ${formatCurrency(paymentGST)} GST)</span>
     </div>
-    <div class="row" style="font-size: ${width === 79 ? '9px' : '8px'};">
-      <span>(incl. ${formatCurrency(paymentGST)} GST)</span>
-      <span></span>
-    </div>
-    ` : ''}
-    ${job.discountValue && job.discountValue > 0 ? `
-    <div class="row">
-      <span>Discount ${job.discountType === 'PERCENT' ? `(${job.discountValue}%)` : ''}:</span>
-      <span>-${formatCurrency(job.discountType === 'PERCENT' ? job.subtotal * (job.discountValue / 100) : job.discountValue)}</span>
-    </div>
-    ` : ''}
-    <div class="row total-row">
-      <span>Balance Due:</span>
-      <span>${formatCurrency(balanceDue)}</span>
-    </div>
+    ` : '<div style="font-size: 10px; color: #666;">No payment recorded</div>'}
   </div>
   
   ${isPaid ? `
@@ -478,11 +464,11 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   ` : ''}
   
   <div class="commercial-banner">
-    ⚠ COMMERCIAL SPECIAL DISCOUNTS & BENEFITS — ENQUIRE IN-STORE ⚠
+    COMMERCIAL SPECIAL DISCOUNTS & BENEFITS — ENQUIRE IN-STORE
   </div>
   
   <div class="conditions">
-    <div class="conditions-title">⚠ REPAIR CONTRACT CONDITIONS ⚠</div>
+    <div class="conditions-title">REPAIR CONTRACT CONDITIONS</div>
     <div style="margin-bottom: 2mm;">
       <strong>1.</strong> All quotes are valid for 30 days from date of issue.<br><br>
       <strong>2.</strong> All domestic customer service work is guaranteed for 90 days from completion date. All commercial customer service work is covered by floor warranty only (as provided by the manufacturer or distributor).<br><br>

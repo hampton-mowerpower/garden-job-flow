@@ -1,27 +1,39 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Job } from '@/types/job';
 import { formatCurrency } from '@/lib/calculations';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import hamptonLogo from '@/assets/hampton-logo-new.jpg';
+import { jobBookingDB } from '@/lib/storage';
 
 interface JobPrintInvoiceProps {
   job: Job;
 }
 
+interface Payment {
+  id: string;
+  amount: number;
+  gst_component: number;
+  method: string;
+  paid_at: string;
+  reference?: string;
+  notes?: string;
+}
+
 // Invoice Content Component
-const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
-  ({ job }, ref) => {
+const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Payment[] }>(
+  ({ job, payments }, ref) => {
     // Calculate payment due date (30 days if account customer)
     const issueDateObj = new Date(job.createdAt);
     const dueDate = job.hasAccount 
       ? new Date(issueDateObj.getTime() + 30 * 24 * 60 * 60 * 1000)
       : issueDateObj;
 
-    // Calculate balance
-    const amountPaid = (job.serviceDeposit || 0);
-    const balanceDue = Math.max(0, job.grandTotal - amountPaid);
+    // Calculate balance from payments
+    const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    const balanceDue = Math.max(0, job.grandTotal - totalPaid);
+    const isPaid = balanceDue === 0;
 
     // Get checked checklist items only
     const checkedUniversal = (job.checklistUniversal || []).filter(item => item.checked);
@@ -286,13 +298,24 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
                   {formatCurrency(job.grandTotal)}
                 </span>
               </div>
-              {job.serviceDeposit && job.serviceDeposit > 0 && (
-                <div style={styles.totalsRow}>
-                  <span style={styles.totalsLabel}>Deposit Paid:</span>
-                  <span style={styles.totalsValue}>
-                    -{formatCurrency(job.serviceDeposit)}
-                  </span>
-                </div>
+              {payments.length > 0 && (
+                <>
+                  <div style={{...styles.totalsRow, borderTop: '2px solid #e5e7eb', marginTop: '8px', paddingTop: '8px'}}>
+                    <span style={{...styles.totalsLabel, fontWeight: 700}}>PAYMENT HISTORY:</span>
+                    <span></span>
+                  </div>
+                  {payments.map((payment, idx) => (
+                    <div key={payment.id} style={styles.totalsRow}>
+                      <span style={styles.totalsLabel}>
+                        {format(new Date(payment.paid_at), 'dd MMM yyyy')} - {payment.method}
+                        {payment.reference && ` (${payment.reference})`}:
+                      </span>
+                      <span style={styles.totalsValue}>
+                        -{formatCurrency(payment.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </>
               )}
               <div style={{...styles.totalsRow, ...styles.totalsBold, ...styles.balanceDue}}>
                 <span style={styles.totalsLabel}>Balance Due:</span>
@@ -300,6 +323,22 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job }>(
                   {formatCurrency(balanceDue)}
                 </span>
               </div>
+              {isPaid && (
+                <div style={{
+                  textAlign: 'center',
+                  marginTop: '16px',
+                  padding: '12px',
+                  backgroundColor: '#10b981',
+                  color: '#fff',
+                  fontWeight: 900,
+                  fontSize: '18px',
+                  letterSpacing: '2px',
+                  borderRadius: '4px',
+                  border: '3px solid #059669'
+                }}>
+                  ✓ PAID IN FULL
+                </div>
+              )}
             </div>
           </div>
 
@@ -788,6 +827,13 @@ const styles: Record<string, React.CSSProperties> = {
 // Main Export - Button Component with Print Handler
 export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
   const componentRef = useRef<HTMLDivElement>(null);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  
+  useEffect(() => {
+    if (job.id) {
+      jobBookingDB.getPayments(job.id).then(setPayments).catch(console.error);
+    }
+  }, [job.id]);
   
   const handlePrint = () => {
     const printContent = componentRef.current;
@@ -914,7 +960,7 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
         Download PDF
       </Button>
       <div style={{ display: 'none' }}>
-        <InvoiceContent ref={componentRef} job={job} />
+        <InvoiceContent ref={componentRef} job={job} payments={payments} />
       </div>
     </div>
   );

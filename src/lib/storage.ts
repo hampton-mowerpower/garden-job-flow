@@ -137,6 +137,7 @@ class JobBookingDB {
       service_deposit: job.serviceDeposit || 0,
       quotation_amount: job.quotationAmount || null,
       status: job.status,
+      balance_due: Math.max(0, job.grandTotal - (job.serviceDeposit || 0)),
       updated_at: new Date().toISOString()
     };
     
@@ -162,16 +163,37 @@ class JobBookingDB {
         .delete()
         .eq('job_id', data.id);
       
-      // Then insert new parts
-      const partsToInsert = job.parts
-        .filter(part => part.partName && part.partName.trim() !== '')
-        .map(part => ({
+      // Process parts and look up UUIDs from parts_catalogue
+      const partsToInsert = [];
+      for (const part of job.parts) {
+        if (!part.partName || part.partName.trim() === '') continue;
+        
+        let cataloguePartId = null;
+        
+        // If partId looks like a UUID, use it directly
+        if (part.partId && this.isValidUUID(part.partId)) {
+          cataloguePartId = part.partId;
+        } else if (part.partId && part.partId !== 'custom') {
+          // Otherwise, look up the part in parts_catalogue by SKU (which matches the old string IDs)
+          const { data: cataloguePart } = await supabase
+            .from('parts_catalogue')
+            .select('id')
+            .eq('sku', part.partId)
+            .maybeSingle();
+          
+          if (cataloguePart) {
+            cataloguePartId = cataloguePart.id;
+          }
+        }
+        
+        partsToInsert.push({
           job_id: data.id,
-          part_id: part.partId || null,
+          part_id: cataloguePartId,
           quantity: part.quantity,
           unit_price: part.unitPrice,
           total_price: part.totalPrice
-        }));
+        });
+      }
       
       if (partsToInsert.length > 0) {
         const { error: partsError } = await supabase
@@ -370,10 +392,67 @@ class JobBookingDB {
       grandTotal: jobData.grand_total,
       serviceDeposit: jobData.service_deposit || 0,
       quotationAmount: jobData.quotation_amount || undefined,
+      balanceDue: jobData.balance_due || 0,
       status: jobData.status,
       createdAt: jobData.created_at,
       updatedAt: jobData.updated_at
     };
+  }
+
+  // Payment operations
+  async savePayment(payment: {
+    jobId: string;
+    amount: number;
+    gstComponent: number;
+    method: string;
+    reference?: string;
+    notes?: string;
+  }): Promise<void> {
+    const { error } = await supabase
+      .from('job_payments')
+      .insert({
+        job_id: payment.jobId,
+        amount: payment.amount,
+        gst_component: payment.gstComponent,
+        method: payment.method,
+        reference: payment.reference || null,
+        notes: payment.notes || null
+      });
+    
+    if (error) throw error;
+    
+    // Update job balance_due
+    await this.updateJobBalance(payment.jobId);
+  }
+
+  async getPayments(jobId: string): Promise<any[]> {
+    const { data, error } = await supabase
+      .from('job_payments')
+      .select('*')
+      .eq('job_id', jobId)
+      .order('paid_at', { ascending: false });
+    
+    if (error) throw error;
+    return data || [];
+  }
+
+  private async updateJobBalance(jobId: string): Promise<void> {
+    // Get job totals
+    const job = await this.getJob(jobId);
+    if (!job) return;
+    
+    // Get all payments
+    const payments = await this.getPayments(jobId);
+    const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
+    
+    // Calculate new balance
+    const balanceDue = Math.max(0, job.grandTotal - totalPaid);
+    
+    // Update job
+    await supabase
+      .from('jobs_db')
+      .update({ balance_due: balanceDue })
+      .eq('id', jobId);
   }
 
   // Utility function to generate next job number

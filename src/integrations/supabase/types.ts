@@ -125,6 +125,53 @@ export type Database = {
           },
         ]
       }
+      job_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          gst_component: number
+          id: string
+          job_id: string
+          method: string
+          notes: string | null
+          paid_at: string
+          reference: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          gst_component?: number
+          id?: string
+          job_id: string
+          method: string
+          notes?: string | null
+          paid_at?: string
+          reference?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          gst_component?: number
+          id?: string
+          job_id?: string
+          method?: string
+          notes?: string | null
+          paid_at?: string
+          reference?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_search_prefs: {
         Row: {
           created_at: string
@@ -152,6 +199,7 @@ export type Database = {
       jobs_db: {
         Row: {
           assigned_technician: string | null
+          balance_due: number
           completed_at: string | null
           created_at: string
           customer_id: string
@@ -182,6 +230,7 @@ export type Database = {
         }
         Insert: {
           assigned_technician?: string | null
+          balance_due?: number
           completed_at?: string | null
           created_at?: string
           customer_id: string
@@ -212,6 +261,7 @@ export type Database = {
         }
         Update: {
           assigned_technician?: string | null
+          balance_due?: number
           completed_at?: string | null
           created_at?: string
           customer_id?: string

@@ -101,6 +101,7 @@ export interface Job {
   subtotal: number;
   gst: number;
   grandTotal: number;
+  balanceDue?: number;
   
   // Status
   status: 'pending' | 'in-progress' | 'completed' | 'delivered';
