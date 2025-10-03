@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { FileText } from 'lucide-react';
 import hamptonLogo from '@/assets/hampton-logo-new.jpg';
 import { jobBookingDB } from '@/lib/storage';
+import { useToast } from '@/hooks/use-toast';
 
 interface JobPrintInvoiceProps {
   job: Job;
@@ -828,6 +829,7 @@ const styles: Record<string, React.CSSProperties> = {
 export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
   const componentRef = useRef<HTMLDivElement>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
+  const { toast } = useToast();
   
   useEffect(() => {
     if (job.id) {
@@ -939,6 +941,126 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
     }, 250);
   };
 
+  const handleDownloadPDF = () => {
+    const printContent = componentRef.current;
+    if (!printContent) {
+      toast({
+        title: 'Error',
+        description: 'Failed to generate PDF. Please try again.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    // Create a print window for PDF download
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast({
+        title: 'Error',
+        description: 'Please allow popups to download PDF.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const fileName = `INVOICE_${job.jobNumber}.pdf`;
+    
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>${fileName}</title>
+          <meta charset="UTF-8">
+          <style>
+            @page { 
+              size: A4; 
+              margin: 12mm;
+            }
+            
+            @media print {
+              body { 
+                margin: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+              
+              table { 
+                page-break-inside: auto;
+              }
+              
+              tr, td, th { 
+                page-break-inside: avoid;
+                break-inside: avoid;
+              }
+              
+              .line, .amount, .total-row { 
+                break-inside: avoid;
+                page-break-inside: avoid;
+              }
+              
+              .totals, .totals * { 
+                break-inside: avoid;
+                page-break-inside: avoid;
+              }
+              
+              h1, h2, h3, .section-title { 
+                break-after: avoid;
+                page-break-after: avoid;
+              }
+              
+              .notes, .footer { 
+                break-inside: avoid;
+              }
+              
+              p, .amount { 
+                orphans: 2;
+                widows: 2;
+              }
+              
+              .invoice-page:last-child,
+              .checklist-page:last-child {
+                page-break-after: auto !important;
+              }
+              
+              footer {
+                margin-bottom: 0 !important;
+              }
+            }
+            
+            ${Array.from(document.styleSheets)
+              .map(styleSheet => {
+                try {
+                  return Array.from(styleSheet.cssRules)
+                    .map(rule => rule.cssText)
+                    .join('\n');
+                } catch {
+                  return '';
+                }
+              })
+              .join('\n')}
+          </style>
+        </head>
+        <body>
+          ${printContent.innerHTML}
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    
+    // Trigger print dialog which allows "Save as PDF"
+    setTimeout(() => {
+      printWindow.print();
+      // Don't auto-close so user can save as PDF
+    }, 250);
+    
+    toast({
+      title: 'PDF Ready',
+      description: `Use "Save as PDF" in the print dialog to download ${fileName}`,
+    });
+  };
+
   return (
     <div className="flex gap-2">
       <Button
@@ -951,7 +1073,7 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
         Print Invoice
       </Button>
       <Button
-        onClick={handlePrint}
+        onClick={handleDownloadPDF}
         variant="outline"
         size="sm"
         className="gap-2"

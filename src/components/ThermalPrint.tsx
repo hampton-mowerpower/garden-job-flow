@@ -60,10 +60,19 @@ export const printThermal = async (props: ThermalPrintProps): Promise<void> => {
 };
 
 const generateServiceLabelHTML = async (job: Job, width: number): Promise<string> => {
+  // Parse and deduplicate work requested items
+  const workRequested = job.problemDescription
+    .split(/[,;\n]+/) // Split by comma, semicolon, or newline
+    .map(item => item.trim())
+    .filter(item => item.length > 0)
+    .filter((item, index, self) => self.indexOf(item) === index) // Remove duplicates
+    .map(item => item.toUpperCase());
+
+  // Format parts - one per line
   const partsRequired = job.parts
     .filter(part => part.partName && part.partName.trim() !== '' && part.quantity > 0)
-    .map(part => `${part.partName.trim()} × ${part.quantity || 1}`)
-    .join(', ') || 'N/A';
+    .map(part => `${part.partName.trim().toUpperCase()} ×${part.quantity || 1}`)
+    .join('\n') || 'N/A';
 
   const quotationText = job.quotationAmount && job.quotationAmount > 0
     ? `QUOTATION REQUESTED: ${formatCurrency(job.quotationAmount)}`
@@ -125,12 +134,14 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
     }
     .job-id {
       text-align: center;
-      font-size: ${width === 79 ? '28px' : '24px'};
+      font-size: ${width === 79 ? '32px' : '26px'};
       font-weight: 900;
       margin-bottom: 4mm;
-      letter-spacing: 4px;
+      letter-spacing: 3px;
       padding: 4mm 2mm;
       border: 3px solid #000;
+      white-space: nowrap;
+      overflow: hidden;
     }
     .section {
       margin: 3mm 0;
@@ -227,7 +238,7 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
   
   <div class="section">
     <div class="section-title">WORK REQUESTED</div>
-    <div class="value">${escapeHtml(job.problemDescription)}</div>
+    ${workRequested.map(item => `<div class="value" style="margin: 1mm 0;">${escapeHtml(item)}</div>`).join('')}
   </div>
   
   ${job.servicePerformed ? `
@@ -240,7 +251,7 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
   ${partsRequired !== 'N/A' ? `
   <div class="section">
     <div class="section-title">PARTS REQUIRED</div>
-    <div class="value">${escapeHtml(partsRequired)}</div>
+    ${partsRequired.split('\n').map(part => `<div class="value" style="margin: 1mm 0;">${escapeHtml(part)}</div>`).join('')}
   </div>
   ` : ''}
   
@@ -269,11 +280,11 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   // Calculate safe content width (printable area for TM-T82II)
   const safeWidth = width === 79 ? 72 : 54;
   
-  // Determine payment type and amount
+  // Determine payment type and amount - prioritize quotation over deposit
   const hasQuotation = job.quotationAmount && job.quotationAmount > 0;
   const hasDeposit = job.serviceDeposit && job.serviceDeposit > 0;
   const paymentAmount = hasQuotation ? job.quotationAmount : (hasDeposit ? job.serviceDeposit : 0);
-  const paymentLabel = hasQuotation ? 'Quotation Amount Paid' : 'Deposit Paid';
+  const paymentLabel = hasQuotation ? 'QUOTATION PAID' : 'SERVICE DEPOSIT PAID';
   const paymentGST = paymentAmount ? paymentAmount * 0.1 / 1.1 : 0;
   
   const balanceDue = job.balanceDue !== undefined ? job.balanceDue : Math.max(0, job.grandTotal - paymentAmount);
@@ -312,18 +323,20 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
       text-align: center;
       font-weight: 900;
       margin-bottom: 3mm;
-      font-size: ${width === 79 ? '20px' : '16px'};
-      letter-spacing: 1px;
+      font-size: ${width === 79 ? '22px' : '18px'};
+      letter-spacing: 2px;
+      text-transform: uppercase;
     }
     .subheader {
       text-align: center;
-      font-size: ${width === 79 ? '13px' : '11px'};
+      font-size: ${width === 79 ? '15px' : '12px'};
       margin-bottom: 3mm;
       font-weight: 900;
       background: #000;
       color: #fff;
-      padding: 2mm;
-      letter-spacing: 1px;
+      padding: 3mm;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
     }
     .job-number-label {
       text-align: center;
@@ -335,12 +348,14 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
     }
     .job-id {
       text-align: center;
-      font-size: ${width === 79 ? '26px' : '22px'};
+      font-size: ${width === 79 ? '32px' : '26px'};
       font-weight: 900;
       margin-bottom: 4mm;
-      letter-spacing: 4px;
+      letter-spacing: 3px;
       padding: 4mm 2mm;
       border: 3px solid #000;
+      white-space: nowrap;
+      overflow: hidden;
     }
     .section {
       margin: 3mm 0;
@@ -350,12 +365,13 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
     }
     .section-title {
       font-weight: 900;
-      font-size: ${width === 79 ? '13px' : '11px'};
-      margin-bottom: 2mm;
+      font-size: ${width === 79 ? '15px' : '12px'};
+      margin-bottom: 3mm;
       text-transform: uppercase;
-      border-bottom: 2px solid #000;
-      padding-bottom: 1mm;
-      letter-spacing: 1px;
+      background: #000;
+      color: #fff;
+      padding: 2mm;
+      letter-spacing: 1.5px;
     }
     .row {
       display: flex;
@@ -452,11 +468,15 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   <div class="section">
     <div class="section-title">PAYMENT SUMMARY</div>
     ${paymentAmount > 0 ? `
-    <div class="row bold">
+    <div class="row bold" style="font-size: ${width === 79 ? '14px' : '12px'};">
       <span>${paymentLabel}:</span>
-      <span>${formatCurrency(paymentAmount)} (incl. ${formatCurrency(paymentGST)} GST)</span>
+      <span>${formatCurrency(paymentAmount)}</span>
     </div>
-    ` : '<div style="font-size: 10px; color: #666;">No payment recorded</div>'}
+    <div class="row" style="font-size: ${width === 79 ? '11px' : '10px'}; margin-top: 1mm;">
+      <span>(INCL. ${formatCurrency(paymentGST)} GST)</span>
+      <span></span>
+    </div>
+    ` : '<div style="font-size: 12px; font-weight: 900;">No payment recorded</div>'}
   </div>
   
   ${isPaid ? `
@@ -469,7 +489,7 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   
   <div class="conditions">
     <div class="conditions-title">REPAIR CONTRACT CONDITIONS</div>
-    <div style="margin-bottom: 2mm;">
+    <div style="margin-bottom: 2mm; line-height: 1.7;">
       <strong>1.</strong> All quotes are valid for 30 days from date of issue.<br><br>
       <strong>2.</strong> All domestic customer service work is guaranteed for 90 days from completion date. All commercial customer service work is covered by floor warranty only (as provided by the manufacturer or distributor).<br><br>
       <strong>3.</strong> We are not responsible for consequential damage or loss of use.<br><br>
