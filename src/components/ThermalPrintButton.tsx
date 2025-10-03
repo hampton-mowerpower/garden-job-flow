@@ -14,23 +14,25 @@ interface ThermalPrintButtonProps {
   label?: string;
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'default' | 'sm' | 'lg';
+  width?: 79 | 58;
 }
 
 export function ThermalPrintButton({ 
   job, 
   type, 
-  label, 
+  label,
   variant = 'outline',
-  size = 'default'
+  size = 'default',
+  width
 }: ThermalPrintButtonProps) {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [width, setWidth] = useState<80 | 58>(80);
+  const [printerWidth, setPrinterWidth] = useState<79 | 58>(width || 79);
 
   const handlePrint = async () => {
     setOpen(false);
     try {
-      await printThermal({ job, type, width });
+      await printThermal({ job, type, width: printerWidth });
       toast({
         title: 'Print sent',
         description: `${type === 'service-label' ? 'Service label' : 'Collection receipt'} sent to printer`
@@ -73,12 +75,12 @@ export function ThermalPrintButton({
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="width">Thermal Printer Width</Label>
-              <Select value={String(width)} onValueChange={(v) => setWidth(Number(v) as 80 | 58)}>
+              <Select value={String(printerWidth)} onValueChange={(v) => setPrinterWidth(Number(v) as 79 | 58)}>
                 <SelectTrigger id="width">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="80">80mm (Standard)</SelectItem>
+                  <SelectItem value="79">79mm (Epson TM-T82II)</SelectItem>
                   <SelectItem value="58">58mm (Compact)</SelectItem>
                 </SelectContent>
               </Select>

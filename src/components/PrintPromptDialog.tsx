@@ -27,7 +27,7 @@ export function PrintPromptDialog({ job, open, onOpenChange, onComplete }: Print
     
     // Print in background without blocking
     if (printServiceLabel) {
-      printThermal({ job, type: 'service-label', width: 80 })
+      printThermal({ job, type: 'service-label', width: 79 })
         .then(() => {
           toast({
             title: 'Service Label Sent',
@@ -45,7 +45,7 @@ export function PrintPromptDialog({ job, open, onOpenChange, onComplete }: Print
     }
 
     if (printCollectionReceipt) {
-      printThermal({ job, type: 'collection-receipt', width: 80 })
+      printThermal({ job, type: 'collection-receipt', width: 79 })
         .then(() => {
           toast({
             title: 'Collection Receipt Sent',
@@ -93,7 +93,7 @@ export function PrintPromptDialog({ job, open, onOpenChange, onComplete }: Print
               onCheckedChange={(checked) => setPrintServiceLabel(checked as boolean)}
             />
             <Label htmlFor="print-service-label" className="cursor-pointer">
-              Print Service Label (80mm thermal)
+              Print Service Label (79mm thermal)
             </Label>
           </div>
 
@@ -104,7 +104,7 @@ export function PrintPromptDialog({ job, open, onOpenChange, onComplete }: Print
               onCheckedChange={(checked) => setPrintCollectionReceipt(checked as boolean)}
             />
             <Label htmlFor="print-collection-receipt" className="cursor-pointer">
-              Print Collection Receipt (80mm thermal)
+              Print Collection Receipt (79mm thermal)
             </Label>
           </div>
 

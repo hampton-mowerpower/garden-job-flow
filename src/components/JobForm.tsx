@@ -17,7 +17,6 @@ import { A4_PARTS, PART_CATEGORIES } from '@/data/a4Parts';
 import { calculateJobTotals, formatCurrency, calculatePartTotal } from '@/lib/calculations';
 import { jobBookingDB } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
-import { JobPrintLabel } from './JobPrintLabel';
 import { JobPrintInvoice } from './JobPrintInvoice';
 import { ServiceLabelPrintDialog } from './ServiceLabelPrintDialog';
 import { printServiceLabel } from './ServiceLabelPrint';
@@ -27,6 +26,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 
 import { ThermalPrintButton } from './ThermalPrintButton';
 import { PrintPromptDialog } from './PrintPromptDialog';
+import { StaffJobNotes } from './StaffJobNotes';
 import { MachineManager } from './MachineManager';
 import { initializeChecklists, getUniversalChecklist, getCategoryChecklist } from '@/data/serviceChecklist';
 import { format } from 'date-fns';
@@ -441,10 +441,9 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       <div className="flex flex-wrap gap-2">
         {job && (
           <>
-            <JobPrintLabel job={job} />
             <JobPrintInvoice job={job} />
-            <ThermalPrintButton job={job} type="service-label" size="sm" />
-            <ThermalPrintButton job={job} type="collection-receipt" size="sm" />
+            <ThermalPrintButton job={job} type="service-label" label="Service Label" size="sm" width={79} />
+            <ThermalPrintButton job={job} type="collection-receipt" label="Collection Receipt" size="sm" width={79} />
           </>
         )}
         <Button onClick={handleSave} disabled={isLoading} className="flex-1 sm:flex-initial">
@@ -1047,6 +1046,9 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               </div>
             </CardContent>
           </Card>
+          
+          {/* Staff Job Notes */}
+          {job && <StaffJobNotes jobId={job.id} />}
         </div>
       </div>
 

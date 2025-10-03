@@ -9,7 +9,6 @@ import { formatCurrency } from '@/lib/calculations';
 import { jobBookingDB } from '@/lib/storage';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { JobPrintLabel } from './JobPrintLabel';
 import { JobPrintInvoice } from './JobPrintInvoice';
 import { ThermalPrintButton } from './ThermalPrintButton';
 
@@ -323,12 +322,11 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
                           Edit
                         </Button>
                         <div className="flex gap-1">
-                          <JobPrintLabel job={job} />
                           <JobPrintInvoice job={job} />
                         </div>
                         <div className="flex gap-1">
-                          <ThermalPrintButton job={job} type="service-label" size="sm" variant="ghost" />
-                          <ThermalPrintButton job={job} type="collection-receipt" size="sm" variant="ghost" />
+                          <ThermalPrintButton job={job} type="service-label" label="Label" size="sm" variant="ghost" width={79} />
+                          <ThermalPrintButton job={job} type="collection-receipt" label="Receipt" size="sm" variant="ghost" width={79} />
                         </div>
                         <Button
                           variant="outline"
