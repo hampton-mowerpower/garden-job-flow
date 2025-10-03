@@ -10,7 +10,6 @@ import { TextareaTranslated } from '@/components/ui/textarea-translated';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Plus, Trash2, Save, Printer } from 'lucide-react';
-import { nanoid } from 'nanoid';
 import { Job, Customer, JobPart, ChecklistItem } from '@/types/job';
 import { HAMPTON_MACHINE_CATEGORIES } from '@/data/hamptonMachineData';
 import { DEFAULT_PARTS } from '@/data/defaultParts';
@@ -31,6 +30,9 @@ import { PrintPromptDialog } from './PrintPromptDialog';
 import { MachineManager } from './MachineManager';
 import { initializeChecklists, getUniversalChecklist, getCategoryChecklist } from '@/data/serviceChecklist';
 import { format } from 'date-fns';
+
+// Simple unique ID generator for UI elements (not database records)
+const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 interface JobFormProps {
   job?: Job;
@@ -172,7 +174,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       // Migrate parts to include stable IDs if missing
       const migratedParts = job.parts.map(part => ({
         ...part,
-        id: part.id || nanoid() // Add ID if missing for backward compatibility
+        id: part.id || generateId() // Add ID if missing for backward compatibility
       }));
       setParts(migratedParts);
       setLabourHours(job.labourHours);
@@ -202,7 +204,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
 
   const addPart = () => {
     const newPart: JobPart = {
-      id: nanoid(), // Add stable row ID
+      id: generateId(), // Add stable row ID
       partId: '',
       partName: '',
       quantity: 1,
@@ -306,7 +308,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
 
   const addCustomChecklistItem = (type: 'universal' | 'category') => {
     const newItem: ChecklistItem = {
-      id: nanoid(),
+      id: generateId(),
       label: '',
       checked: false,
       note: '',
@@ -356,9 +358,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     setIsLoading(true);
 
     try {
-      const customerId = customer.id || nanoid();
       const customerData: Customer = {
-        id: customerId,
+        id: customer.id || '', // Will be ignored for new customers
         name: customer.name,
         phone: customer.phone,
         address: customer.address || '',
@@ -367,15 +368,13 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         createdAt: customer.createdAt || new Date(),
         updatedAt: new Date()
       };
-      
-      await jobBookingDB.saveCustomer(customerData);
 
       const labourRateForCategory = HAMPTON_MACHINE_CATEGORIES.find(c => c.name === machineCategory)?.labourRate || 100;
       
       const jobData: Job = {
-        id: job?.id || nanoid(),
+        id: job?.id || '', // Will be ignored for new jobs
         jobNumber: jobNumber || `JB${Date.now()}`,
-        customerId,
+        customerId: customer.id || '',
         customer: customerData,
         machineCategory,
         machineBrand,
@@ -404,7 +403,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         completedAt: status === 'completed' && !job?.completedAt ? new Date() : job?.completedAt
       };
 
-      await jobBookingDB.saveJob(jobData);
+      const savedJob = await jobBookingDB.saveJob(jobData);
       
       toast({
         title: job ? t('msg.job.updated') : t('msg.job.created'),
@@ -412,7 +411,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       });
       
       // Show print prompts after save
-      setSavedJob(jobData);
+      setSavedJob(savedJob);
       setShowPrintPromptDialog(true);
       
     } catch (error) {

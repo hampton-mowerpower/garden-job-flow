@@ -8,19 +8,43 @@ class JobBookingDB {
   }
 
   // Customer operations
-  async saveCustomer(customer: Customer): Promise<void> {
-    const { error } = await supabase
+  async saveCustomer(customer: Customer): Promise<Customer> {
+    const customerData: any = {
+      name: customer.name,
+      phone: customer.phone,
+      email: customer.email || null,
+      address: customer.address,
+      notes: customer.notes || null
+    };
+    
+    // Only include ID if it exists and is a valid UUID
+    if (customer.id && this.isValidUUID(customer.id)) {
+      customerData.id = customer.id;
+    }
+    
+    const { data, error } = await supabase
       .from('customers_db')
-      .upsert({
-        id: customer.id,
-        name: customer.name,
-        phone: customer.phone,
-        email: customer.email || null,
-        address: customer.address,
-        notes: customer.notes || null
-      });
+      .upsert(customerData)
+      .select()
+      .single();
     
     if (error) throw error;
+    
+    return {
+      id: data.id,
+      name: data.name,
+      phone: data.phone,
+      email: data.email || '',
+      address: data.address,
+      notes: data.notes || '',
+      createdAt: new Date(data.created_at),
+      updatedAt: new Date(data.updated_at)
+    };
+  }
+  
+  private isValidUUID(id: string): boolean {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(id);
   }
 
   async getCustomer(id: string): Promise<Customer | null> {
@@ -85,44 +109,54 @@ class JobBookingDB {
   }
 
   // Job operations
-  async saveJob(job: Job): Promise<void> {
-    // First save customer
-    await this.saveCustomer(job.customer);
+  async saveJob(job: Job): Promise<Job> {
+    // First save customer and get the returned customer with UUID
+    const savedCustomer = await this.saveCustomer(job.customer);
     
-    const { error } = await supabase
+    const jobData: any = {
+      job_number: job.jobNumber,
+      customer_id: savedCustomer.id,
+      machine_category: job.machineCategory,
+      machine_brand: job.machineBrand,
+      machine_model: job.machineModel,
+      machine_serial: job.machineSerial || null,
+      problem_description: job.problemDescription,
+      service_performed: job.servicePerformed || null,
+      notes: job.notes || null,
+      recommendations: job.recommendations || null,
+      parts_required: job.partsRequired || null,
+      labour_hours: job.labourHours,
+      labour_rate: job.labourRate,
+      parts_subtotal: job.partsSubtotal,
+      labour_total: job.labourTotal,
+      subtotal: job.subtotal,
+      discount_type: job.discountType || null,
+      discount_value: job.discountValue || 0,
+      gst: job.gst,
+      grand_total: job.grandTotal,
+      service_deposit: job.serviceDeposit || 0,
+      deposit_date: job.depositDate ? new Date(job.depositDate).toISOString() : null,
+      deposit_method: job.depositMethod || null,
+      quotation_amount: job.quotationAmount || null,
+      status: job.status,
+      updated_at: new Date().toISOString()
+    };
+    
+    // Only include ID and created_at for updates
+    if (job.id && this.isValidUUID(job.id)) {
+      jobData.id = job.id;
+      jobData.created_at = new Date(job.createdAt).toISOString();
+    }
+    
+    const { data, error } = await supabase
       .from('jobs_db')
-      .upsert([{
-        id: job.id,
-        job_number: job.jobNumber,
-        customer_id: job.customer.id,
-        machine_category: job.machineCategory,
-        machine_brand: job.machineBrand,
-        machine_model: job.machineModel,
-        machine_serial: job.machineSerial || null,
-        problem_description: job.problemDescription,
-        service_performed: job.servicePerformed || null,
-        notes: job.notes || null,
-        recommendations: job.recommendations || null,
-        parts_required: job.partsRequired || null,
-        labour_hours: job.labourHours,
-        labour_rate: job.labourRate,
-        parts_subtotal: job.partsSubtotal,
-        labour_total: job.labourTotal,
-        subtotal: job.subtotal,
-        discount_type: job.discountType || null,
-        discount_value: job.discountValue || 0,
-        gst: job.gst,
-        grand_total: job.grandTotal,
-        service_deposit: job.serviceDeposit || 0,
-        deposit_date: job.depositDate ? new Date(job.depositDate).toISOString() : null,
-        deposit_method: job.depositMethod || null,
-        quotation_amount: job.quotationAmount || null,
-        status: job.status,
-        created_at: new Date(job.createdAt).toISOString(),
-        updated_at: new Date().toISOString()
-      }]);
+      .upsert(jobData)
+      .select()
+      .single();
     
     if (error) throw error;
+    
+    return this.mapJobFromDb(data, savedCustomer);
   }
 
   async getJob(id: string): Promise<Job | null> {

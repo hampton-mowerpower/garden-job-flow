@@ -8,7 +8,6 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Trash2, Download, Upload, Save, Settings } from 'lucide-react';
-import { nanoid } from 'nanoid';
 import { MachineCategory, JobPart } from '@/types/job';
 import { MACHINE_CATEGORIES } from '@/data/machineCategories';
 import { DEFAULT_PARTS } from '@/data/defaultParts';
@@ -17,6 +16,9 @@ import { jobBookingDB } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { PartsManager } from './PartsManager';
 import { EnhancedPartsCatalogue } from './parts/EnhancedPartsCatalogue';
+
+// Simple unique ID generator for UI elements
+const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
 interface AdminSettingsProps {
   onClose: () => void;
@@ -56,7 +58,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
       // Convert DEFAULT_PARTS and A4_PARTS to JobPart format
       const allParts = [...DEFAULT_PARTS, ...A4_PARTS];
       const formattedParts = allParts.map(part => ({
-        id: nanoid(), // Use proper unique ID
+        id: generateId(), // Use proper unique ID
         partId: part.id,
         partName: part.name,
         quantity: 1,
@@ -131,7 +133,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
 
   const addPart = () => {
     const newPart: JobPart = {
-      id: nanoid(), // Use proper unique ID
+      id: generateId(), // Use proper unique ID
       partId: `custom-${Date.now()}`,
       partName: '',
       quantity: 1,
