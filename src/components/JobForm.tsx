@@ -30,6 +30,8 @@ import { StaffJobNotes } from './StaffJobNotes';
 import { MachineManager } from './MachineManager';
 import { initializeChecklists, getUniversalChecklist, getCategoryChecklist } from '@/data/serviceChecklist';
 import { format } from 'date-fns';
+import { CustomerNotificationDialog } from './CustomerNotificationDialog';
+import { Bell } from 'lucide-react';
 
 // Simple unique ID generator for UI elements (not database records)
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -47,6 +49,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [showServiceLabelDialog, setShowServiceLabelDialog] = useState(false);
   const [showPrintPromptDialog, setShowPrintPromptDialog] = useState(false);
   const [savedJob, setSavedJob] = useState<Job | null>(null);
+  const [showNotificationDialog, setShowNotificationDialog] = useState(false);
   
   // Form state
   const [jobNumber, setJobNumber] = useState('');
@@ -435,6 +438,15 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       <div className="flex flex-wrap gap-2">
         {job && (
           <>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowNotificationDialog(true)}
+              className="gap-2"
+            >
+              <Bell className="w-4 h-4" />
+              Notify Customer
+            </Button>
             <JobPrintInvoice job={job} />
             <ThermalPrintButton job={job} type="service-label" label="Service Label" size="sm" width={79} />
             <ThermalPrintButton job={job} type="collection-receipt" label="Collection Receipt" size="sm" width={79} />
@@ -1042,6 +1054,15 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             }
           }}
           onPrint={handleServiceLabelPrint}
+        />
+      )}
+
+      {/* Customer Notification Dialog */}
+      {job && (
+        <CustomerNotificationDialog
+          job={job}
+          open={showNotificationDialog}
+          onOpenChange={setShowNotificationDialog}
         />
       )}
     </div>

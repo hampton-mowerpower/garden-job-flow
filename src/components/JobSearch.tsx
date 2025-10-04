@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Eye, Edit, Download, Trash2, RotateCcw } from 'lucide-react';
+import { Search, Eye, Edit, Download, Trash2, RotateCcw, Bell } from 'lucide-react';
 import { Job } from '@/types/job';
 import { formatCurrency } from '@/lib/calculations';
 import { jobBookingDB } from '@/lib/storage';
@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { JobPrintInvoice } from './JobPrintInvoice';
 import { ThermalPrintButton } from './ThermalPrintButton';
+import { CustomerNotificationDialog } from './CustomerNotificationDialog';
 
 interface JobSearchProps {
   onSelectJob: (job: Job) => void;
@@ -30,6 +31,7 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
+  const [notificationJob, setNotificationJob] = useState<Job | null>(null);
 
   // Load search preferences from database
   useEffect(() => {
@@ -306,6 +308,15 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => setNotificationJob(job)}
+                          className="gap-2"
+                        >
+                          <Bell className="h-4 w-4" />
+                          Notify
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => onSelectJob(job)}
                           className="gap-2"
                         >
@@ -346,6 +357,15 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Customer Notification Dialog */}
+      {notificationJob && (
+        <CustomerNotificationDialog
+          job={notificationJob}
+          open={!!notificationJob}
+          onOpenChange={(open) => !open && setNotificationJob(null)}
+        />
+      )}
     </div>
   );
 }
