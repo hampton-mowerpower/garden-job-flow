@@ -102,8 +102,8 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
       width: ${width}mm;
       max-width: ${safeWidth}mm;
       padding: 3.5mm ${width === 79 ? '3.5mm' : '2mm'};
-      font-size: ${width === 79 ? '13px' : '11px'};
-      line-height: 1.8;
+      font-size: ${width === 79 ? '11px' : '9px'};
+      line-height: 1.1;
       word-wrap: break-word;
       overflow-wrap: anywhere;
       hyphens: none;
@@ -113,17 +113,18 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
     .header {
       text-align: center;
       font-weight: 900;
-      margin-bottom: 3mm;
-      font-size: ${width === 79 ? '16px' : '14px'};
-      letter-spacing: 1.5px;
+      margin-bottom: 1mm;
+      font-size: ${width === 79 ? '18px' : '16px'};
+      letter-spacing: 2px;
       text-transform: uppercase;
     }
-    .abn {
+    .tagline {
       text-align: center;
-      font-size: ${width === 79 ? '12px' : '10px'};
+      font-size: ${width === 79 ? '14px' : '12px'};
       margin-bottom: 3mm;
       font-weight: 900;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
     }
     .job-number-label {
       text-align: center;
@@ -149,47 +150,50 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
       box-sizing: border-box;
     }
     .section {
-      margin: 2mm 0;
-      border-top: 2px solid #000;
-      padding-top: 2mm;
+      margin: 2mm 0 1mm 0;
+      padding-top: 1mm;
       font-weight: 900;
     }
     .section-title {
       font-weight: 900;
-      font-size: ${width === 79 ? '16px' : '14px'};
-      margin-bottom: 2mm;
+      font-size: ${width === 79 ? '15px' : '13px'};
+      margin-bottom: 1mm;
+      margin-top: 2mm;
       text-transform: uppercase;
       color: #000;
-      padding: 2mm 0;
-      padding-bottom: 1mm;
+      padding-bottom: 0.5mm;
       letter-spacing: 2px;
       text-align: left;
       border-bottom: 2px solid #000;
     }
-    .label {
+    .inline-row {
+      display: flex;
+      align-items: baseline;
+      margin: 0.5mm 0;
       font-weight: 900;
-      display: block;
-      margin-bottom: 2mm;
-      font-size: ${width === 79 ? '13px' : '11px'};
+      font-size: ${width === 79 ? '11px' : '9px'};
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      line-height: 1.1;
     }
-    .value {
-      display: block;
-      margin-bottom: 2mm;
+    .inline-label {
+      min-width: 30mm;
+      max-width: 30mm;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+    .inline-value {
+      flex: 1;
       word-wrap: break-word;
       overflow-wrap: anywhere;
       font-weight: 900;
-      font-size: ${width === 79 ? '13px' : '11px'};
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
     .list-item {
       display: block;
-      margin: 1mm 0;
-      line-height: 1.6;
+      margin: 0.5mm 0;
+      line-height: 1.1;
       font-weight: 900;
-      font-size: ${width === 79 ? '13px' : '11px'};
+      font-size: ${width === 79 ? '11px' : '9px'};
       text-transform: uppercase;
       word-wrap: break-word;
       overflow-wrap: anywhere;
@@ -240,27 +244,37 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
 </head>
 <body>
   <div class="header">HAMPTON MOWERPOWER</div>
-  <div class="abn">ABN 97 161 289 069</div>
+  <div class="tagline">ONE STOP SHOP</div>
   
   <div class="job-number-label">JOB NUMBER</div>
   <div class="job-id">${escapeHtml(job.jobNumber)}</div>
   
   <div class="section">
-    <div class="label">CUSTOMER:</div>
-    <div class="value">${escapeHtml(job.customer.name)}</div>
-    <div class="label">PHONE:</div>
-    <div class="value">${escapeHtml(job.customer.phone)}</div>
+    <div class="inline-row">
+      <div class="inline-label">CUSTOMER:</div>
+      <div class="inline-value">${escapeHtml(job.customer.name)}</div>
+    </div>
+    <div class="inline-row">
+      <div class="inline-label">PHONE:</div>
+      <div class="inline-value">${escapeHtml(job.customer.phone)}</div>
+    </div>
   </div>
   
   <div class="section">
     <div class="section-title">MACHINE DETAILS</div>
-    <div class="label">TYPE:</div>
-    <div class="value">${escapeHtml(job.machineCategory)}</div>
-    <div class="label">BRAND:</div>
-    <div class="value">${escapeHtml(job.machineBrand)}</div>
-    <div class="label">MODEL:</div>
-    <div class="value">${escapeHtml(job.machineModel)}</div>
-    ${job.machineSerial ? `<div class="label">SERIAL:</div><div class="value">${escapeHtml(job.machineSerial)}</div>` : ''}
+    <div class="inline-row">
+      <div class="inline-label">TYPE:</div>
+      <div class="inline-value">${escapeHtml(job.machineCategory)}</div>
+    </div>
+    <div class="inline-row">
+      <div class="inline-label">BRAND:</div>
+      <div class="inline-value">${escapeHtml(job.machineBrand)}</div>
+    </div>
+    <div class="inline-row">
+      <div class="inline-label">MODEL:</div>
+      <div class="inline-value">${escapeHtml(job.machineModel)}</div>
+    </div>
+    ${job.machineSerial ? `<div class="inline-row"><div class="inline-label">SERIAL:</div><div class="inline-value">${escapeHtml(job.machineSerial)}</div></div>` : ''}
   </div>
   
   <div class="section">
@@ -338,8 +352,8 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
       width: ${width}mm;
       max-width: ${safeWidth}mm;
       padding: 3.5mm ${width === 79 ? '3.5mm' : '2mm'};
-      font-size: ${width === 79 ? '12px' : '10px'};
-      line-height: 1.8;
+      font-size: ${width === 79 ? '11px' : '9px'};
+      line-height: 1.1;
       word-wrap: break-word;
       overflow-wrap: anywhere;
       hyphens: none;
@@ -349,19 +363,35 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
     .header {
       text-align: center;
       font-weight: 900;
-      margin-bottom: 3mm;
-      font-size: ${width === 79 ? '24px' : '20px'};
+      margin-bottom: 1mm;
+      font-size: ${width === 79 ? '18px' : '16px'};
       letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .tagline {
+      text-align: center;
+      font-size: ${width === 79 ? '14px' : '12px'};
+      margin-bottom: 3mm;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .identity-line {
+      text-align: center;
+      font-size: ${width === 79 ? '13px' : '11px'};
+      font-weight: 900;
+      margin: 0.5mm 0;
+      letter-spacing: 1px;
       text-transform: uppercase;
     }
     .subheader {
       text-align: center;
-      font-size: ${width === 79 ? '16px' : '14px'};
+      font-size: ${width === 79 ? '15px' : '13px'};
       margin-bottom: 2mm;
+      margin-top: 2mm;
       font-weight: 900;
       color: #000;
-      padding: 2mm 0;
-      padding-bottom: 1mm;
+      padding-bottom: 0.5mm;
       letter-spacing: 2px;
       text-transform: uppercase;
       border-bottom: 2px solid #000;
@@ -390,54 +420,68 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
       box-sizing: border-box;
     }
     .section {
-      margin: 2mm 0;
-      border-top: 2px solid #000;
-      padding-top: 2mm;
-      font-weight: 700;
+      margin: 2mm 0 1mm 0;
+      padding-top: 1mm;
+      font-weight: 900;
     }
     .section-title {
       font-weight: 900;
-      font-size: ${width === 79 ? '16px' : '14px'};
-      margin-bottom: 2mm;
+      font-size: ${width === 79 ? '15px' : '13px'};
+      margin-bottom: 1mm;
+      margin-top: 2mm;
       text-transform: uppercase;
       color: #000;
-      padding: 2mm 0;
-      padding-bottom: 1mm;
+      padding-bottom: 0.5mm;
       letter-spacing: 2px;
       text-align: left;
       border-bottom: 2px solid #000;
     }
-    .row {
-      display: block;
-      margin: 2mm 0;
+    .inline-row {
+      display: flex;
+      align-items: baseline;
+      margin: 0.5mm 0;
       font-weight: 900;
-      font-size: ${width === 79 ? '13px' : '11px'};
+      font-size: ${width === 79 ? '11px' : '9px'};
       text-transform: uppercase;
-      text-align: left;
       letter-spacing: 0.5px;
+      line-height: 1.1;
+    }
+    .inline-label {
+      min-width: 30mm;
+      max-width: 30mm;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+    .inline-value {
+      flex: 1;
+      word-wrap: break-word;
+      overflow-wrap: anywhere;
+      font-weight: 900;
     }
     .bold {
       font-weight: 900;
       text-transform: uppercase;
     }
-    .total-row {
-      font-size: ${width === 79 ? '18px' : '15px'};
+    .payment-line {
+      font-size: ${width === 79 ? '13px' : '11px'};
       font-weight: 900;
-      margin-top: 3mm;
-      padding-top: 3mm;
-      border-top: 3px double #000;
+      text-align: center;
+      margin: 2mm 0;
+      line-height: 1.3;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
     .commercial-banner {
       text-align: center;
-      font-size: ${width === 79 ? '12px' : '10px'};
+      font-size: ${width === 79 ? '11px' : '9px'};
       font-weight: 900;
-      margin: 3mm 0;
-      padding: 2mm;
+      margin: 2mm 0;
+      padding: 1.5mm;
       border-top: 2px solid #000;
       border-bottom: 2px solid #000;
       background: #fff;
-      letter-spacing: 1px;
-      line-height: 1.5;
+      letter-spacing: 0.5px;
+      line-height: 1.2;
     }
     .paid-stamp {
       text-align: center;
@@ -464,21 +508,20 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
       margin-top: 2mm;
       padding: 2mm;
       border: 2px solid #000;
-      font-size: ${width === 79 ? '10px' : '9px'};
-      line-height: 1.5;
+      font-size: ${width === 79 ? '9px' : '8px'};
+      line-height: 1.3;
       background: #fff;
       font-weight: 700;
     }
     .conditions-title {
       font-weight: 900;
-      font-size: ${width === 79 ? '14px' : '12px'};
-      margin-bottom: 2mm;
+      font-size: ${width === 79 ? '13px' : '11px'};
+      margin-bottom: 1mm;
       text-transform: uppercase;
       color: #000;
-      padding: 2mm 0;
-      padding-bottom: 1mm;
+      padding-bottom: 0.5mm;
       text-align: left;
-      letter-spacing: 2px;
+      letter-spacing: 1.5px;
       border-bottom: 2px solid #000;
     }
     .qr-callout {
@@ -492,25 +535,35 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
 </head>
 <body>
   <div class="header">HAMPTON MOWERPOWER</div>
+  <div class="tagline">ONE STOP SHOP</div>
+  
+  <div class="identity-line">ABN 97 161 289 069</div>
+  <div class="identity-line">PHONE: 03-9598-6741</div>
+  
   <div class="subheader">COLLECTION RECEIPT</div>
-  <div class="subheader">ABN 97 161 289 069 | 03-9598-6741</div>
   
   <div class="job-number-label">JOB NUMBER</div>
   <div class="job-id">${escapeHtml(job.jobNumber)}</div>
   
   <div class="section">
-    <div class="bold" style="font-size: ${width === 79 ? '14px' : '12px'}; margin-bottom: 2mm;">${escapeHtml(job.customer.name.toUpperCase())}</div>
-    <div style="font-size: ${width === 79 ? '13px' : '11px'}; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;">${escapeHtml(job.machineBrand)} ${escapeHtml(job.machineModel)}</div>
+    <div class="inline-row">
+      <div class="inline-label">CUSTOMER:</div>
+      <div class="inline-value">${escapeHtml(job.customer.name)}</div>
+    </div>
+    <div class="inline-row">
+      <div class="inline-label">MODEL:</div>
+      <div class="inline-value">${escapeHtml(job.machineBrand)} ${escapeHtml(job.machineModel)}</div>
+    </div>
   </div>
   
   <div class="section">
     <div class="section-title">PAYMENT SUMMARY</div>
     ${paymentAmount > 0 ? `
-    <div class="bold" style="font-size: ${width === 79 ? '15px' : '13px'}; text-align: center; margin: 3mm 0; line-height: 1.8; letter-spacing: 0.5px;">
+    <div class="payment-line">
       ${paymentLabel}: ${formatCurrency(paymentAmount)}<br>
-      <span style="font-size: ${width === 79 ? '12px' : '10px'}; font-weight: 900;">(INCL. ${formatCurrency(paymentGST)} GST)</span>
+      (INCL. ${formatCurrency(paymentGST)} GST)
     </div>
-    ` : '<div style="font-size: 13px; font-weight: 900; text-align: center; letter-spacing: 0.5px;">NO PAYMENT RECORDED</div>'}
+    ` : '<div class="payment-line">NO PAYMENT RECORDED</div>'}
   </div>
   
   ${isPaid ? `
@@ -523,7 +576,7 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   
   <div class="conditions">
     <div class="conditions-title">REPAIR CONTRACT CONDITIONS</div>
-    <div style="margin-bottom: 2mm; line-height: 1.7;">
+    <div style="line-height: 1.3;">
       <strong>1.</strong> All quotes are valid for 30 days from date of issue. This does not limit your rights under the Australian Consumer Law.<br><br>
       <strong>2.</strong> All domestic customer service work is guaranteed for 90 days from completion date. All commercial customer service work is covered by floor warranty only (as provided by the manufacturer or distributor).<br><br>
       <strong>3.</strong> We are not responsible for consequential damage or loss of use, to the extent permitted by law.<br><br>
@@ -533,10 +586,10 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   </div>
   
   ${qrCodeBase64 ? `
-  <div style="text-align: center; margin-top: 5mm;">
-    <img src="data:image/png;base64,${qrCodeBase64}" alt="Website QR Code" style="width: ${width === 79 ? '35mm' : '28mm'}; height: ${width === 79 ? '35mm' : '28mm'}; margin: 0 auto;" />
+  <div style="text-align: center; margin-top: 3mm;">
+    <img src="data:image/png;base64,${qrCodeBase64}" alt="Website QR Code" style="width: ${width === 79 ? '30mm' : '25mm'}; height: ${width === 79 ? '30mm' : '25mm'}; margin: 0 auto;" />
   </div>
-  <div class="qr-callout">Shop online — scan to purchase</div>
+  <div class="qr-callout">SHOP ONLINE — SCAN TO PURCHASE</div>
   ` : ''}
   
   <div class="footer">
