@@ -14,6 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
+      brands: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          name: string
+          oem_export_format: string | null
+          oem_export_required: boolean | null
+          supplier: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name: string
+          oem_export_format?: string | null
+          oem_export_required?: boolean | null
+          supplier?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          name?: string
+          oem_export_format?: string | null
+          oem_export_required?: boolean | null
+          supplier?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      cash_sessions: {
+        Row: {
+          cashier_id: string
+          closed_at: string | null
+          closing_cash: number | null
+          expected_cash: number | null
+          id: string
+          notes: string | null
+          opened_at: string
+          opening_float: number | null
+          over_short: number | null
+          reconciliation_summary: Json | null
+          session_number: string
+          status: string | null
+          terminal_id: string | null
+          total_refunds: number | null
+          total_sales: number | null
+        }
+        Insert: {
+          cashier_id: string
+          closed_at?: string | null
+          closing_cash?: number | null
+          expected_cash?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opening_float?: number | null
+          over_short?: number | null
+          reconciliation_summary?: Json | null
+          session_number: string
+          status?: string | null
+          terminal_id?: string | null
+          total_refunds?: number | null
+          total_sales?: number | null
+        }
+        Update: {
+          cashier_id?: string
+          closed_at?: string | null
+          closing_cash?: number | null
+          expected_cash?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opening_float?: number | null
+          over_short?: number | null
+          reconciliation_summary?: Json | null
+          session_number?: string
+          status?: string | null
+          terminal_id?: string | null
+          total_refunds?: number | null
+          total_sales?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_sessions_cashier_id_fkey"
+            columns: ["cashier_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       custom_machine_data: {
         Row: {
           brand: string | null
@@ -79,6 +180,199 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      invoice_lines: {
+        Row: {
+          brand_id: string | null
+          created_at: string
+          description: string
+          discount_amount: number | null
+          discount_percent: number | null
+          engine_serial: string | null
+          id: string
+          invoice_id: string
+          line_total: number
+          line_type: string
+          model_id: string | null
+          notes: string | null
+          part_id: string | null
+          quantity: number | null
+          serial_number: string | null
+          tax_code: string | null
+          technician_id: string | null
+          unit_price: number
+        }
+        Insert: {
+          brand_id?: string | null
+          created_at?: string
+          description: string
+          discount_amount?: number | null
+          discount_percent?: number | null
+          engine_serial?: string | null
+          id?: string
+          invoice_id: string
+          line_total: number
+          line_type: string
+          model_id?: string | null
+          notes?: string | null
+          part_id?: string | null
+          quantity?: number | null
+          serial_number?: string | null
+          tax_code?: string | null
+          technician_id?: string | null
+          unit_price: number
+        }
+        Update: {
+          brand_id?: string | null
+          created_at?: string
+          description?: string
+          discount_amount?: number | null
+          discount_percent?: number | null
+          engine_serial?: string | null
+          id?: string
+          invoice_id?: string
+          line_total?: number
+          line_type?: string
+          model_id?: string | null
+          notes?: string | null
+          part_id?: string | null
+          quantity?: number | null
+          serial_number?: string | null
+          tax_code?: string | null
+          technician_id?: string | null
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoice_lines_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "machinery_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_part_id_fkey"
+            columns: ["part_id"]
+            isOneToOne: false
+            referencedRelation: "parts_catalogue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_lines_technician_id_fkey"
+            columns: ["technician_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      invoices: {
+        Row: {
+          balance_due: number | null
+          cashier_id: string | null
+          channel: string | null
+          completed_at: string | null
+          created_at: string
+          customer_id: string | null
+          deposit_amount: number | null
+          discount_amount: number | null
+          discount_type: string | null
+          discount_value: number | null
+          gst: number | null
+          id: string
+          invoice_number: string
+          invoice_type: string | null
+          job_id: string | null
+          notes: string | null
+          status: string | null
+          subtotal: number | null
+          surcharge_amount: number | null
+          total: number | null
+          updated_at: string
+        }
+        Insert: {
+          balance_due?: number | null
+          cashier_id?: string | null
+          channel?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          deposit_amount?: number | null
+          discount_amount?: number | null
+          discount_type?: string | null
+          discount_value?: number | null
+          gst?: number | null
+          id?: string
+          invoice_number: string
+          invoice_type?: string | null
+          job_id?: string | null
+          notes?: string | null
+          status?: string | null
+          subtotal?: number | null
+          surcharge_amount?: number | null
+          total?: number | null
+          updated_at?: string
+        }
+        Update: {
+          balance_due?: number | null
+          cashier_id?: string | null
+          channel?: string | null
+          completed_at?: string | null
+          created_at?: string
+          customer_id?: string | null
+          deposit_amount?: number | null
+          discount_amount?: number | null
+          discount_type?: string | null
+          discount_value?: number | null
+          gst?: number | null
+          id?: string
+          invoice_number?: string
+          invoice_type?: string | null
+          job_id?: string | null
+          notes?: string | null
+          status?: string | null
+          subtotal?: number | null
+          surcharge_amount?: number | null
+          total?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_cashier_id_fkey"
+            columns: ["cashier_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers_db"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_db"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       job_parts: {
         Row: {
@@ -310,6 +604,161 @@ export type Database = {
           },
         ]
       }
+      machinery_models: {
+        Row: {
+          active: boolean | null
+          brand_id: string
+          category: string | null
+          cost_price: number | null
+          created_at: string
+          default_price: number | null
+          description: string | null
+          id: string
+          name: string
+          requires_engine_serial: boolean | null
+          sku: string | null
+          tax_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          brand_id: string
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string
+          default_price?: number | null
+          description?: string | null
+          id?: string
+          name: string
+          requires_engine_serial?: boolean | null
+          sku?: string | null
+          tax_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          brand_id?: string
+          category?: string | null
+          cost_price?: number | null
+          created_at?: string
+          default_price?: number | null
+          description?: string | null
+          id?: string
+          name?: string
+          requires_engine_serial?: boolean | null
+          sku?: string | null
+          tax_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "machinery_models_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      machinery_sales: {
+        Row: {
+          brand_id: string
+          channel: string | null
+          created_at: string
+          customer_id: string
+          engine_serial: string | null
+          exported_at: string | null
+          id: string
+          invoice_id: string | null
+          model_id: string | null
+          model_name: string
+          oem_export_errors: Json | null
+          oem_export_status: string | null
+          price_ex_gst: number | null
+          price_incl_gst: number | null
+          purchase_date: string
+          salesperson_id: string | null
+          serial_number: string
+          updated_at: string
+        }
+        Insert: {
+          brand_id: string
+          channel?: string | null
+          created_at?: string
+          customer_id: string
+          engine_serial?: string | null
+          exported_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          model_id?: string | null
+          model_name: string
+          oem_export_errors?: Json | null
+          oem_export_status?: string | null
+          price_ex_gst?: number | null
+          price_incl_gst?: number | null
+          purchase_date: string
+          salesperson_id?: string | null
+          serial_number: string
+          updated_at?: string
+        }
+        Update: {
+          brand_id?: string
+          channel?: string | null
+          created_at?: string
+          customer_id?: string
+          engine_serial?: string | null
+          exported_at?: string | null
+          id?: string
+          invoice_id?: string | null
+          model_id?: string | null
+          model_name?: string
+          oem_export_errors?: Json | null
+          oem_export_status?: string | null
+          price_ex_gst?: number | null
+          price_incl_gst?: number | null
+          purchase_date?: string
+          salesperson_id?: string | null
+          serial_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "machinery_sales_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "machinery_sales_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers_db"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "machinery_sales_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_db"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "machinery_sales_model_id_fkey"
+            columns: ["model_id"]
+            isOneToOne: false
+            referencedRelation: "machinery_models"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "machinery_sales_salesperson_id_fkey"
+            columns: ["salesperson_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       parts_audit_log: {
         Row: {
           action: string
@@ -416,6 +865,79 @@ export type Database = {
           updated_by?: string | null
         }
         Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          card_last_four: string | null
+          cashier_id: string | null
+          created_at: string
+          gst_component: number | null
+          id: string
+          invoice_id: string | null
+          job_id: string | null
+          notes: string | null
+          paid_at: string
+          payment_method: string
+          reference: string | null
+          session_id: string | null
+          terminal_id: string | null
+        }
+        Insert: {
+          amount: number
+          card_last_four?: string | null
+          cashier_id?: string | null
+          created_at?: string
+          gst_component?: number | null
+          id?: string
+          invoice_id?: string | null
+          job_id?: string | null
+          notes?: string | null
+          paid_at?: string
+          payment_method: string
+          reference?: string | null
+          session_id?: string | null
+          terminal_id?: string | null
+        }
+        Update: {
+          amount?: number
+          card_last_four?: string | null
+          cashier_id?: string | null
+          created_at?: string
+          gst_component?: number | null
+          id?: string
+          invoice_id?: string | null
+          job_id?: string | null
+          notes?: string | null
+          paid_at?: string
+          payment_method?: string
+          reference?: string | null
+          session_id?: string | null
+          terminal_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_cashier_id_fkey"
+            columns: ["cashier_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_db"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       service_reminders: {
         Row: {
@@ -554,6 +1076,66 @@ export type Database = {
         }
         Relationships: []
       }
+      warranty_exports: {
+        Row: {
+          brand_id: string
+          created_at: string
+          date_range_end: string
+          date_range_start: string
+          error_log: Json | null
+          export_format: string
+          exported_by: string | null
+          file_name: string | null
+          file_url: string | null
+          id: string
+          records_count: number | null
+          status: string | null
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string
+          date_range_end: string
+          date_range_start: string
+          error_log?: Json | null
+          export_format: string
+          exported_by?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          records_count?: number | null
+          status?: string | null
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string
+          date_range_end?: string
+          date_range_start?: string
+          error_log?: Json | null
+          export_format?: string
+          exported_by?: string | null
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          records_count?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "warranty_exports_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "warranty_exports_exported_by_fkey"
+            columns: ["exported_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -602,7 +1184,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "manager" | "technician" | "clerk" | "cashier"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -729,6 +1311,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "manager", "technician", "clerk", "cashier"],
+    },
   },
 } as const

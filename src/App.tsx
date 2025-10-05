@@ -7,6 +7,8 @@ import { JobManager } from '@/components/JobManager';
 import { PartsCatalogue } from '@/components/parts/PartsCatalogue';
 import { ReportsManager } from '@/components/reports/ReportsManager';
 import { CustomerManager } from '@/components/CustomerManager';
+import { POSInterface } from '@/components/pos/POSInterface';
+import { ReportsDashboard } from '@/components/reports/ReportsDashboard';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -55,6 +57,18 @@ function AppContent() {
         return (
           <div className="container mx-auto p-6">
             <ReportsManager />
+          </div>
+        );
+      case 'pos':
+        return (
+          <div className="container mx-auto p-6">
+            <POSInterface />
+          </div>
+        );
+      case 'analytics':
+        return (
+          <div className="container mx-auto p-6">
+            <ReportsDashboard />
           </div>
         );
       case 'settings':

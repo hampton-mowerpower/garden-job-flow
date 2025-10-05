@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, BarChart3, Settings } from 'lucide-react';
+import { Plus, Search, BarChart3, Settings, CreditCard, TrendingUp } from 'lucide-react';
 import { Job } from '@/types/job';
 import { formatCurrency } from '@/lib/calculations';
 import JobForm from '@/components/JobForm';
 import JobSearch from '@/components/JobSearch';
 import { AdminSettings } from '@/components/AdminSettings';
+import { POSInterface } from '@/components/pos/POSInterface';
+import { ReportsDashboard } from '@/components/reports/ReportsDashboard';
 
 const Index = () => {
-  const [activeView, setActiveView] = useState<'dashboard' | 'create' | 'search' | 'admin' | 'view'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'create' | 'search' | 'admin' | 'view' | 'pos' | 'analytics'>('dashboard');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
 
@@ -125,6 +127,44 @@ const Index = () => {
     );
   }
 
+  if (activeView === 'pos') {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-6">
+            <Button
+              variant="outline"
+              onClick={() => setActiveView('dashboard')}
+              className="mb-4"
+            >
+              ← Back to Dashboard
+            </Button>
+          </div>
+          <POSInterface />
+        </div>
+      </div>
+    );
+  }
+
+  if (activeView === 'analytics') {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="container mx-auto px-4 py-8">
+          <div className="mb-6">
+            <Button
+              variant="outline"
+              onClick={() => setActiveView('dashboard')}
+              className="mb-4"
+            >
+              ← Back to Dashboard
+            </Button>
+          </div>
+          <ReportsDashboard />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
@@ -145,7 +185,7 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleCreateNew}>
             <CardHeader className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
@@ -156,6 +196,20 @@ const Index = () => {
             <CardContent>
               <p className="text-muted-foreground text-center">
                 Start a new service job with customer details, machine info, and pricing
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView('pos')}>
+            <CardHeader className="text-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <CreditCard className="h-6 w-6 text-primary" />
+              </div>
+              <CardTitle>Point of Sale</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-center">
+                Sell machinery, parts, and services with unified checkout
               </p>
             </CardContent>
           </Card>
@@ -174,6 +228,22 @@ const Index = () => {
             </CardContent>
           </Card>
 
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView('analytics')}>
+            <CardHeader className="text-center">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                <TrendingUp className="h-6 w-6 text-primary" />
+              </div>
+              <CardTitle>Reports & Analytics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground text-center">
+                Track sales, performance, and generate warranty exports
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8 max-w-md mx-auto">
           <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => setActiveView('admin')}>
             <CardHeader className="text-center">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">

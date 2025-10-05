@@ -18,7 +18,9 @@ import {
   BarChart3, 
   Settings, 
   LogOut,
-  User
+  User,
+  CreditCard,
+  TrendingUp
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -32,8 +34,10 @@ export function Navigation({ currentView, setCurrentView }: NavigationProps) {
 
   const menuItems = [
     { id: 'jobs', label: t('nav.jobs'), icon: ClipboardList, roles: ['admin', 'technician', 'counter'] },
+    { id: 'pos', label: 'Point of Sale', icon: CreditCard, roles: ['admin', 'cashier', 'clerk', 'counter', 'manager'] },
     { id: 'customers', label: 'Customers', icon: Users, roles: ['admin', 'counter'] },
     { id: 'parts', label: t('nav.parts'), icon: Package, roles: ['admin', 'technician', 'counter'] },
+    { id: 'analytics', label: 'Reports & Analytics', icon: TrendingUp, roles: ['admin', 'manager'] },
     { id: 'reports', label: t('nav.reports'), icon: BarChart3, roles: ['admin'] },
     { id: 'settings', label: t('nav.settings'), icon: Settings, roles: ['admin'] },
   ];
