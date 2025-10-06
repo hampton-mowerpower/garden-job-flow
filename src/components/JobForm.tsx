@@ -32,6 +32,10 @@ import { initializeChecklists, getUniversalChecklist, getCategoryChecklist } fro
 import { format } from 'date-fns';
 import { CustomerNotificationDialog } from './CustomerNotificationDialog';
 import { Bell } from 'lucide-react';
+import { TransportSection } from './booking/TransportSection';
+import { SharpenSection } from './booking/SharpenSection';
+import { SharpenItem } from '@/utils/sharpenCalculator';
+import { MachineSizeTier } from '@/utils/transportCalculator';
 
 // Simple unique ID generator for UI elements (not database records)
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -110,6 +114,33 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [showLabelDialog, setShowLabelDialog] = useState(false);
   const [newJobData, setNewJobData] = useState<Job | null>(null);
   
+  // Transport and Sharpen state
+  const [transportData, setTransportData] = useState<{
+    pickupRequired: boolean;
+    deliveryRequired: boolean;
+    sizeTier: MachineSizeTier | null;
+    distanceKm: number;
+    totalCharge: number;
+    breakdown: string;
+  }>({
+    pickupRequired: false,
+    deliveryRequired: false,
+    sizeTier: null,
+    distanceKm: 5,
+    totalCharge: 0,
+    breakdown: ''
+  });
+  
+  const [sharpenData, setSharpenData] = useState<{
+    items: SharpenItem[];
+    totalCharge: number;
+    breakdown: string;
+  }>({
+    items: [],
+    totalCharge: 0,
+    breakdown: ''
+  });
+  
   // Calculations
   const selectedCategory = HAMPTON_MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
   const labourRate = selectedCategory?.labourRate || 0;
@@ -181,6 +212,27 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setChecklistUniversal(job.checklistUniversal || []);
       setChecklistCategory(job.checklistCategory || []);
       setHasAccount(job.hasAccount || false);
+      
+      // Load transport data if exists
+      if (job.transportPickupRequired || job.transportDeliveryRequired) {
+        setTransportData({
+          pickupRequired: job.transportPickupRequired || false,
+          deliveryRequired: job.transportDeliveryRequired || false,
+          sizeTier: (job.transportSizeTier as MachineSizeTier) || null,
+          distanceKm: job.transportDistanceKm || 5,
+          totalCharge: job.transportTotalCharge || 0,
+          breakdown: job.transportBreakdown || ''
+        });
+      }
+      
+      // Load sharpen data if exists
+      if (job.sharpenItems && job.sharpenItems.length > 0) {
+        setSharpenData({
+          items: job.sharpenItems,
+          totalCharge: job.sharpenTotalCharge || 0,
+          breakdown: job.sharpenBreakdown || ''
+        });
+      }
     } else {
       // New job
       try {
@@ -393,6 +445,15 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         checklistUniversal,
         checklistCategory,
         equipmentCategory: machineCategory,
+        transportPickupRequired: transportData.pickupRequired,
+        transportDeliveryRequired: transportData.deliveryRequired,
+        transportSizeTier: transportData.sizeTier || undefined,
+        transportDistanceKm: transportData.distanceKm,
+        transportTotalCharge: transportData.totalCharge,
+        transportBreakdown: transportData.breakdown,
+        sharpenItems: sharpenData.items,
+        sharpenTotalCharge: sharpenData.totalCharge,
+        sharpenBreakdown: sharpenData.breakdown,
         ...calculations,
         status,
         createdAt: job?.createdAt || new Date(),
@@ -519,6 +580,18 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             </CardContent>
           </Card>
 
+          {/* Transport Section */}
+          <TransportSection
+            machineCategory={machineCategory}
+            onTransportChange={setTransportData}
+            initialData={{
+              pickupRequired: transportData.pickupRequired,
+              deliveryRequired: transportData.deliveryRequired,
+              sizeTier: transportData.sizeTier || undefined,
+              distanceKm: transportData.distanceKm
+            }}
+          />
+
           {/* Machine Information */}
           <Card className="form-section">
             <CardHeader>
@@ -607,6 +680,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               </div>
             </CardContent>
           </Card>
+
+          {/* Sharpen Section */}
+          <SharpenSection
+            onSharpenChange={setSharpenData}
+            initialData={{
+              items: sharpenData.items
+            }}
+          />
 
           {/* Quotation Box */}
           <Card className="form-section border-orange-200 bg-orange-50/50">

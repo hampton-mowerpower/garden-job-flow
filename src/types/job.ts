@@ -81,6 +81,19 @@ export interface Job {
   discountType?: 'PERCENT' | 'AMOUNT'; // discount type
   discountValue?: number; // discount amount or percentage
   
+  // Transport details
+  transportPickupRequired?: boolean;
+  transportDeliveryRequired?: boolean;
+  transportSizeTier?: string;
+  transportDistanceKm?: number;
+  transportTotalCharge?: number;
+  transportBreakdown?: string;
+  
+  // Sharpen details
+  sharpenItems?: any[];
+  sharpenTotalCharge?: number;
+  sharpenBreakdown?: string;
+  
   // Computed parts list for display
   partsRequired?: string; // computed from parts array
   
