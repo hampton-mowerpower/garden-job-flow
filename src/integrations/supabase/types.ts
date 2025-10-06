@@ -14,6 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_customer_messages: {
+        Row: {
+          account_customer_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          message_type: string
+          payload: Json | null
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          account_customer_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_type: string
+          payload?: Json | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          account_customer_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_type?: string
+          payload?: Json | null
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_customer_messages_account_customer_id_fkey"
+            columns: ["account_customer_id"]
+            isOneToOne: false
+            referencedRelation: "account_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      account_customers: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          default_payment_terms: string | null
+          emails: string[] | null
+          id: string
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          default_payment_terms?: string | null
+          emails?: string[] | null
+          id?: string
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          default_payment_terms?: string | null
+          emails?: string[] | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_user_id: string | null
+          created_at: string
+          id: string
+          meta: Json | null
+          target_id: string | null
+          target_type: string
+        }
+        Insert: {
+          action: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json | null
+          target_id?: string | null
+          target_type: string
+        }
+        Update: {
+          action?: string
+          actor_user_id?: string | null
+          created_at?: string
+          id?: string
+          meta?: Json | null
+          target_id?: string | null
+          target_type?: string
+        }
+        Relationships: []
+      }
       brands: {
         Row: {
           active: boolean | null
@@ -112,6 +219,78 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_profiles"
             referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      categories: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          display_order: number | null
+          id: string
+          name: string
+          rate_default: number | null
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          name: string
+          rate_default?: number | null
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          name?: string
+          rate_default?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      category_common_brands: {
+        Row: {
+          brand_id: string | null
+          category_id: string | null
+          created_at: string
+          display_order: number | null
+          free_text: string | null
+          id: string
+        }
+        Insert: {
+          brand_id?: string | null
+          category_id?: string | null
+          created_at?: string
+          display_order?: number | null
+          free_text?: string | null
+          id?: string
+        }
+        Update: {
+          brand_id?: string | null
+          category_id?: string | null
+          created_at?: string
+          display_order?: number | null
+          free_text?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "category_common_brands_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "category_common_brands_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -495,6 +674,8 @@ export type Database = {
       }
       jobs_db: {
         Row: {
+          account_customer_id: string | null
+          additional_notes: string | null
           assigned_technician: string | null
           balance_due: number
           completed_at: string | null
@@ -526,6 +707,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          account_customer_id?: string | null
+          additional_notes?: string | null
           assigned_technician?: string | null
           balance_due?: number
           completed_at?: string | null
@@ -557,6 +740,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          account_customer_id?: string | null
+          additional_notes?: string | null
           assigned_technician?: string | null
           balance_due?: number
           completed_at?: string | null
@@ -589,6 +774,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "jobs_db_account_customer_id_fkey"
+            columns: ["account_customer_id"]
+            isOneToOne: false
+            referencedRelation: "account_customers"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "jobs_db_assigned_technician_fkey"
             columns: ["assigned_technician"]
             isOneToOne: false
@@ -603,6 +795,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      machine_category_map: {
+        Row: {
+          category_name: string
+          created_at: string
+          id: string
+          size_tier: string
+        }
+        Insert: {
+          category_name: string
+          created_at?: string
+          id?: string
+          size_tier: string
+        }
+        Update: {
+          category_name?: string
+          created_at?: string
+          id?: string
+          size_tier?: string
+        }
+        Relationships: []
       }
       machinery_models: {
         Row: {
@@ -800,7 +1013,9 @@ export type Database = {
       parts_catalogue: {
         Row: {
           base_price: number
+          brand_id: string | null
           category: string
+          category_id: string | null
           competitor_price: number | null
           created_at: string
           created_by: string | null
@@ -822,7 +1037,9 @@ export type Database = {
         }
         Insert: {
           base_price: number
+          brand_id?: string | null
           category: string
+          category_id?: string | null
           competitor_price?: number | null
           created_at?: string
           created_by?: string | null
@@ -844,7 +1061,9 @@ export type Database = {
         }
         Update: {
           base_price?: number
+          brand_id?: string | null
           category?: string
+          category_id?: string | null
           competitor_price?: number | null
           created_at?: string
           created_by?: string | null
@@ -864,7 +1083,22 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "parts_catalogue_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parts_catalogue_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       payments: {
         Row: {
@@ -938,6 +1172,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quick_problems: {
+        Row: {
+          active: boolean | null
+          created_at: string
+          display_order: number | null
+          id: string
+          label: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          label: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          label?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       service_reminders: {
         Row: {
@@ -1043,6 +1304,63 @@ export type Database = {
           },
         ]
       }
+      transport_charge_configs: {
+        Row: {
+          created_at: string
+          id: string
+          included_km: number | null
+          large_base: number | null
+          origin_address: string | null
+          per_km_rate: number | null
+          small_medium_base: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          included_km?: number | null
+          large_base?: number | null
+          origin_address?: string | null
+          per_km_rate?: number | null
+          small_medium_base?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          included_km?: number | null
+          large_base?: number | null
+          origin_address?: string | null
+          per_km_rate?: number | null
+          small_medium_base?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_approvals: {
+        Row: {
+          approved_at: string
+          approved_by: string
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          approved_at?: string
+          approved_by: string
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          approved_at?: string
+          approved_by?: string
+          id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string
@@ -1051,6 +1369,7 @@ export type Database = {
           id: string
           permissions: string[] | null
           role: string
+          status: string | null
           updated_at: string
           user_id: string
         }
@@ -1061,6 +1380,7 @@ export type Database = {
           id?: string
           permissions?: string[] | null
           role?: string
+          status?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1071,6 +1391,34 @@ export type Database = {
           id?: string
           permissions?: string[] | null
           role?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_table_layouts: {
+        Row: {
+          column_order: Json | null
+          created_at: string
+          id: string
+          table_key: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          column_order?: Json | null
+          created_at?: string
+          id?: string
+          table_key: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          column_order?: Json | null
+          created_at?: string
+          id?: string
+          table_key?: string
           updated_at?: string
           user_id?: string
         }

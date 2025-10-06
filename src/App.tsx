@@ -9,6 +9,7 @@ import { ReportsManager } from '@/components/reports/ReportsManager';
 import { CustomerManager } from '@/components/CustomerManager';
 import { POSInterface } from '@/components/pos/POSInterface';
 import { ReportsDashboard } from '@/components/reports/ReportsDashboard';
+import { AccountCustomersManager } from '@/components/AccountCustomersManager';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -45,6 +46,12 @@ function AppContent() {
         return (
           <div className="container mx-auto p-6">
             <CustomerManager />
+          </div>
+        );
+      case 'account-customers':
+        return (
+          <div className="container mx-auto p-6">
+            <AccountCustomersManager />
           </div>
         );
       case 'parts':

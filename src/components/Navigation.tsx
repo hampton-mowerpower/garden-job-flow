@@ -36,6 +36,7 @@ export function Navigation({ currentView, setCurrentView }: NavigationProps) {
     { id: 'jobs', label: t('nav.jobs'), icon: ClipboardList, roles: ['admin', 'technician', 'counter'] },
     { id: 'pos', label: 'Point of Sale', icon: CreditCard, roles: ['admin', 'cashier', 'clerk', 'counter', 'manager'] },
     { id: 'customers', label: 'Customers', icon: Users, roles: ['admin', 'counter'] },
+    { id: 'account-customers', label: 'Account Customers', icon: Users, roles: ['admin', 'counter', 'manager'] },
     { id: 'parts', label: t('nav.parts'), icon: Package, roles: ['admin', 'technician', 'counter'] },
     { id: 'analytics', label: 'Reports & Analytics', icon: TrendingUp, roles: ['admin', 'manager'] },
     { id: 'reports', label: t('nav.reports'), icon: BarChart3, roles: ['admin'] },
