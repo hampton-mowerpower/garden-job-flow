@@ -702,8 +702,15 @@ export type Database = {
           recommendations: string | null
           service_deposit: number | null
           service_performed: string | null
+          sharpen_items: Json | null
+          sharpen_total_charge: number | null
           status: string
           subtotal: number
+          transport_delivery_required: boolean | null
+          transport_distance_km: number | null
+          transport_pickup_required: boolean | null
+          transport_size_tier: string | null
+          transport_total_charge: number | null
           updated_at: string
         }
         Insert: {
@@ -735,8 +742,15 @@ export type Database = {
           recommendations?: string | null
           service_deposit?: number | null
           service_performed?: string | null
+          sharpen_items?: Json | null
+          sharpen_total_charge?: number | null
           status?: string
           subtotal?: number
+          transport_delivery_required?: boolean | null
+          transport_distance_km?: number | null
+          transport_pickup_required?: boolean | null
+          transport_size_tier?: string | null
+          transport_total_charge?: number | null
           updated_at?: string
         }
         Update: {
@@ -768,8 +782,15 @@ export type Database = {
           recommendations?: string | null
           service_deposit?: number | null
           service_performed?: string | null
+          sharpen_items?: Json | null
+          sharpen_total_charge?: number | null
           status?: string
           subtotal?: number
+          transport_delivery_required?: boolean | null
+          transport_distance_km?: number | null
+          transport_pickup_required?: boolean | null
+          transport_size_tier?: string | null
+          transport_total_charge?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -1397,6 +1418,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_table_layouts: {
         Row: {
           column_order: Json | null
@@ -1529,6 +1574,10 @@ export type Database = {
       has_role: {
         Args: { _role: string; _user_id: string }
         Returns: boolean
+      }
+      seed_super_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {
