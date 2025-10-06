@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
 import { MACHINE_CATEGORIES } from '@/data/machineCategories';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -21,6 +22,19 @@ interface CustomMachineData {
   models: { [category: string]: { [brand: string]: string[] } };
 }
 
+interface Category {
+  id: string;
+  name: string;
+  rate_default: number;
+  active: boolean;
+}
+
+interface Brand {
+  id: string;
+  name: string;
+  active: boolean;
+}
+
 export const MachineManager: React.FC<MachineManagerProps> = ({
   machineCategory,
   machineBrand,
@@ -36,9 +50,46 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
     models: {}
   });
   const [isLoadingData, setIsLoadingData] = useState(true);
+  const [dbCategories, setDbCategories] = useState<Category[]>([]);
+  const [dbBrands, setDbBrands] = useState<Brand[]>([]);
+  const [showCategoryInput, setShowCategoryInput] = useState(false);
+  const [showBrandInput, setShowBrandInput] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [newBrandName, setNewBrandName] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     loadCustomData();
+    loadDbCategories();
+    loadDbBrands();
+
+    // Setup realtime subscriptions
+    const categoriesChannel = supabase
+      .channel('categories-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'categories'
+      }, () => {
+        loadDbCategories();
+      })
+      .subscribe();
+
+    const brandsChannel = supabase
+      .channel('brands-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'brands'
+      }, () => {
+        loadDbBrands();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(categoriesChannel);
+      supabase.removeChannel(brandsChannel);
+    };
   }, []);
 
   // Auto-save brand when typed
@@ -109,6 +160,147 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
       console.error('Error loading custom machine data:', error);
     } finally {
       setIsLoadingData(false);
+    }
+  };
+
+  const loadDbCategories = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('categories')
+        .select('*')
+        .eq('active', true)
+        .order('display_order');
+
+      if (error) throw error;
+      setDbCategories(data || []);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
+
+  const loadDbBrands = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('brands')
+        .select('*')
+        .eq('active', true)
+        .order('name');
+
+      if (error) throw error;
+      setDbBrands(data || []);
+    } catch (error) {
+      console.error('Error loading brands:', error);
+    }
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCategoryName.trim()) return;
+
+    setIsSaving(true);
+    try {
+      const trimmedName = newCategoryName.trim();
+      
+      // Check if category already exists (case-insensitive)
+      const normalizedName = trimmedName.toLowerCase();
+      const existing = dbCategories.find(cat => cat.name.toLowerCase() === normalizedName);
+      
+      if (existing) {
+        toast({
+          title: "Already exists",
+          description: `"${trimmedName}" already exists in categories.`
+        });
+        onCategoryChange(existing.name);
+        setShowCategoryInput(false);
+        setNewCategoryName('');
+        return;
+      }
+
+      // Insert new category
+      const { data, error } = await supabase
+        .from('categories')
+        .insert({
+          name: trimmedName,
+          rate_default: 0,
+          active: true
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Category added",
+        description: `"${trimmedName}" has been added.`
+      });
+
+      // Select the new category
+      onCategoryChange(data.name);
+      setShowCategoryInput(false);
+      setNewCategoryName('');
+    } catch (error: any) {
+      console.error('Error adding category:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add category",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAddBrand = async () => {
+    if (!newBrandName.trim()) return;
+
+    setIsSaving(true);
+    try {
+      const trimmedName = newBrandName.trim();
+      
+      // Check if brand already exists (case-insensitive)
+      const normalizedName = trimmedName.toLowerCase();
+      const existing = dbBrands.find(brand => brand.name.toLowerCase() === normalizedName);
+      
+      if (existing) {
+        toast({
+          title: "Already exists",
+          description: `"${trimmedName}" already exists in brands.`
+        });
+        onBrandChange(existing.name);
+        setShowBrandInput(false);
+        setNewBrandName('');
+        return;
+      }
+
+      // Insert new brand
+      const { data, error } = await supabase
+        .from('brands')
+        .insert({
+          name: trimmedName,
+          active: true
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      toast({
+        title: "Brand added",
+        description: `"${trimmedName}" has been added.`
+      });
+
+      // Select the new brand
+      onBrandChange(data.name);
+      setShowBrandInput(false);
+      setNewBrandName('');
+    } catch (error: any) {
+      console.error('Error adding brand:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add brand",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -211,50 +403,72 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
     }
   };
 
-  const selectedCategory = MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
-  const availableBrands = selectedCategory ? [
-    ...selectedCategory.commonBrands,
-    ...(customData.brands[machineCategory] || [])
-  ] : (customData.brands[machineCategory] || []);
+  // Combine DB categories with standard categories
+  const allCategories = [
+    ...MACHINE_CATEGORIES.map(cat => ({ id: cat.id, name: cat.name, rate: cat.labourRate })),
+    ...dbCategories.map(cat => ({ id: cat.name, name: cat.name, rate: cat.rate_default }))
+  ];
+
+  // Combine DB brands with category-specific brands
+  const selectedCat = MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
+  const availableBrands = [
+    ...(selectedCat?.commonBrands || []),
+    ...dbBrands.map(b => b.name)
+  ];
 
   const availableModels = machineCategory && machineBrand ? 
     customData.models[machineCategory]?.[machineBrand] || [] : [];
-
-  // Combine standard and custom categories
-  const allCategories = [
-    ...MACHINE_CATEGORIES,
-    ...customData.categories.map(cat => ({
-      id: cat,
-      name: cat,
-      labourRate: 0,
-      commonBrands: []
-    }))
-  ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <Label htmlFor="machine-category">Category *</Label>
-        {machineCategory && !MACHINE_CATEGORIES.find(cat => cat.id === machineCategory) ? (
-          <Input
-            id="machine-category"
-            value={machineCategory}
-            onChange={(e) => onCategoryChange(e.target.value)}
-            onBlur={handleCustomCategoryBlur}
-            placeholder="Enter custom category"
-          />
+        {showCategoryInput ? (
+          <div className="space-y-2">
+            <Input
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddCategory();
+                }
+                if (e.key === 'Escape') {
+                  setShowCategoryInput(false);
+                  setNewCategoryName('');
+                }
+              }}
+              onBlur={handleAddCategory}
+              placeholder="Enter new category name..."
+              disabled={isSaving}
+              autoFocus
+            />
+            {isSaving && <Badge variant="secondary" className="text-xs">Saving...</Badge>}
+          </div>
         ) : (
-          <Select value={machineCategory} onValueChange={handleCategoryChange}>
+          <Select
+            value={machineCategory}
+            onValueChange={(value) => {
+              if (value === '__other__') {
+                setShowCategoryInput(true);
+                setNewCategoryName('');
+              } else {
+                onCategoryChange(value);
+                onBrandChange('');
+                onModelChange('');
+              }
+            }}
+          >
             <SelectTrigger>
               <SelectValue placeholder="Select machine category" />
             </SelectTrigger>
             <SelectContent>
               {allCategories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
-                  {category.name} {category.labourRate > 0 && `($${category.labourRate}/hr)`}
+                  {category.name} {category.rate > 0 && `($${category.rate}/hr)`}
                 </SelectItem>
               ))}
-              <SelectItem value="other-custom">Other (Add Custom)</SelectItem>
+              <SelectItem value="__other__">Other (Add New...)</SelectItem>
             </SelectContent>
           </Select>
         )}
@@ -262,18 +476,54 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
       
       <div>
         <Label htmlFor="machine-brand">Brand</Label>
-        <Input
-          id="machine-brand"
-          value={machineBrand}
-          onChange={(e) => onBrandChange(e.target.value)}
-          placeholder="Type or select brand"
-          list="brand-list"
-        />
-        <datalist id="brand-list">
-          {availableBrands.map((brand) => (
-            <option key={brand} value={brand} />
-          ))}
-        </datalist>
+        {showBrandInput ? (
+          <div className="space-y-2">
+            <Input
+              value={newBrandName}
+              onChange={(e) => setNewBrandName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddBrand();
+                }
+                if (e.key === 'Escape') {
+                  setShowBrandInput(false);
+                  setNewBrandName('');
+                }
+              }}
+              onBlur={handleAddBrand}
+              placeholder="Enter new brand name..."
+              disabled={isSaving}
+              autoFocus
+            />
+            {isSaving && <Badge variant="secondary" className="text-xs">Saving...</Badge>}
+          </div>
+        ) : (
+          <Select
+            value={machineBrand}
+            onValueChange={(value) => {
+              if (value === '__other__') {
+                setShowBrandInput(true);
+                setNewBrandName('');
+              } else {
+                onBrandChange(value);
+                onModelChange('');
+              }
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select or add brand" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableBrands.map((brand) => (
+                <SelectItem key={brand} value={brand}>
+                  {brand}
+                </SelectItem>
+              ))}
+              <SelectItem value="__other__">Other (Add New...)</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       <div>

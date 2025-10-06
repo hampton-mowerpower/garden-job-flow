@@ -25,6 +25,7 @@ export const DraggableQuickProblems: React.FC<DraggableQuickProblemsProps> = ({
   const [problems, setProblems] = useState<QuickProblem[]>([]);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     loadProblems();
@@ -73,6 +74,7 @@ export const DraggableQuickProblems: React.FC<DraggableQuickProblemsProps> = ({
     if (draggedIndex === null) return;
     
     setSaving(true);
+    setSaved(false);
     try {
       // Update display_order for all items
       const updates = problems.map((problem, index) => ({
@@ -89,10 +91,8 @@ export const DraggableQuickProblems: React.FC<DraggableQuickProblemsProps> = ({
         if (error) throw error;
       }
 
-      toast({
-        title: 'Saved ✓',
-        description: 'Quick problems order updated'
-      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000); // Clear "Saved ✓" after 2s
     } catch (error) {
       console.error('Error saving order:', error);
       toast({
@@ -113,6 +113,7 @@ export const DraggableQuickProblems: React.FC<DraggableQuickProblemsProps> = ({
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium">Quick Problems</label>
         {saving && <Badge variant="secondary">Saving...</Badge>}
+        {saved && <Badge variant="default" className="bg-green-600">Saved ✓</Badge>}
       </div>
       <p className="text-xs text-muted-foreground">Drag to reorder • Click to add to description</p>
       <div className="flex flex-wrap gap-2">

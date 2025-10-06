@@ -34,6 +34,7 @@ import { CustomerNotificationDialog } from './CustomerNotificationDialog';
 import { Bell } from 'lucide-react';
 import { TransportSection } from './booking/TransportSection';
 import { SharpenSection } from './booking/SharpenSection';
+import { DraggableQuickProblems } from './booking/DraggableQuickProblems';
 import { SharpenItem } from '@/utils/sharpenCalculator';
 import { MachineSizeTier } from '@/utils/transportCalculator';
 
@@ -641,32 +642,16 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                 />
               </div>
               
-              <div>
-                <Label>{t('problem.quick')}</Label>
-                <p className="text-sm text-muted-foreground mb-3">{t('problem.quick.help')}</p>
-                <div className="flex flex-wrap gap-2">
-                {quickDescriptions.filter((desc, index, self) => 
-                  self.indexOf(desc) === index
-                ).map((quickDesc, index) => (
-                  <Button
-                    key={`${quickDesc}-${index}`}
-                    variant="outline"
-                    size="sm"
-                    type="button"
-                      onClick={() => {
-                        const currentDesc = problemDescription.trim();
-                        const newDesc = currentDesc 
-                          ? `${currentDesc}${currentDesc.endsWith('.') || currentDesc.endsWith(',') ? ' ' : ', '}${quickDesc}`
-                          : quickDesc;
-                        setProblemDescription(newDesc);
-                      }}
-                      className="text-xs"
-                    >
-                      {quickDesc}
-                    </Button>
-                  ))}
-                </div>
-              </div>
+              <DraggableQuickProblems
+                onSelect={(label) => {
+                  const currentDesc = problemDescription.trim();
+                  const newDesc = currentDesc 
+                    ? `${currentDesc}${currentDesc.endsWith('.') || currentDesc.endsWith(',') ? ' ' : ', '}${label}`
+                    : label;
+                  setProblemDescription(newDesc);
+                }}
+                selectedProblems={problemDescription.split(',').map(s => s.trim())}
+              />
               
               <div>
                 <Label htmlFor="notes">{t('problem.additional')}</Label>

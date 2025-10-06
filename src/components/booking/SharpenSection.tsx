@@ -4,12 +4,14 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
 import { Scissors, Plus, Trash2 } from 'lucide-react';
 import {
   calculateSharpenPrice,
   SharpenItem,
   ChainsawBarSize,
   ChainsawMode,
+  HedgeTrimmerType,
   SharpenPricing
 } from '@/utils/sharpenCalculator';
 
@@ -87,6 +89,39 @@ export const SharpenSection: React.FC<SharpenSectionProps> = ({
     setItems([...items, newItem]);
   };
 
+  const addHedgeTrimmerItem = (hedgeTrimmerType: HedgeTrimmerType) => {
+    const newItem: SharpenItem = {
+      type: 'hedge-trimmer',
+      hedgeTrimmerType,
+      quantity: 1
+    };
+    setItems([...items, newItem]);
+  };
+
+  const addCylinderMowerItem = () => {
+    const newItem: SharpenItem = {
+      type: 'cylinder-mower',
+      quantity: 1
+    };
+    setItems([...items, newItem]);
+  };
+
+  const addHandMowerItem = () => {
+    const newItem: SharpenItem = {
+      type: 'hand-mower',
+      quantity: 1
+    };
+    setItems([...items, newItem]);
+  };
+
+  const addLawnMowerBladeItem = () => {
+    const newItem: SharpenItem = {
+      type: 'lawn-mower-blade',
+      quantity: 1
+    };
+    setItems([...items, newItem]);
+  };
+
   const updateItem = (index: number, updates: Partial<SharpenItem>) => {
     const newItems = [...items];
     const currentItem = newItems[index];
@@ -152,6 +187,66 @@ export const SharpenSection: React.FC<SharpenSectionProps> = ({
           >
             <Plus className="w-4 h-4" />
             Knife
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => addHedgeTrimmerItem('battery')}
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Hedge Trimmer (Battery)
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => addHedgeTrimmerItem('petrol')}
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Hedge Trimmer (Petrol)
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => addHedgeTrimmerItem('electric')}
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Hedge Trimmer (Electric)
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addCylinderMowerItem}
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Cylinder Mower
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addHandMowerItem}
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Hand Mower
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addLawnMowerBladeItem}
+            className="gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Lawn Mower Blade
           </Button>
         </div>
 
@@ -231,7 +326,48 @@ export const SharpenSection: React.FC<SharpenSectionProps> = ({
                     </div>
                   )}
 
-                  {(item.type === 'garden-tool' || item.type === 'knife') && (
+                  {item.type === 'hedge-trimmer' && (
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label>Type</Label>
+                        <Select
+                          value={item.hedgeTrimmerType}
+                          onValueChange={(value) => updateItem(index, { hedgeTrimmerType: value as HedgeTrimmerType })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="battery">Battery - $95</SelectItem>
+                            <SelectItem value="petrol">Petrol - $95</SelectItem>
+                            <SelectItem value="electric">Electric - $65</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Quantity</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={item.quantity}
+                          onChange={(e) => updateItem(index, { quantity: Number(e.target.value) })}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <Label>Memo (optional)</Label>
+                        <Textarea
+                          value={item.memo || ''}
+                          onChange={(e) => updateItem(index, { memo: e.target.value })}
+                          placeholder="Add notes..."
+                          rows={2}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {(item.type === 'garden-tool' || item.type === 'knife' || 
+                    item.type === 'cylinder-mower' || item.type === 'hand-mower' || 
+                    item.type === 'lawn-mower-blade') && (
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label>Quantity</Label>
@@ -248,6 +384,17 @@ export const SharpenSection: React.FC<SharpenSectionProps> = ({
                           ${pricing.unitPrice.toFixed(2)}
                         </div>
                       </div>
+                      {(item.type === 'cylinder-mower' || item.type === 'hand-mower' || item.type === 'lawn-mower-blade') && (
+                        <div className="col-span-2">
+                          <Label>Memo (optional)</Label>
+                          <Textarea
+                            value={item.memo || ''}
+                            onChange={(e) => updateItem(index, { memo: e.target.value })}
+                            placeholder="Add notes..."
+                            rows={2}
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
 
@@ -281,7 +428,9 @@ export const SharpenSection: React.FC<SharpenSectionProps> = ({
         <div className="text-xs text-muted-foreground space-y-1 pt-2 border-t">
           <p><strong>Chainsaw (14-16" & ≤60 links):</strong> Chain-only $18, Whole-saw $22</p>
           <p><strong>Chainsaw (≥18" or ≥61 links):</strong> Chain-only $25, Whole-saw $29</p>
-          <p><strong>Garden Tool:</strong> $18 each • <strong>Knife:</strong> $8 each</p>
+          <p><strong>Hedge Trimmer:</strong> Battery $95 • Petrol $95 • Electric $65</p>
+          <p><strong>Mowers:</strong> Cylinder $125 • Hand $75 • Blade $35</p>
+          <p><strong>Other:</strong> Garden Tool $18 • Knife $8</p>
         </div>
       </CardContent>
     </Card>
