@@ -168,6 +168,7 @@ export type Database = {
       brands: {
         Row: {
           active: boolean | null
+          category_id: string | null
           created_at: string
           id: string
           logo_url: string | null
@@ -180,6 +181,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean | null
+          category_id?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -192,6 +194,7 @@ export type Database = {
         }
         Update: {
           active?: boolean | null
+          category_id?: string | null
           created_at?: string
           id?: string
           logo_url?: string | null
@@ -202,7 +205,15 @@ export type Database = {
           updated_at?: string
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "brands_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       cash_sessions: {
         Row: {

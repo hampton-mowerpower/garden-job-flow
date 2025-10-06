@@ -195,7 +195,7 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) return;
-
+    
     setIsSaving(true);
     try {
       const trimmedName = newCategoryName.trim();
@@ -207,13 +207,15 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
       if (existing) {
         toast({
           title: "Already exists",
-          description: `"${trimmedName}" already exists in categories.`
+          description: `"${trimmedName}" already exists - selected existing category.`
         });
         onCategoryChange(existing.name);
         setShowCategoryInput(false);
         setNewCategoryName('');
         return;
       }
+
+      console.log('[Category Creation] Creating category:', { name: trimmedName });
 
       // Insert new category
       const { data, error } = await supabase
@@ -228,20 +230,28 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
 
       if (error) throw error;
 
+      console.log('[Category Creation] Success:', data);
+
       toast({
         title: "Category added",
         description: `"${trimmedName}" has been added.`
       });
 
-      // Select the new category
+      // Select the new category immediately
       onCategoryChange(data.name);
       setShowCategoryInput(false);
       setNewCategoryName('');
+      
+      // If we also need to create a brand, keep the flow going
+      if (showBrandInput && newBrandName.trim()) {
+        // The brand creation will now use this new category
+        await handleAddBrand();
+      }
     } catch (error: any) {
-      console.error('Error adding category:', error);
+      console.error('[Category Creation] Error:', error);
       toast({
         title: "Error",
-        description: "Failed to add category",
+        description: error.message || "Failed to add category",
         variant: "destructive"
       });
     } finally {
@@ -251,7 +261,7 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
 
   const handleAddBrand = async () => {
     if (!newBrandName.trim()) return;
-
+    
     setIsSaving(true);
     try {
       const trimmedName = newBrandName.trim();
@@ -263,7 +273,7 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
       if (existing) {
         toast({
           title: "Already exists",
-          description: `"${trimmedName}" already exists in brands.`
+          description: `"${trimmedName}" already exists - selected existing brand.`
         });
         onBrandChange(existing.name);
         setShowBrandInput(false);
@@ -271,17 +281,29 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
         return;
       }
 
-      // Insert new brand
+      // Get category_id if a category is currently selected
+      let categoryId: string | null = null;
+      if (machineCategory && machineCategory !== 'Other') {
+        const category = dbCategories.find(c => c.name === machineCategory);
+        categoryId = category?.id || null;
+      }
+
+      console.log('[Brand Creation] Creating brand:', { name: trimmedName, category_id: categoryId });
+
+      // Insert new brand with category link
       const { data, error } = await supabase
         .from('brands')
         .insert({
           name: trimmedName,
-          active: true
+          active: true,
+          category_id: categoryId
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      console.log('[Brand Creation] Success:', data);
 
       toast({
         title: "Brand added",
@@ -293,10 +315,10 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
       setShowBrandInput(false);
       setNewBrandName('');
     } catch (error: any) {
-      console.error('Error adding brand:', error);
+      console.error('[Brand Creation] Error:', error);
       toast({
         title: "Error",
-        description: "Failed to add brand",
+        description: error.message || "Failed to add brand",
         variant: "destructive"
       });
     } finally {

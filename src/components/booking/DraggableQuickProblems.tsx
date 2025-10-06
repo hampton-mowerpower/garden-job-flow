@@ -29,6 +29,27 @@ export const DraggableQuickProblems: React.FC<DraggableQuickProblemsProps> = ({
 
   useEffect(() => {
     loadProblems();
+
+    // Subscribe to realtime changes
+    const channel = supabase
+      .channel('quick-problems-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'quick_problems'
+        },
+        (payload) => {
+          console.log('[Realtime] Quick problems change:', payload);
+          loadProblems();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const loadProblems = async () => {
