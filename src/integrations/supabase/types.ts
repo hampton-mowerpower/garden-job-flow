@@ -14,6 +14,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_customer_history: {
+        Row: {
+          account_customer_id: string
+          amount: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          kind: string
+          ref_id: string | null
+          summary: string
+        }
+        Insert: {
+          account_customer_id: string
+          amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind: string
+          ref_id?: string | null
+          summary: string
+        }
+        Update: {
+          account_customer_id?: string
+          amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          kind?: string
+          ref_id?: string | null
+          summary?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_customer_history_account_customer_id_fkey"
+            columns: ["account_customer_id"]
+            isOneToOne: false
+            referencedRelation: "account_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       account_customer_messages: {
         Row: {
           account_customer_id: string
@@ -22,6 +63,7 @@ export type Database = {
           id: string
           message_type: string
           payload: Json | null
+          quotation_pdf_url: string | null
           sent_at: string | null
           status: string | null
         }
@@ -32,6 +74,7 @@ export type Database = {
           id?: string
           message_type: string
           payload?: Json | null
+          quotation_pdf_url?: string | null
           sent_at?: string | null
           status?: string | null
         }
@@ -42,6 +85,7 @@ export type Database = {
           id?: string
           message_type?: string
           payload?: Json | null
+          quotation_pdf_url?: string | null
           sent_at?: string | null
           status?: string | null
         }
@@ -228,6 +272,7 @@ export type Database = {
           created_at: string
           display_order: number | null
           id: string
+          is_transport_large: boolean | null
           name: string
           rate_default: number | null
           updated_at: string
@@ -237,6 +282,7 @@ export type Database = {
           created_at?: string
           display_order?: number | null
           id?: string
+          is_transport_large?: boolean | null
           name: string
           rate_default?: number | null
           updated_at?: string
@@ -246,6 +292,7 @@ export type Database = {
           created_at?: string
           display_order?: number | null
           id?: string
+          is_transport_large?: boolean | null
           name?: string
           rate_default?: number | null
           updated_at?: string
@@ -370,6 +417,7 @@ export type Database = {
           engine_serial: string | null
           id: string
           invoice_id: string
+          line_memo: string | null
           line_total: number
           line_type: string
           model_id: string | null
@@ -390,6 +438,7 @@ export type Database = {
           engine_serial?: string | null
           id?: string
           invoice_id: string
+          line_memo?: string | null
           line_total: number
           line_type: string
           model_id?: string | null
@@ -410,6 +459,7 @@ export type Database = {
           engine_serial?: string | null
           id?: string
           invoice_id?: string
+          line_memo?: string | null
           line_total?: number
           line_type?: string
           model_id?: string | null
@@ -702,12 +752,17 @@ export type Database = {
           recommendations: string | null
           service_deposit: number | null
           service_performed: string | null
+          sharpen_breakdown: string | null
           sharpen_items: Json | null
           sharpen_total_charge: number | null
           status: string
           subtotal: number
+          transport_breakdown: string | null
+          transport_delivery_distance_km: number | null
           transport_delivery_required: boolean | null
           transport_distance_km: number | null
+          transport_distance_source: string | null
+          transport_pickup_distance_km: number | null
           transport_pickup_required: boolean | null
           transport_size_tier: string | null
           transport_total_charge: number | null
@@ -742,12 +797,17 @@ export type Database = {
           recommendations?: string | null
           service_deposit?: number | null
           service_performed?: string | null
+          sharpen_breakdown?: string | null
           sharpen_items?: Json | null
           sharpen_total_charge?: number | null
           status?: string
           subtotal?: number
+          transport_breakdown?: string | null
+          transport_delivery_distance_km?: number | null
           transport_delivery_required?: boolean | null
           transport_distance_km?: number | null
+          transport_distance_source?: string | null
+          transport_pickup_distance_km?: number | null
           transport_pickup_required?: boolean | null
           transport_size_tier?: string | null
           transport_total_charge?: number | null
@@ -782,12 +842,17 @@ export type Database = {
           recommendations?: string | null
           service_deposit?: number | null
           service_performed?: string | null
+          sharpen_breakdown?: string | null
           sharpen_items?: Json | null
           sharpen_total_charge?: number | null
           status?: string
           subtotal?: number
+          transport_breakdown?: string | null
+          transport_delivery_distance_km?: number | null
           transport_delivery_required?: boolean | null
           transport_distance_km?: number | null
+          transport_distance_source?: string | null
+          transport_pickup_distance_km?: number | null
           transport_pickup_required?: boolean | null
           transport_size_tier?: string | null
           transport_total_charge?: number | null

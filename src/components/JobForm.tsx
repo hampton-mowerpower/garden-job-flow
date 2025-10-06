@@ -572,12 +572,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                 <Label>{t('problem.quick')}</Label>
                 <p className="text-sm text-muted-foreground mb-3">{t('problem.quick.help')}</p>
                 <div className="flex flex-wrap gap-2">
-                  {quickDescriptions.map((quickDesc) => (
-                    <Button
-                      key={quickDesc}
-                      variant="outline"
-                      size="sm"
-                      type="button"
+                {quickDescriptions.filter((desc, index, self) => 
+                  self.indexOf(desc) === index
+                ).map((quickDesc, index) => (
+                  <Button
+                    key={`${quickDesc}-${index}`}
+                    variant="outline"
+                    size="sm"
+                    type="button"
                       onClick={() => {
                         const currentDesc = problemDescription.trim();
                         const newDesc = currentDesc 
