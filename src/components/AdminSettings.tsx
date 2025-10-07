@@ -16,6 +16,7 @@ import { jobBookingDB } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
 import { PartsManager } from './PartsManager';
 import { EnhancedPartsCatalogue } from './parts/EnhancedPartsCatalogue';
+import { PartsCSVImporter } from './admin/PartsCSVImporter';
 
 // Simple unique ID generator for UI elements
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -394,7 +395,10 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
           </TabsContent>
 
           <TabsContent value="parts">
-            <EnhancedPartsCatalogue />
+            <div className="space-y-4">
+              <PartsCSVImporter />
+              <EnhancedPartsCatalogue />
+            </div>
           </TabsContent>
 
           <TabsContent value="descriptions">

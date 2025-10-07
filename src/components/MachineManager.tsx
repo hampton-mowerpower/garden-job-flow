@@ -515,6 +515,56 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
               }}
               onBlur={handleAddBrand}
               placeholder="Enter new brand name..."
+              disabled={isSaving || !machineCategory}
+              autoFocus
+            />
+            {isSaving && <Badge variant="secondary" className="text-xs">Saving...</Badge>}
+          </div>
+        ) : (
+          <Select
+            value={machineBrand}
+            onValueChange={(value) => {
+              if (value === '__other__') {
+                setShowBrandInput(true);
+                setNewBrandName('');
+              } else {
+                onBrandChange(value);
+                onModelChange('');
+              }
+            }}
+            disabled={!machineCategory}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={machineCategory ? "Select or add brand" : "Select category first"} />
+            </SelectTrigger>
+            <SelectContent>
+              {availableBrands.map((brand) => (
+                <SelectItem key={brand} value={brand}>
+                  {brand}
+                </SelectItem>
+              ))}
+              <SelectItem value="__other__">Others (Add New...)</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+      </div>
+        {showBrandInput ? (
+          <div className="space-y-2">
+            <Input
+              value={newBrandName}
+              onChange={(e) => setNewBrandName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddBrand();
+                }
+                if (e.key === 'Escape') {
+                  setShowBrandInput(false);
+                  setNewBrandName('');
+                }
+              }}
+              onBlur={handleAddBrand}
+              placeholder="Enter new brand name..."
               disabled={isSaving}
               autoFocus
             />
@@ -547,9 +597,23 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
           </Select>
         )}
       </div>
-
       <div>
         <Label htmlFor="machine-model">Model</Label>
+        <Input
+          id="machine-model"
+          value={machineModel}
+          onChange={(e) => {
+            onModelChange(e.target.value);
+            saveModel(e.target.value);
+          }}
+          onBlur={() => saveModel(machineModel)}
+          placeholder="Enter machine model"
+          disabled={!machineCategory || !machineBrand}
+        />
+      </div>
+    </div>
+  );
+};
         <Input
           id="machine-model"
           value={machineModel}

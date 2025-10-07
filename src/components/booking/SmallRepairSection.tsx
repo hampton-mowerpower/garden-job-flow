@@ -15,7 +15,7 @@ interface SmallRepairData {
   rateType: 'per_min' | 'per_hr';
   rate: number;
   calculatedTotal: number;
-  overrideTotal?: number;
+  overrideTotal: number | undefined;
   includeInTotals: boolean;
 }
 

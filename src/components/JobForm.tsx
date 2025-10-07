@@ -441,6 +441,11 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
 
       const labourRateForCategory = HAMPTON_MACHINE_CATEGORIES.find(c => c.name === machineCategory)?.labourRate || 100;
       
+      // Calculate labour total including small repair if enabled
+      const smallRepairLabour = smallRepairData.includeInTotals 
+        ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
+        : 0;
+      
       const jobData: Job = {
         id: job?.id || '', // Will be ignored for new jobs
         jobNumber: jobNumber || `JB${Date.now()}`,
@@ -473,11 +478,15 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         sharpenItems: sharpenData.items,
         sharpenTotalCharge: sharpenData.totalCharge,
         sharpenBreakdown: sharpenData.breakdown,
+        // Phase 2 fields
+        requestedFinishDate,
+        attachments,
         ...calculations,
         status,
         createdAt: job?.createdAt || new Date(),
         updatedAt: new Date(),
-        completedAt: status === 'completed' && !job?.completedAt ? new Date() : job?.completedAt
+        completedAt: status === 'completed' && !job?.completedAt ? new Date() : job?.completedAt,
+        hasAccount
       };
 
       const savedJob = await jobBookingDB.saveJob(jobData);
@@ -548,44 +557,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               <CardTitle>{t('customer.info')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="customer-name">{t('customer.name')} *</Label>
-                  <InputTranslated
-                    id="customer-name"
-                    value={customer.name}
-                    onChange={(value) => setCustomer({...customer, name: value})}
-                    placeholder={t('placeholder.customer.name')}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="customer-phone">{t('customer.phone')} *</Label>
-                  <Input
-                    id="customer-phone"
-                    value={customer.phone}
-                    onChange={(e) => setCustomer({...customer, phone: e.target.value})}
-                    placeholder={t('placeholder.customer.phone')}
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="customer-address">{t('customer.address')}</Label>
-                <GooglePlacesAutocomplete
-                  value={customer.address || ''}
-                  onChange={(value) => setCustomer({...customer, address: value})}
-                  placeholder={t('placeholder.customer.address')}
-                />
-              </div>
-              <div>
-                <Label htmlFor="customer-email">{t('customer.email')}</Label>
-                <Input
-                  id="customer-email"
-                  type="email"
-                  value={customer.email}
-                  onChange={(e) => setCustomer({...customer, email: e.target.value})}
-                  placeholder={t('placeholder.customer.email')}
-                />
-              </div>
+              <CustomerAutocomplete
+                customer={customer}
+                onCustomerChange={setCustomer}
+              />
               <div className="flex items-center gap-2 pt-2">
                 <Checkbox
                   id="has-account"
@@ -640,8 +615,22 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                   placeholder={t('placeholder.machine.serial')}
                 />
               </div>
+              
+              {/* Requested Finish Date */}
+              <RequestedFinishDatePicker
+                date={requestedFinishDate}
+                onChange={setRequestedFinishDate}
+              />
             </CardContent>
           </Card>
+
+          {/* Multi-Tool Attachments - Show only for Multi-Tool categories */}
+          {(machineCategory === 'Multi-Tool' || machineCategory.startsWith('Battery Multi-Tool')) && (
+            <MultiToolAttachments
+              attachments={attachments}
+              onChange={setAttachments}
+            />
+          )}
 
           {/* Problem Description */}
           <Card className="form-section">
@@ -690,6 +679,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             initialData={{
               items: sharpenData.items
             }}
+          />
+
+          {/* Small Repair Section */}
+          <SmallRepairSection
+            data={smallRepairData}
+            onChange={setSmallRepairData}
           />
 
           {/* Quotation Box */}
