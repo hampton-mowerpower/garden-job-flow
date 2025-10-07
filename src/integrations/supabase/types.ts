@@ -1279,6 +1279,7 @@ export type Database = {
           in_stock: boolean
           markup: number | null
           name: string
+          part_group: string | null
           sell_price: number
           sku: string
           source: string | null
@@ -1303,6 +1304,7 @@ export type Database = {
           in_stock?: boolean
           markup?: number | null
           name: string
+          part_group?: string | null
           sell_price: number
           sku: string
           source?: string | null
@@ -1327,6 +1329,7 @@ export type Database = {
           in_stock?: boolean
           markup?: number | null
           name?: string
+          part_group?: string | null
           sell_price?: number
           sku?: string
           source?: string | null
