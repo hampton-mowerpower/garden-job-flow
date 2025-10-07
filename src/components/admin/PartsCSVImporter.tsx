@@ -35,7 +35,7 @@ export const PartsCSVImporter: React.FC = () => {
       const headers = lines[0].split(',').map(h => h.trim());
 
       // Validate headers
-      const requiredHeaders = ['SKU', 'Equipment Category', 'Part Group', 'Part Name', 'Base Price', 'Sell Price', 'Tax Code', 'Active'];
+      const requiredHeaders = ['Equipment Category', 'Part Group', 'Part Name', 'Sell Price', 'Active'];
       const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
       
       if (missingHeaders.length > 0) {
@@ -49,33 +49,58 @@ export const PartsCSVImporter: React.FC = () => {
       // Process each row
       for (let i = 1; i < lines.length; i++) {
         try {
-          const values = lines[i].split(',').map(v => v.trim());
+          // Handle CSV with quoted values
           const row: any = {};
-          headers.forEach((header, idx) => {
-            row[header] = values[idx];
-          });
+          let currentCol = 0;
+          let currentValue = '';
+          let inQuotes = false;
+          
+          for (let char of lines[i]) {
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              row[headers[currentCol]] = currentValue.trim();
+              currentValue = '';
+              currentCol++;
+            } else {
+              currentValue += char;
+            }
+          }
+          row[headers[currentCol]] = currentValue.trim();
 
           // Skip inactive rows
           if (row['Active']?.toLowerCase() !== 'yes') continue;
 
+          const equipmentCategory = row['Equipment Category']?.trim();
+          const partGroup = row['Part Group']?.trim();
+          const partName = row['Part Name']?.trim();
+          
+          if (!equipmentCategory || !partName) {
+            errors++;
+            continue;
+          }
+
+          // Generate unique SKU if not provided
+          const sku = row['SKU']?.trim() || `${equipmentCategory.substring(0, 3).toUpperCase()}-${partGroup?.substring(0, 3).toUpperCase() || 'GEN'}-${Date.now()}-${i}`;
+          
           // Parse data
-          const partData = {
-            sku: row['SKU'] || `AUTO-${Date.now()}-${i}`,
-            category: row['Equipment Category']?.trim(),
-            name: row['Part Name']?.trim(),
-            base_price: parseFloat(row['Base Price']) || 0,
+          const partData: any = {
+            sku,
+            category: equipmentCategory,
+            name: partName,
+            base_price: parseFloat(row['Base Price']) || parseFloat(row['Sell Price']) || 0,
             sell_price: parseFloat(row['Sell Price']) || 0,
             in_stock: true,
             description: row['Notes'] || null,
             supplier: row['Competitor Site'] || null
           };
 
-          if (!partData.category || !partData.name) {
-            errors++;
-            continue;
+          // Add part_group if present (will need migration to add column)
+          if (partGroup) {
+            partData.part_group = partGroup;
           }
 
-          // Upsert part (insert or update)
+          // Upsert part (insert or update based on unique constraint)
           const { error } = await supabase
             .from('parts_catalogue')
             .upsert({

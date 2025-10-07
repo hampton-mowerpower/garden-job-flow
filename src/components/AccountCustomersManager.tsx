@@ -10,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Mail, MessageSquare, FileText, Clock, Search } from 'lucide-react';
+import { Plus, Edit, Mail, MessageSquare, FileText, Clock, Search, Eye } from 'lucide-react';
+import { AccountCustomer360View } from '@/components/account/AccountCustomer360View';
 
 interface AccountCustomer {
   id: string;
@@ -30,6 +31,8 @@ export function AccountCustomersManager() {
   const [editingCustomer, setEditingCustomer] = useState<Partial<AccountCustomer> | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState<AccountCustomer | null>(null);
+  const [show360View, setShow360View] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -266,30 +269,20 @@ export function AccountCustomersManager() {
                         <Button
                           variant="ghost"
                           size="sm"
+                          onClick={() => {
+                            setSelectedCustomer(customer);
+                            setShow360View(true);
+                          }}
+                          title="View customer 360°"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => openEditDialog(customer)}
                         >
                           <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Send reminder"
-                        >
-                          <Clock className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Send collection notice"
-                        >
-                          <Mail className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          title="Send statement"
-                        >
-                          <FileText className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
@@ -300,6 +293,13 @@ export function AccountCustomersManager() {
           )}
         </CardContent>
       </Card>
+
+      <AccountCustomer360View
+        customer={selectedCustomer}
+        open={show360View}
+        onOpenChange={setShow360View}
+        onUpdated={loadCustomers}
+      />
     </div>
   );
 }
