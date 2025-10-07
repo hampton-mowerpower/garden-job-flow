@@ -453,9 +453,12 @@ export type Database = {
           created_at: string
           email: string | null
           id: string
+          is_deleted: boolean | null
           name: string
           notes: string | null
           phone: string
+          postcode: string | null
+          suburb: string | null
           updated_at: string
         }
         Insert: {
@@ -463,9 +466,12 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_deleted?: boolean | null
           name: string
           notes?: string | null
           phone: string
+          postcode?: string | null
+          suburb?: string | null
           updated_at?: string
         }
         Update: {
@@ -473,9 +479,12 @@ export type Database = {
           created_at?: string
           email?: string | null
           id?: string
+          is_deleted?: boolean | null
           name?: string
           notes?: string | null
           phone?: string
+          postcode?: string | null
+          suburb?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -1746,6 +1755,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      fn_search_customers: {
+        Args: {
+          limit_count?: number
+          offset_count?: number
+          search_query: string
+        }
+        Returns: {
+          address: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          notes: string
+          phone: string
+          postcode: string
+          suburb: string
+          updated_at: string
+        }[]
+      }
       get_daily_takings: {
         Args: { end_date: string; start_date: string }
         Returns: {

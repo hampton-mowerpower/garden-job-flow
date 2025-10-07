@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,12 +6,13 @@ import { InputTranslated } from '@/components/ui/input-translated';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Search, Mail, Calendar, Trash2, Edit } from 'lucide-react';
+import { Plus, Search, Mail, Calendar, Trash2, Edit, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format } from 'date-fns';
 import { CustomerEdit } from './CustomerEdit';
+import { CustomerProfile } from './CustomerProfile';
 
 interface Customer {
   id: string;
@@ -40,6 +41,7 @@ export function CustomerManager() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [showReminderDialog, setShowReminderDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [reminderType, setReminderType] = useState<'service_due' | 'collection_ready'>('service_due');
   const [reminderDate, setReminderDate] = useState('');
   const [reminderMessage, setReminderMessage] = useState('');
@@ -53,6 +55,7 @@ export function CustomerManager() {
       const { data, error } = await supabase
         .from('customers_db')
         .select('*')
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -194,6 +197,17 @@ export function CustomerManager() {
                           size="sm"
                           onClick={() => {
                             setSelectedCustomer(customer);
+                            setShowProfileDialog(true);
+                          }}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          View
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedCustomer(customer);
                             setShowEditDialog(true);
                           }}
                         >
@@ -279,6 +293,12 @@ export function CustomerManager() {
           loadCustomers();
           setShowEditDialog(false);
         }}
+      />
+
+      <CustomerProfile
+        customer={selectedCustomer}
+        open={showProfileDialog}
+        onOpenChange={setShowProfileDialog}
       />
     </div>
   );

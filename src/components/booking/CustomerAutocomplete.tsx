@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { Check, ChevronsUpDown, User } from 'lucide-react';
+import { Check, ChevronsUpDown, User, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import {
@@ -18,6 +18,23 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+
+// Debounce hook
+const useDebounce = (value: string, delay: number) => {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+
+  return debouncedValue;
+};
 
 interface Customer {
   id: string;
@@ -46,25 +63,37 @@ export const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({
   const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
   const [pendingCustomer, setPendingCustomer] = useState<Partial<Customer> | null>(null);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 250);
 
-  // Load existing customers
-  useEffect(() => {
-    loadCustomers();
-  }, []);
-
-  const loadCustomers = async () => {
+  // Search customers using the database function
+  const searchCustomers = useCallback(async (query: string) => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('customers_db')
-        .select('*')
-        .order('name');
+      const { data, error } = await supabase.rpc('fn_search_customers', {
+        search_query: query,
+        limit_count: 50,
+        offset_count: 0
+      });
 
       if (error) throw error;
       setCustomers(data || []);
     } catch (error) {
-      console.error('Error loading customers:', error);
+      console.error('Error searching customers:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to search customers',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [toast]);
+
+  // Load customers on mount and when search changes
+  useEffect(() => {
+    searchCustomers(debouncedSearch);
+  }, [debouncedSearch, searchCustomers]);
 
   // Detect duplicates when customer data changes
   useEffect(() => {
@@ -161,11 +190,8 @@ export const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({
     }
   };
 
-  const filteredCustomers = customers.filter(c =>
-    c.name.toLowerCase().includes(customer.name?.toLowerCase() || '') ||
-    c.phone.includes(customer.phone || '') ||
-    (c.email && customer.email && c.email.includes(customer.email))
-  );
+  // Use searched customers directly
+  const displayCustomers = customers;
 
   return (
     <>
@@ -187,12 +213,23 @@ export const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-full p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Search customers..." />
+              <Command shouldFilter={false}>
+                <CommandInput 
+                  placeholder="Search customers..." 
+                  value={searchQuery}
+                  onValueChange={setSearchQuery}
+                />
                 <CommandList>
-                  <CommandEmpty>No customers found.</CommandEmpty>
+                  {loading ? (
+                    <div className="flex items-center justify-center p-4">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span className="ml-2 text-sm">Searching...</span>
+                    </div>
+                  ) : displayCustomers.length === 0 ? (
+                    <CommandEmpty>No customers found.</CommandEmpty>
+                  ) : null}
                   <CommandGroup>
-                    {filteredCustomers.slice(0, 10).map((c) => (
+                    {displayCustomers.map((c) => (
                       <CommandItem
                         key={c.id}
                         value={c.name}
