@@ -128,6 +128,7 @@ export interface Job {
   // Phase 2 additions
   requestedFinishDate?: Date; // Customer requested completion date
   attachments?: Array<{ name: string; problemDescription: string }>; // For Multi-Tool attachments
+  additionalNotes?: string; // Extra notes separate from problem description
 }
 
 export interface JobBookingStats {

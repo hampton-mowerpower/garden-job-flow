@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Job } from '@/types/job';
 import { Printer } from 'lucide-react';
 import { printThermal } from './ThermalPrint';
+import { printMultiToolLabels } from './booking/MultiToolLabelPrinter';
 import { useToast } from '@/hooks/use-toast';
 
 interface PrintPromptDialogProps {
@@ -20,6 +21,11 @@ export function PrintPromptDialog({ job, open, onOpenChange, onComplete }: Print
   const [printServiceLabel, setPrintServiceLabel] = useState(false);
   const [printCollectionReceipt, setPrintCollectionReceipt] = useState(false);
 
+  const isMultiTool = job.machineCategory === 'Multi-Tool' || job.machineCategory === 'Battery Multi-Tool';
+  const hasMultiToolAttachments = isMultiTool && (job.attachments || []).some(att => 
+    att.problemDescription && att.problemDescription.trim() !== ''
+  );
+
   const handleConfirm = async () => {
     // Close dialog immediately, don't wait for printing
     onOpenChange(false);
@@ -27,21 +33,41 @@ export function PrintPromptDialog({ job, open, onOpenChange, onComplete }: Print
     
     // Print in background without blocking
     if (printServiceLabel) {
-      printThermal({ job, type: 'service-label', width: 79 })
-        .then(() => {
-          toast({
-            title: 'Service Label Sent',
-            description: 'Service label sent to printer'
+      // For Multi-Tool with attachments, print one label per attachment
+      if (hasMultiToolAttachments) {
+        printMultiToolLabels(job)
+          .then(() => {
+            toast({
+              title: 'Multi-Tool Labels Sent',
+              description: `${(job.attachments || []).filter(att => att.problemDescription).length} service labels sent to printer`
+            });
+          })
+          .catch((error) => {
+            console.error('Multi-tool label print error:', error);
+            toast({
+              title: 'Label Print Failed',
+              description: error.message || 'Failed to print service labels',
+              variant: 'destructive'
+            });
           });
-        })
-        .catch((error) => {
-          console.error('Service label print error:', error);
-          toast({
-            title: 'Service Label Failed',
-            description: 'Failed to print service label',
-            variant: 'destructive'
+      } else {
+        // Standard single label
+        printThermal({ job, type: 'service-label', width: 79 })
+          .then(() => {
+            toast({
+              title: 'Service Label Sent',
+              description: 'Service label sent to printer'
+            });
+          })
+          .catch((error) => {
+            console.error('Service label print error:', error);
+            toast({
+              title: 'Service Label Failed',
+              description: 'Failed to print service label',
+              variant: 'destructive'
+            });
           });
-        });
+      }
     }
 
     if (printCollectionReceipt) {
@@ -93,7 +119,9 @@ export function PrintPromptDialog({ job, open, onOpenChange, onComplete }: Print
               onCheckedChange={(checked) => setPrintServiceLabel(checked as boolean)}
             />
             <Label htmlFor="print-service-label" className="cursor-pointer">
-              Print Service Label (79mm thermal)
+              {hasMultiToolAttachments 
+                ? `Print Service Labels (${(job.attachments || []).filter(att => att.problemDescription).length} labels for attachments)`
+                : 'Print Service Label (79mm thermal)'}
             </Label>
           </div>
 

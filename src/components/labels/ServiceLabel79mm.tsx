@@ -104,9 +104,19 @@ export const ServiceLabel79mm: React.FC<ServiceLabel79mmProps> = ({
       </div>
 
       {/* Additional Notes (if any) */}
+      {job.additionalNotes && (
+        <div className="mb-3 border-b border-gray-400 pb-2">
+          <div className="font-bold text-xs mb-1">ADDITIONAL NOTES:</div>
+          <div className="text-xs whitespace-pre-wrap">
+            {truncate(job.additionalNotes, 120)}
+          </div>
+        </div>
+      )}
+      
+      {/* Staff Notes (if any) */}
       {job.notes && (
         <div className="mb-3 border-b border-gray-400 pb-2">
-          <div className="font-bold text-xs mb-1">NOTES:</div>
+          <div className="font-bold text-xs mb-1">STAFF NOTES:</div>
           <div className="text-xs whitespace-pre-wrap">
             {truncate(job.notes, 120)}
           </div>

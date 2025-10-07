@@ -32,8 +32,43 @@ export const printThermal = async (props: ThermalPrintProps): Promise<void> => {
     }
   };
 
-  const printWindow = window.open('', '_blank');
+  // Try to open popup - with better error handling
+  let printWindow: Window | null = null;
+  try {
+    printWindow = window.open('', '_blank', 'width=800,height=600');
+  } catch (error) {
+    console.error('Failed to open popup:', error);
+  }
+  
   if (!printWindow) {
+    // Fallback: try using iframe method
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    
+    try {
+      const html = type === 'service-label' 
+        ? await generateServiceLabelHTML(job, width)
+        : await generateCollectionReceiptHTML(job, width, await getQRCodeBase64());
+      
+      const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (iframeDoc) {
+        iframeDoc.open();
+        iframeDoc.write(html);
+        iframeDoc.close();
+        
+        iframe.contentWindow?.print();
+        
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+        }, 1000);
+        return;
+      }
+    } catch (error) {
+      document.body.removeChild(iframe);
+      throw new Error('Failed to print. Please check your browser popup settings.');
+    }
+    
     throw new Error('Failed to open print window. Please allow popups for this site.');
   }
 
@@ -277,10 +312,25 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
     ${job.machineSerial ? `<div class="inline-row"><div class="inline-label">SERIAL:</div><div class="inline-value">${escapeHtml(job.machineSerial)}</div></div>` : ''}
   </div>
   
+  ${job.requestedFinishDate ? `
+  <div style="background: #ffeb3b; border: 3px solid #000; padding: 3mm; margin: 3mm 0; text-align: center;">
+    <div style="font-weight: 900; font-size: ${width === 79 ? '13px' : '11px'}; letter-spacing: 1px;">
+      ⚠️ REQUESTED FINISH: ${format(new Date(job.requestedFinishDate), 'dd MMM yyyy')}
+    </div>
+  </div>
+  ` : ''}
+  
   <div class="section">
     <div class="section-title">WORK REQUESTED</div>
     ${workRequested.map(item => `<div class="list-item">${escapeHtml(item)}</div>`).join('')}
   </div>
+  
+  ${job.additionalNotes ? `
+  <div class="section">
+    <div class="section-title">ADDITIONAL NOTES</div>
+    <div class="value" style="white-space: pre-wrap; word-wrap: break-word;">${escapeHtml(job.additionalNotes)}</div>
+  </div>
+  ` : ''}
   
   ${job.servicePerformed ? `
   <div class="section">

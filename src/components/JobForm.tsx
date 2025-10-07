@@ -120,9 +120,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [showLabelDialog, setShowLabelDialog] = useState(false);
   const [newJobData, setNewJobData] = useState<Job | null>(null);
   
-  // Phase 2: New state for requested finish date, attachments, small repair
+  // Phase 2: New state for requested finish date, attachments, small repair, additional notes
   const [requestedFinishDate, setRequestedFinishDate] = useState<Date | undefined>(undefined);
   const [attachments, setAttachments] = useState<Array<{ name: string; problemDescription: string }>>([]);
+  const [additionalNotes, setAdditionalNotes] = useState('');
   const [smallRepairData, setSmallRepairData] = useState({
     repairDetails: '',
     minutes: 0,
@@ -213,12 +214,17 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setMachineSerial(job.machineSerial || '');
       setProblemDescription(job.problemDescription);
       setNotes(job.notes || '');
+      setAdditionalNotes(job.additionalNotes || '');
       setServicePerformed(job.servicePerformed || '');
       setRecommendations(job.recommendations || '');
       setServiceDeposit(job.serviceDeposit || 0);
       setQuotationAmount(job.quotationAmount || 0);
       setDiscountType(job.discountType || 'PERCENT');
       setDiscountValue(job.discountValue || 0);
+      
+      // Phase 2 fields
+      setRequestedFinishDate(job.requestedFinishDate ? new Date(job.requestedFinishDate) : undefined);
+      setAttachments(job.attachments || []);
       
       // Migrate parts to include stable IDs if missing
       const migratedParts = job.parts.map(part => ({
@@ -457,6 +463,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         machineSerial,
         problemDescription,
         notes,
+        additionalNotes,
         servicePerformed,
         recommendations,
         serviceDeposit,
@@ -661,12 +668,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               />
               
               <div>
-                <Label htmlFor="notes">{t('problem.additional')}</Label>
+                <Label htmlFor="additional-notes">{t('problem.additional')}</Label>
                 <TextareaTranslated
-                  id="notes"
-                  value={notes}
-                  onChange={(value) => setNotes(value)}
-                  placeholder={t('placeholder.notes')}
+                  id="additional-notes"
+                  value={additionalNotes}
+                  onChange={(value) => setAdditionalNotes(value)}
+                  placeholder="Any additional details or special requests..."
                   rows={2}
                 />
               </div>

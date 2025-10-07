@@ -265,12 +265,11 @@ export const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="customer-address">Address *</Label>
+            <Label htmlFor="customer-address">Address</Label>
             <Input
               id="customer-address"
               value={customer.address || ''}
               onChange={(e) => onCustomerChange({ ...customer, address: e.target.value })}
-              required
             />
           </div>
 
