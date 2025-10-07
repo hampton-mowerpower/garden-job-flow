@@ -69,13 +69,6 @@ export const ServiceLabel79mm: React.FC<ServiceLabel79mmProps> = ({
             <strong>DUE:</strong> {dueDate}
           </div>
         )}
-        {job.requestedFinishDate && (
-          <div className="bg-yellow-100 border-2 border-yellow-600 p-2 mt-2">
-            <div className="font-bold text-sm">
-              REQUESTED FINISH: {format(new Date(job.requestedFinishDate), 'dd MMM yyyy')}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Customer Info */}
@@ -103,12 +96,21 @@ export const ServiceLabel79mm: React.FC<ServiceLabel79mmProps> = ({
         </div>
       </div>
 
-      {/* Additional Notes (if any) */}
+      {/* Additional Notes (if any) - directly under problem */}
       {job.additionalNotes && (
         <div className="mb-3 border-b border-gray-400 pb-2">
           <div className="font-bold text-xs mb-1">ADDITIONAL NOTES:</div>
           <div className="text-xs whitespace-pre-wrap">
             {truncate(job.additionalNotes, 120)}
+          </div>
+        </div>
+      )}
+
+      {/* Requested Finish Date - HIGHLIGHTED */}
+      {job.requestedFinishDate && (
+        <div className="mb-3 border-2 border-black bg-yellow-100 p-2">
+          <div className="font-bold text-sm">
+            ⚠ REQUESTED FINISH: {format(new Date(job.requestedFinishDate), 'dd MMM yyyy')}
           </div>
         </div>
       )}

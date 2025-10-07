@@ -454,6 +454,7 @@ export type Database = {
           email: string | null
           id: string
           is_deleted: boolean | null
+          merged_into_id: string | null
           name: string
           notes: string | null
           phone: string
@@ -467,6 +468,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_deleted?: boolean | null
+          merged_into_id?: string | null
           name: string
           notes?: string | null
           phone: string
@@ -480,6 +482,7 @@ export type Database = {
           email?: string | null
           id?: string
           is_deleted?: boolean | null
+          merged_into_id?: string | null
           name?: string
           notes?: string | null
           phone?: string
@@ -487,7 +490,15 @@ export type Database = {
           suburb?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_db_merged_into_id_fkey"
+            columns: ["merged_into_id"]
+            isOneToOne: false
+            referencedRelation: "customers_db"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_lines: {
         Row: {
@@ -1755,6 +1766,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      find_customer_duplicates: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          customer_id: string
+          duplicate_count: number
+          duplicate_ids: string[]
+          email: string
+          name: string
+          phone: string
+        }[]
+      }
       fn_search_customers: {
         Args: {
           limit_count?: number

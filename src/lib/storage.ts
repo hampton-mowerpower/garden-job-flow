@@ -385,6 +385,7 @@ class JobBookingDB {
       problemDescription: jobData.problem_description,
       servicePerformed: jobData.service_performed || '',
       notes: jobData.notes || '',
+      additionalNotes: jobData.additional_notes || '',
       recommendations: jobData.recommendations || '',
       partsRequired: jobData.parts_required || '',
       parts,
@@ -402,7 +403,21 @@ class JobBookingDB {
       balanceDue: jobData.balance_due || 0,
       status: jobData.status,
       createdAt: jobData.created_at,
-      updatedAt: jobData.updated_at
+      updatedAt: jobData.updated_at,
+      // Phase 2 fields
+      requestedFinishDate: jobData.requested_finish_date || undefined,
+      attachments: jobData.attachments || [],
+      // Transport fields
+      transportPickupRequired: jobData.transport_pickup_required || false,
+      transportDeliveryRequired: jobData.transport_delivery_required || false,
+      transportSizeTier: jobData.transport_size_tier || undefined,
+      transportDistanceKm: jobData.transport_distance_km || undefined,
+      transportTotalCharge: jobData.transport_total_charge || 0,
+      transportBreakdown: jobData.transport_breakdown || '',
+      // Sharpen fields
+      sharpenItems: jobData.sharpen_items || [],
+      sharpenTotalCharge: jobData.sharpen_total_charge || 0,
+      sharpenBreakdown: jobData.sharpen_breakdown || ''
     };
   }
 

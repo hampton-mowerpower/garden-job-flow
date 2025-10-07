@@ -6,13 +6,15 @@ import { InputTranslated } from '@/components/ui/input-translated';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Plus, Search, Mail, Calendar, Trash2, Edit, Eye } from 'lucide-react';
+import { Plus, Search, Mail, Calendar, Trash2, Edit, Eye, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { format } from 'date-fns';
 import { CustomerEdit } from './CustomerEdit';
 import { CustomerProfile } from './CustomerProfile';
+import { DuplicateDetectionDialog } from './customers/DuplicateDetectionDialog';
+import { Badge } from '@/components/ui/badge';
 
 interface Customer {
   id: string;
@@ -45,10 +47,41 @@ export function CustomerManager() {
   const [reminderType, setReminderType] = useState<'service_due' | 'collection_ready'>('service_due');
   const [reminderDate, setReminderDate] = useState('');
   const [reminderMessage, setReminderMessage] = useState('');
+  const [duplicates, setDuplicates] = useState<Customer[]>([]);
+  const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
 
   useEffect(() => {
     loadCustomers();
+    checkForDuplicates();
   }, []);
+
+  const checkForDuplicates = async () => {
+    try {
+      const { data, error } = await supabase.rpc('find_customer_duplicates');
+      
+      if (error) throw error;
+      
+      if (data && data.length > 0) {
+        // Get all duplicate IDs from the first group
+        const firstGroup = data[0];
+        const dupIds = [firstGroup.customer_id, ...(firstGroup.duplicate_ids || [])];
+        
+        // Fetch full customer details
+        const { data: dupCustomers, error: fetchError } = await supabase
+          .from('customers_db')
+          .select('*')
+          .in('id', dupIds)
+          .eq('is_deleted', false);
+        
+        if (!fetchError && dupCustomers && dupCustomers.length > 0) {
+          setDuplicates(dupCustomers);
+          setShowDuplicateDialog(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking duplicates:', error);
+    }
+  };
 
   const loadCustomers = async () => {
     try {
@@ -56,6 +89,7 @@ export function CustomerManager() {
         .from('customers_db')
         .select('*')
         .eq('is_deleted', false)
+        .is('merged_into_id', null)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -149,6 +183,10 @@ export function CustomerManager() {
           <h2 className="text-2xl font-bold">{t('customer.management')}</h2>
           <p className="text-muted-foreground">{t('customer.manage')}</p>
         </div>
+        <Button onClick={checkForDuplicates} variant="outline" className="gap-2">
+          <AlertTriangle className="w-4 h-4" />
+          Check Duplicates
+        </Button>
       </div>
 
       <Card>
@@ -299,6 +337,16 @@ export function CustomerManager() {
         customer={selectedCustomer}
         open={showProfileDialog}
         onOpenChange={setShowProfileDialog}
+      />
+
+      <DuplicateDetectionDialog
+        open={showDuplicateDialog}
+        onOpenChange={setShowDuplicateDialog}
+        duplicates={duplicates}
+        onResolved={() => {
+          loadCustomers();
+          checkForDuplicates();
+        }}
       />
     </div>
   );
