@@ -548,78 +548,16 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
           </Select>
         )}
       </div>
-        {showBrandInput ? (
-          <div className="space-y-2">
-            <Input
-              value={newBrandName}
-              onChange={(e) => setNewBrandName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleAddBrand();
-                }
-                if (e.key === 'Escape') {
-                  setShowBrandInput(false);
-                  setNewBrandName('');
-                }
-              }}
-              onBlur={handleAddBrand}
-              placeholder="Enter new brand name..."
-              disabled={isSaving}
-              autoFocus
-            />
-            {isSaving && <Badge variant="secondary" className="text-xs">Saving...</Badge>}
-          </div>
-        ) : (
-          <Select
-            value={machineBrand}
-            onValueChange={(value) => {
-              if (value === '__other__') {
-                setShowBrandInput(true);
-                setNewBrandName('');
-              } else {
-                onBrandChange(value);
-                onModelChange('');
-              }
-            }}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select or add brand" />
-            </SelectTrigger>
-            <SelectContent>
-              {availableBrands.map((brand) => (
-                <SelectItem key={brand} value={brand}>
-                  {brand}
-                </SelectItem>
-              ))}
-              <SelectItem value="__other__">Other (Add New...)</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
-      </div>
+
       <div>
         <Label htmlFor="machine-model">Model</Label>
-        <Input
-          id="machine-model"
-          value={machineModel}
-          onChange={(e) => {
-            onModelChange(e.target.value);
-            saveModel(e.target.value);
-          }}
-          onBlur={() => saveModel(machineModel)}
-          placeholder="Enter machine model"
-          disabled={!machineCategory || !machineBrand}
-        />
-      </div>
-    </div>
-  );
-};
         <Input
           id="machine-model"
           value={machineModel}
           onChange={(e) => onModelChange(e.target.value)}
           placeholder="Type or select model"
           list="model-list"
+          disabled={!machineCategory || !machineBrand}
         />
         <datalist id="model-list">
           {availableModels.map((model) => (
