@@ -120,6 +120,18 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
                 <div style={styles.panelText}>
                   <strong>Drop-off:</strong> {format(new Date(job.createdAt), 'dd MMM yyyy, HH:mm')}
                 </div>
+                {job.requestedFinishDate && (
+                  <div style={{
+                    ...styles.panelText,
+                    backgroundColor: '#fef3c7',
+                    border: '2px solid #f59e0b',
+                    padding: '8px',
+                    marginTop: '8px',
+                    fontWeight: 700
+                  }}>
+                    <strong>REQUESTED FINISH:</strong> {format(new Date(job.requestedFinishDate), 'dd MMM yyyy')}
+                  </div>
+                )}
                 <div style={styles.panelText}>
                   <strong>Status:</strong> <span style={{ textTransform: 'capitalize' }}>{job.status}</span>
                 </div>

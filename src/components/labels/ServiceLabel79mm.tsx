@@ -2,6 +2,7 @@ import React from 'react';
 import { Job } from '@/types/job';
 import { COMPANY_DETAILS, getCompanyHeader } from '@/constants/company';
 import QRCode from 'qrcode';
+import { format } from 'date-fns';
 
 interface ServiceLabel79mmProps {
   job: Job;
@@ -66,6 +67,13 @@ export const ServiceLabel79mm: React.FC<ServiceLabel79mmProps> = ({
         {dueDate && (
           <div className="text-sm">
             <strong>DUE:</strong> {dueDate}
+          </div>
+        )}
+        {job.requestedFinishDate && (
+          <div className="bg-yellow-100 border-2 border-yellow-600 p-2 mt-2">
+            <div className="font-bold text-sm">
+              REQUESTED FINISH: {format(new Date(job.requestedFinishDate), 'dd MMM yyyy')}
+            </div>
           </div>
         )}
       </div>

@@ -37,6 +37,11 @@ import { SharpenSection } from './booking/SharpenSection';
 import { DraggableQuickProblems } from './booking/DraggableQuickProblems';
 import { SharpenItem } from '@/utils/sharpenCalculator';
 import { MachineSizeTier } from '@/utils/transportCalculator';
+// Phase 2 imports
+import { CustomerAutocomplete } from './booking/CustomerAutocomplete';
+import { SmallRepairSection } from './booking/SmallRepairSection';
+import { MultiToolAttachments } from './booking/MultiToolAttachments';
+import { RequestedFinishDatePicker } from './booking/RequestedFinishDatePicker';
 
 // Simple unique ID generator for UI elements (not database records)
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -114,6 +119,19 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [hasAccount, setHasAccount] = useState(false);
   const [showLabelDialog, setShowLabelDialog] = useState(false);
   const [newJobData, setNewJobData] = useState<Job | null>(null);
+  
+  // Phase 2: New state for requested finish date, attachments, small repair
+  const [requestedFinishDate, setRequestedFinishDate] = useState<Date | undefined>(undefined);
+  const [attachments, setAttachments] = useState<Array<{ name: string; problemDescription: string }>>([]);
+  const [smallRepairData, setSmallRepairData] = useState({
+    repairDetails: '',
+    minutes: 0,
+    rateType: 'per_hr' as 'per_min' | 'per_hr',
+    rate: 100,
+    calculatedTotal: 0,
+    overrideTotal: undefined as number | undefined,
+    includeInTotals: false
+  });
   
   // Transport and Sharpen state
   const [transportData, setTransportData] = useState<{

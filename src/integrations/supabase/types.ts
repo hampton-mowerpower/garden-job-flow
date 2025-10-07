@@ -385,6 +385,68 @@ export type Database = {
         }
         Relationships: []
       }
+      customer_audit: {
+        Row: {
+          action: string
+          details: Json | null
+          id: string
+          merged_into_id: string | null
+          new_customer_id: string | null
+          old_customer_id: string | null
+          performed_at: string
+          performed_by: string | null
+        }
+        Insert: {
+          action: string
+          details?: Json | null
+          id?: string
+          merged_into_id?: string | null
+          new_customer_id?: string | null
+          old_customer_id?: string | null
+          performed_at?: string
+          performed_by?: string | null
+        }
+        Update: {
+          action?: string
+          details?: Json | null
+          id?: string
+          merged_into_id?: string | null
+          new_customer_id?: string | null
+          old_customer_id?: string | null
+          performed_at?: string
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_audit_merged_into_id_fkey"
+            columns: ["merged_into_id"]
+            isOneToOne: false
+            referencedRelation: "customers_db"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_audit_new_customer_id_fkey"
+            columns: ["new_customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers_db"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_audit_old_customer_id_fkey"
+            columns: ["old_customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers_db"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_audit_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       customers_db: {
         Row: {
           address: string
@@ -614,34 +676,102 @@ export type Database = {
           },
         ]
       }
+      job_labour: {
+        Row: {
+          calc_total: number
+          created_at: string
+          id: string
+          job_id: string
+          minutes: number
+          notes: string | null
+          override_total: number | null
+          rate_per_hr: number | null
+          rate_per_min: number | null
+          updated_at: string
+        }
+        Insert: {
+          calc_total?: number
+          created_at?: string
+          id?: string
+          job_id: string
+          minutes?: number
+          notes?: string | null
+          override_total?: number | null
+          rate_per_hr?: number | null
+          rate_per_min?: number | null
+          updated_at?: string
+        }
+        Update: {
+          calc_total?: number
+          created_at?: string
+          id?: string
+          job_id?: string
+          minutes?: number
+          notes?: string | null
+          override_total?: number | null
+          rate_per_hr?: number | null
+          rate_per_min?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_labour_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_parts: {
         Row: {
           created_at: string
           description: string | null
+          equipment_category: string | null
           id: string
+          is_custom: boolean | null
           job_id: string
+          overridden_price: number | null
+          override_reason: string | null
+          part_group: string | null
           part_id: string | null
           quantity: number
+          sku: string | null
+          tax_code: string | null
           total_price: number
           unit_price: number
         }
         Insert: {
           created_at?: string
           description?: string | null
+          equipment_category?: string | null
           id?: string
+          is_custom?: boolean | null
           job_id: string
+          overridden_price?: number | null
+          override_reason?: string | null
+          part_group?: string | null
           part_id?: string | null
           quantity?: number
+          sku?: string | null
+          tax_code?: string | null
           total_price: number
           unit_price: number
         }
         Update: {
           created_at?: string
           description?: string | null
+          equipment_category?: string | null
           id?: string
+          is_custom?: boolean | null
           job_id?: string
+          overridden_price?: number | null
+          override_reason?: string | null
+          part_group?: string | null
           part_id?: string | null
           quantity?: number
+          sku?: string | null
+          tax_code?: string | null
           total_price?: number
           unit_price?: number
         }
@@ -738,6 +868,7 @@ export type Database = {
           account_customer_id: string | null
           additional_notes: string | null
           assigned_technician: string | null
+          attachments: Json | null
           balance_due: number
           completed_at: string | null
           created_at: string
@@ -761,6 +892,7 @@ export type Database = {
           problem_description: string
           quotation_amount: number | null
           recommendations: string | null
+          requested_finish_date: string | null
           service_deposit: number | null
           service_performed: string | null
           sharpen_breakdown: string | null
@@ -783,6 +915,7 @@ export type Database = {
           account_customer_id?: string | null
           additional_notes?: string | null
           assigned_technician?: string | null
+          attachments?: Json | null
           balance_due?: number
           completed_at?: string | null
           created_at?: string
@@ -806,6 +939,7 @@ export type Database = {
           problem_description: string
           quotation_amount?: number | null
           recommendations?: string | null
+          requested_finish_date?: string | null
           service_deposit?: number | null
           service_performed?: string | null
           sharpen_breakdown?: string | null
@@ -828,6 +962,7 @@ export type Database = {
           account_customer_id?: string | null
           additional_notes?: string | null
           assigned_technician?: string | null
+          attachments?: Json | null
           balance_due?: number
           completed_at?: string | null
           created_at?: string
@@ -851,6 +986,7 @@ export type Database = {
           problem_description?: string
           quotation_amount?: number | null
           recommendations?: string | null
+          requested_finish_date?: string | null
           service_deposit?: number | null
           service_performed?: string | null
           sharpen_breakdown?: string | null

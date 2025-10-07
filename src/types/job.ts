@@ -124,6 +124,10 @@ export interface Job {
   
   // Customer account settings
   hasAccount?: boolean; // true if customer has 30-day account terms
+  
+  // Phase 2 additions
+  requestedFinishDate?: Date; // Customer requested completion date
+  attachments?: Array<{ name: string; problemDescription: string }>; // For Multi-Tool attachments
 }
 
 export interface JobBookingStats {
