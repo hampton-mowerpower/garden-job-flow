@@ -32,6 +32,39 @@ export function ThermalPrintButton({
   const handlePrint = async () => {
     setOpen(false);
     try {
+      // For Multi-Tool service labels with attachments, print separate labels
+      if (
+        type === 'service-label' && 
+        (job.machineCategory === 'Multi-Tool' || job.machineCategory === 'Battery Multi-Tool')
+      ) {
+        const attachmentsWithProblems = (job.attachments || []).filter(
+          att => att.problemDescription && att.problemDescription.trim() !== ''
+        );
+
+        if (attachmentsWithProblems.length > 0) {
+          // Print one label per attachment
+          for (const attachment of attachmentsWithProblems) {
+            const attachmentJob = {
+              ...job,
+              jobNumber: `${job.jobNumber} • ${attachment.name.toUpperCase()}`,
+              problemDescription: attachment.problemDescription,
+            };
+            
+            await printThermal({ job: attachmentJob, type, width: printerWidth });
+            
+            // Small delay between prints
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+          
+          toast({
+            title: 'Multi-tool labels sent',
+            description: `${attachmentsWithProblems.length} labels sent to printer`
+          });
+          return;
+        }
+      }
+
+      // Standard single label print
       await printThermal({ job, type, width: printerWidth });
       toast({
         title: 'Print sent',

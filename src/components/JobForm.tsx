@@ -42,6 +42,7 @@ import { CustomerAutocomplete } from './booking/CustomerAutocomplete';
 import { SmallRepairSection } from './booking/SmallRepairSection';
 import { MultiToolAttachments } from './booking/MultiToolAttachments';
 import { RequestedFinishDatePicker } from './booking/RequestedFinishDatePicker';
+import { PartsPicker } from './booking/PartsPicker';
 
 // Simple unique ID generator for UI elements (not database records)
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -877,97 +878,55 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             </CardContent>
           </Card>
 
-          {/* Parts List */}
-          <Card className="form-section">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{t('parts.title')}</span>
-                <Select value={selectedPartCategory} onValueChange={setSelectedPartCategory}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder={t('parts.filter')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All">All Parts</SelectItem>
-                    {PART_CATEGORIES.map(cat => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {parts.map((part) => (
-                  <div key={part.id} className="grid grid-cols-12 gap-2 items-end">
-                    <div className="col-span-5">
-                      <Label className="text-xs">{t('parts.name')}</Label>
-                      <Select
-                        value={part.partId || 'custom'}
-                        onValueChange={(value) => selectPresetPart(value, part.id)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('placeholder.parts.select')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="custom">{t('parts.custom')}</SelectItem>
-                          {getFilteredPartsForRow(part.partId).map(p => (
-                            <SelectItem key={p.id} value={p.id}>
-                              {p.name} ({formatCurrency(p.sellPrice)})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    {part.partId === 'custom' && (
-                      <div className="col-span-3">
-                        <Label className="text-xs">{t('parts.custom.name')}</Label>
-                        <Input
-                          value={part.partName}
-                          onChange={(e) => updatePart(part.id, { partName: e.target.value })}
-                          placeholder={t('placeholder.parts.name')}
-                        />
+          {/* Parts Picker - Catalog-based parts selection */}
+          {machineCategory && (
+            <PartsPicker
+              equipmentCategory={machineCategory}
+              onAddPart={(part, quantity, overridePrice) => {
+                const newPart: JobPart = {
+                  id: generateId(),
+                  partId: part.id,
+                  partName: part.name,
+                  quantity,
+                  unitPrice: overridePrice || part.sell_price,
+                  totalPrice: (overridePrice || part.sell_price) * quantity,
+                  category: part.category
+                };
+                setParts([...parts, newPart]);
+              }}
+            />
+          )}
+
+          {/* Added Parts List */}
+          {parts.length > 0 && (
+            <Card className="form-section">
+              <CardHeader>
+                <CardTitle>Added Parts ({parts.length})</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {parts.map((part) => (
+                    <div key={part.id} className="flex items-center justify-between p-3 border rounded-lg bg-accent/20">
+                      <div className="flex-1">
+                        <p className="font-medium">{part.partName}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Qty: {part.quantity} × ${part.unitPrice.toFixed(2)} = ${part.totalPrice.toFixed(2)}
+                        </p>
                       </div>
-                    )}
-                    
-                    <div className={part.partId === 'custom' ? 'col-span-1' : 'col-span-2'}>
-                      <Label className="text-xs">{t('parts.qty')}</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={part.quantity}
-                        onChange={(e) => updatePart(part.id, { quantity: parseInt(e.target.value) || 1 })}
-                      />
-                    </div>
-                    
-                    <div className="col-span-2">
-                      <Label className="text-xs">{t('parts.price')}</Label>
-                      <InputCurrency
-                        value={part.unitPrice}
-                        onChange={(value) => updatePart(part.id, { unitPrice: value })}
-                      />
-                    </div>
-                    
-                    <div className="col-span-1 flex items-end justify-end pb-2">
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
                         onClick={() => removePart(part.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
-                ))}
-                
-                <Button type="button" variant="outline" onClick={addPart} className="w-full">
-                  <Plus className="w-4 h-4 mr-2" />
-                  {t('parts.add')}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Labour */}
           <Card className="form-section">
