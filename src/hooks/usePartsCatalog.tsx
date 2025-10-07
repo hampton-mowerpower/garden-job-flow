@@ -35,7 +35,9 @@ export const usePartsCatalog = (equipmentCategory?: string) => {
         .is('deleted_at', null);
 
       if (equipmentCategory) {
-        query = query.eq('category', equipmentCategory);
+        // Normalize category: "Battery Multi-Tool" -> "Multi-Tool"
+        const normalizedCategory = equipmentCategory.replace(/^Battery\s+/i, '');
+        query = query.eq('category', normalizedCategory);
       }
 
       const { data, error: queryError } = await query.order('name');

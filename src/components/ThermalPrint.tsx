@@ -325,10 +325,10 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
     ${workRequested.map(item => `<div class="list-item">${escapeHtml(item)}</div>`).join('')}
   </div>
   
-  ${job.additionalNotes ? `
+  ${job.additionalNotes && job.additionalNotes.trim() ? `
   <div class="section">
     <div class="section-title">ADDITIONAL NOTES</div>
-    <div class="value" style="white-space: pre-wrap; word-wrap: break-word;">${escapeHtml(job.additionalNotes)}</div>
+    <div style="white-space: pre-wrap; word-wrap: break-word; font-weight: 900; font-size: ${width === 79 ? '11px' : '9px'}; text-transform: uppercase; padding: 2mm 0;">${escapeHtml(job.additionalNotes)}</div>
   </div>
   ` : ''}
   
