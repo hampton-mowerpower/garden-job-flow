@@ -112,6 +112,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   
   const [parts, setParts] = useState<JobPart[]>([]);
   const [labourHours, setLabourHours] = useState(0);
+  const [labourFee, setLabourFee] = useState(0);
+  const [lastEditedField, setLastEditedField] = useState<'hours' | 'fee'>('hours');
   const [status, setStatus] = useState<Job['status']>('pending');
   const [selectedPartCategory, setSelectedPartCategory] = useState<string>('All');
   const [quickDescriptions, setQuickDescriptions] = useState<string[]>([]);
@@ -165,6 +167,24 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   // Calculations
   const selectedCategory = HAMPTON_MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
   const labourRate = selectedCategory?.labourRate || 0;
+  
+  // Labour Fee <-> Hours sync
+  const handleLabourHoursChange = (hours: number) => {
+    const sanitized = Math.max(0, Math.min(100, hours || 0));
+    setLabourHours(sanitized);
+    setLabourFee(Math.round(sanitized * labourRate * 100) / 100);
+    setLastEditedField('hours');
+  };
+  
+  const handleLabourFeeChange = (fee: number) => {
+    const sanitized = Math.max(0, fee || 0);
+    setLabourFee(sanitized);
+    if (labourRate > 0) {
+      setLabourHours(Math.round((sanitized / labourRate) * 100) / 100);
+    }
+    setLastEditedField('fee');
+  };
+  
   const baseCalculations = calculateJobTotals(parts, labourHours, labourRate, discountType, discountValue);
   
   // Apply service deposit deduction to final total (balance due after deposit)
@@ -244,6 +264,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       }));
       setParts(migratedParts);
       setLabourHours(job.labourHours);
+      setLabourFee(job.labourHours * labourRate);
       setStatus(job.status);
       setChecklistUniversal(job.checklistUniversal || []);
       setChecklistCategory(job.checklistCategory || []);
@@ -944,20 +965,31 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               <CardTitle>{t('labour.title')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label>{t('labour.hours')}</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.25"
-                  value={labourHours}
-                  onChange={(e) => setLabourHours(parseFloat(e.target.value) || 0)}
-                  placeholder="0.00"
-                />
-                <p className="text-sm text-muted-foreground mt-1">
-                  {t('labour.rate')}: {formatCurrency(labourRate)}/hr
-                </p>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>{t('labour.hours')}</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.25"
+                    value={labourHours}
+                    onChange={(e) => handleLabourHoursChange(parseFloat(e.target.value) || 0)}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div>
+                  <Label>Labour Fee ($)</Label>
+                  <InputCurrency
+                    value={labourFee}
+                    onChange={handleLabourFeeChange}
+                    placeholder="0.00"
+                  />
+                </div>
               </div>
+              <p className="text-xs text-muted-foreground">
+                Fee ↔ Hours auto-sync. Rate: {formatCurrency(labourRate)}/hr
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -970,6 +1002,27 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               <CardTitle>{t('summary.title')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Summary Chips for Services */}
+              {(transportData.totalCharge > 0 || sharpenData.totalCharge > 0 || (smallRepairData.includeInTotals && smallRepairData.calculatedTotal > 0)) && (
+                <div className="flex flex-wrap gap-2 pb-3 border-b">
+                  {transportData.totalCharge > 0 && (
+                    <div className="px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-full text-xs font-medium">
+                      Transport: {formatCurrency(transportData.totalCharge)}
+                    </div>
+                  )}
+                  {sharpenData.totalCharge > 0 && (
+                    <div className="px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-full text-xs font-medium">
+                      Sharpen: {formatCurrency(sharpenData.totalCharge)}
+                    </div>
+                  )}
+                  {smallRepairData.includeInTotals && smallRepairData.calculatedTotal > 0 && (
+                    <div className="px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-full text-xs font-medium">
+                      Small Repair: {formatCurrency(smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)}
+                    </div>
+                  )}
+                </div>
+              )}
+              
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t('summary.parts')}</span>

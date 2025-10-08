@@ -337,12 +337,8 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
     <div class="section-title">LABOUR</div>
     ${job.labourHours && parseFloat(job.labourHours.toString()) > 0 ? `
     <div class="inline-row">
-      <div class="inline-label">HOURS:</div>
-      <div class="inline-value">${parseFloat(job.labourHours.toString()).toFixed(2)}h @ ${formatCurrency(parseFloat((job.labourRate || 0).toString()))}/hr</div>
-    </div>
-    <div class="inline-row">
-      <div class="inline-label">CHARGE:</div>
-      <div class="inline-value">${formatCurrency(parseFloat(job.labourHours.toString()) * parseFloat((job.labourRate || 0).toString()))}</div>
+      <div class="inline-label">LABOUR:</div>
+      <div class="inline-value">${parseFloat(job.labourHours.toString()).toFixed(2)}h × ${formatCurrency(parseFloat((job.labourRate || 0).toString()))}/hr = ${formatCurrency(parseFloat(job.labourHours.toString()) * parseFloat((job.labourRate || 0).toString()))}</div>
     </div>
     ` : ''}
     ${job.labourRate && parseFloat(job.labourRate.toString()) > 0 && (!job.labourHours || parseFloat(job.labourHours.toString()) === 0) ? `
@@ -350,6 +346,32 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
       <div class="inline-label">RATE:</div>
       <div class="inline-value">${formatCurrency(parseFloat(job.labourRate.toString()))}/hr</div>
     </div>
+    ` : ''}
+  </div>
+  ` : ''}
+  
+  ${job.transportTotalCharge && parseFloat(job.transportTotalCharge.toString()) > 0 ? `
+  <div class="section">
+    <div class="section-title">TRANSPORT</div>
+    <div class="inline-row">
+      <div class="inline-label">CHARGE:</div>
+      <div class="inline-value">${formatCurrency(parseFloat(job.transportTotalCharge.toString()))}</div>
+    </div>
+    ${job.transportBreakdown ? `
+    <div style="font-size: ${width === 79 ? '9px' : '8px'}; margin-top: 1mm;">${escapeHtml(job.transportBreakdown)}</div>
+    ` : ''}
+  </div>
+  ` : ''}
+  
+  ${job.sharpenTotalCharge && parseFloat(job.sharpenTotalCharge.toString()) > 0 ? `
+  <div class="section">
+    <div class="section-title">SHARPEN SERVICES</div>
+    <div class="inline-row">
+      <div class="inline-label">CHARGE:</div>
+      <div class="inline-value">${formatCurrency(parseFloat(job.sharpenTotalCharge.toString()))}</div>
+    </div>
+    ${job.sharpenBreakdown ? `
+    <div style="font-size: ${width === 79 ? '9px' : '8px'}; margin-top: 1mm;">${escapeHtml(job.sharpenBreakdown)}</div>
     ` : ''}
   </div>
   ` : ''}

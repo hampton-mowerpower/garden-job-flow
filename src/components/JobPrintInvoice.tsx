@@ -284,6 +284,72 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
                   </tr>
                 </>
               )}
+
+              {/* Transport Section */}
+              {job.transportTotalCharge && job.transportTotalCharge > 0 && (
+                <>
+                  <tr style={{...styles.tableRow, ...styles.groupHeader}}>
+                    <td colSpan={6} style={{...styles.tableCell, ...styles.alignLeft, fontWeight: 700}}>
+                      TRANSPORT SERVICES
+                    </td>
+                  </tr>
+                  {(() => {
+                    const transportExGST = job.transportTotalCharge / 1.1;
+                    const transportGST = transportExGST * 0.1;
+                    return (
+                      <tr style={styles.tableRow}>
+                        <td style={{...styles.tableCell, ...styles.alignLeft}}>Transport</td>
+                        <td style={{...styles.tableCell, ...styles.alignLeft}}>
+                          {job.transportBreakdown || 'Pick-up & Delivery'}
+                        </td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>1</td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {formatCurrency(transportExGST)}
+                        </td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {formatCurrency(transportGST)}
+                        </td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {formatCurrency(transportExGST)}
+                        </td>
+                      </tr>
+                    );
+                  })()}
+                </>
+              )}
+
+              {/* Sharpen Services Section */}
+              {job.sharpenTotalCharge && job.sharpenTotalCharge > 0 && (
+                <>
+                  <tr style={{...styles.tableRow, ...styles.groupHeader}}>
+                    <td colSpan={6} style={{...styles.tableCell, ...styles.alignLeft, fontWeight: 700}}>
+                      SHARPEN SERVICES
+                    </td>
+                  </tr>
+                  {(() => {
+                    const sharpenExGST = job.sharpenTotalCharge / 1.1;
+                    const sharpenGST = sharpenExGST * 0.1;
+                    return (
+                      <tr style={styles.tableRow}>
+                        <td style={{...styles.tableCell, ...styles.alignLeft}}>Sharpen</td>
+                        <td style={{...styles.tableCell, ...styles.alignLeft}}>
+                          {job.sharpenBreakdown || 'Blade Sharpening'}
+                        </td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>1</td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {formatCurrency(sharpenExGST)}
+                        </td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {formatCurrency(sharpenGST)}
+                        </td>
+                        <td style={{...styles.tableCell, ...styles.alignRight}}>
+                          {formatCurrency(sharpenExGST)}
+                        </td>
+                      </tr>
+                    );
+                  })()}
+                </>
+              )}
             </tbody>
           </table>
 
@@ -291,9 +357,14 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
           <div style={styles.totalsWrapper}>
             <div style={styles.totalsCard}>
               <div style={styles.totalsRow}>
-                <span style={styles.totalsLabel}>Subtotal (Parts + Labour, ex GST):</span>
+                <span style={styles.totalsLabel}>Subtotal (All Services, ex GST):</span>
                 <span style={styles.totalsValue}>
-                  {formatCurrency((job.partsSubtotal + job.labourTotal) / 1.1)}
+                  {(() => {
+                    const partsLabourExGST = (job.partsSubtotal + job.labourTotal) / 1.1;
+                    const transportExGST = (job.transportTotalCharge || 0) / 1.1;
+                    const sharpenExGST = (job.sharpenTotalCharge || 0) / 1.1;
+                    return formatCurrency(partsLabourExGST + transportExGST + sharpenExGST);
+                  })()}
                 </span>
               </div>
               {job.discountValue && job.discountValue > 0 && (
@@ -309,13 +380,32 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
               <div style={styles.totalsRow}>
                 <span style={styles.totalsLabel}>GST Total (sum of line GST):</span>
                 <span style={styles.totalsValue}>
-                  {formatCurrency(job.gst)}
+                  {(() => {
+                    const partsLabourGST = ((job.partsSubtotal + job.labourTotal) / 1.1) * 0.1;
+                    const transportGST = ((job.transportTotalCharge || 0) / 1.1) * 0.1;
+                    const sharpenGST = ((job.sharpenTotalCharge || 0) / 1.1) * 0.1;
+                    const discount = job.discountValue && job.discountValue > 0 
+                      ? (job.discountType === 'PERCENT' ? ((job.partsSubtotal + job.labourTotal) / 1.1) * (job.discountValue / 100) : job.discountValue)
+                      : 0;
+                    const subtotalAfterDiscount = (job.partsSubtotal + job.labourTotal) / 1.1 + (job.transportTotalCharge || 0) / 1.1 + (job.sharpenTotalCharge || 0) / 1.1 - discount;
+                    return formatCurrency(subtotalAfterDiscount * 0.1);
+                  })()}
                 </span>
               </div>
               <div style={{...styles.totalsRow, ...styles.totalsBold}}>
                 <span style={styles.totalsLabel}>Grand Total (inc GST):</span>
                 <span style={styles.totalsValue}>
-                  {formatCurrency(job.grandTotal)}
+                  {(() => {
+                    const partsLabourTotal = job.partsSubtotal + job.labourTotal;
+                    const transportTotal = job.transportTotalCharge || 0;
+                    const sharpenTotal = job.sharpenTotalCharge || 0;
+                    const discount = job.discountValue && job.discountValue > 0 
+                      ? (job.discountType === 'PERCENT' ? (partsLabourTotal / 1.1) * (job.discountValue / 100) : job.discountValue)
+                      : 0;
+                    const subtotalExGST = (partsLabourTotal / 1.1) + (transportTotal / 1.1) + (sharpenTotal / 1.1) - discount;
+                    const gstAmount = subtotalExGST * 0.1;
+                    return formatCurrency(subtotalExGST + gstAmount);
+                  })()}
                 </span>
               </div>
               {job.serviceDeposit > 0 && (
