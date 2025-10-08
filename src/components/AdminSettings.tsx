@@ -18,6 +18,8 @@ import { PartsManager } from './PartsManager';
 import { EnhancedPartsCatalogue } from './parts/EnhancedPartsCatalogue';
 import { PartsCSVImporter } from './admin/PartsCSVImporter';
 import { PartsImportTester } from './admin/PartsImportTester';
+import { PartsManagementAdmin } from './admin/PartsManagementAdmin';
+import { CategoriesLabourAdmin } from './admin/CategoriesLabourAdmin';
 
 // Simple unique ID generator for UI elements
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -333,74 +335,11 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
           </TabsList>
 
           <TabsContent value="categories">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Machine Categories & Labour Rates
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={addCategory}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Category
-                    </Button>
-                    <Button variant="default" size="sm" onClick={saveCategories}>
-                      <Save className="w-4 h-4 mr-2" />
-                      Save Changes
-                    </Button>
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {categories.map((category, index) => (
-                    <div key={category.id} className="grid grid-cols-12 gap-4 items-end p-4 border rounded-lg">
-                      <div className="col-span-3">
-                        <Label>Category Name</Label>
-                        <Input
-                          value={category.name}
-                          onChange={(e) => updateCategory(index, { name: e.target.value })}
-                          placeholder="Enter category name"
-                        />
-                      </div>
-                      <div className="col-span-2">
-                        <Label>Labour Rate</Label>
-                        <InputCurrency
-                          value={category.labourRate}
-                          onChange={(value) => updateCategory(index, { labourRate: value })}
-                        />
-                      </div>
-                      <div className="col-span-5">
-                        <Label>Common Brands (comma separated)</Label>
-                        <Input
-                          value={category.commonBrands.join(', ')}
-                          onChange={(e) => updateCategory(index, { 
-                            commonBrands: e.target.value.split(',').map(b => b.trim()).filter(b => b)
-                          })}
-                          placeholder="Honda, Victa, Husqvarna"
-                        />
-                      </div>
-                      <div className="col-span-1">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeCategory(index)}
-                          className="w-full"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <CategoriesLabourAdmin />
           </TabsContent>
 
           <TabsContent value="parts">
-            <div className="space-y-4">
-              <PartsCSVImporter />
-              <PartsImportTester />
-              <EnhancedPartsCatalogue />
-            </div>
+            <PartsManagementAdmin />
           </TabsContent>
 
           <TabsContent value="descriptions">
