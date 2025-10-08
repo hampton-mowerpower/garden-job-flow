@@ -13,6 +13,7 @@ export function useAutoSave<T>({ data, onSave, delay = 500, enabled = true }: Us
   const saveTimeoutRef = useRef<NodeJS.Timeout>();
   const dataRef = useRef<T>(data);
   const isSavingRef = useRef(false);
+  const lastSavedDataRef = useRef<string>('');
 
   // Update data ref whenever data changes
   useEffect(() => {
@@ -22,9 +23,14 @@ export function useAutoSave<T>({ data, onSave, delay = 500, enabled = true }: Us
   const triggerSave = useCallback(async () => {
     if (!enabled || isSavingRef.current) return;
 
+    // Skip save if data hasn't changed
+    const currentDataString = JSON.stringify(dataRef.current);
+    if (currentDataString === lastSavedDataRef.current) return;
+
     isSavingRef.current = true;
     try {
       await onSave(dataRef.current);
+      lastSavedDataRef.current = currentDataString;
     } catch (error) {
       console.error('Auto-save failed:', error);
       toast({

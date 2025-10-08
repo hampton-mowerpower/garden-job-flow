@@ -404,8 +404,10 @@ class JobBookingDB {
       status: jobData.status,
       createdAt: jobData.created_at,
       updatedAt: jobData.updated_at,
-      // Phase 2 fields
-      requestedFinishDate: jobData.requested_finish_date || undefined,
+      // Phase 2 fields - ensure proper date parsing
+      requestedFinishDate: jobData.requested_finish_date 
+        ? new Date(jobData.requested_finish_date)
+        : undefined,
       attachments: jobData.attachments || [],
       // Transport fields
       transportPickupRequired: jobData.transport_pickup_required || false,

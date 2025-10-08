@@ -35,11 +35,18 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
   onAddPart
 }) => {
   const { toast } = useToast();
-  const { parts, loading, error } = usePartsCatalog(equipmentCategory);
+  const { parts, loading, error, refetch } = usePartsCatalog(equipmentCategory);
   const [searchQuery, setSearchQuery] = useState('');
   const [quantities, setQuantities] = useState<Record<string, number>>({});
   const [overridePrices, setOverridePrices] = useState<Record<string, number>>({});
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [showAddNew, setShowAddNew] = useState(false);
+  const [newPart, setNewPart] = useState({
+    name: '',
+    sku: '',
+    price: 0,
+    quantity: 1
+  });
 
   // Group parts by part_group
   const partsByGroup = useMemo(() => {
@@ -128,6 +135,68 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
     }));
   };
 
+  const handleAddNewPart = async () => {
+    if (!newPart.name.trim() || newPart.price <= 0) {
+      toast({
+        title: 'Validation Error',
+        description: 'Part name and price are required',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      // Create new part in catalog
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { data, error } = await supabase
+        .from('parts_catalogue')
+        .insert({
+          name: newPart.name,
+          sku: newPart.sku || `CUSTOM-${Date.now()}`,
+          category: equipmentCategory,
+          base_price: newPart.price,
+          sell_price: newPart.price,
+          in_stock: true,
+          part_group: 'Custom Parts'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Add to job immediately
+      const part: Part = {
+        id: data.id,
+        sku: data.sku,
+        name: data.name,
+        category: data.category,
+        base_price: data.base_price,
+        sell_price: data.sell_price
+      };
+
+      onAddPart(part, newPart.quantity);
+
+      toast({
+        title: 'Part created',
+        description: `${newPart.name} added to catalog and job`
+      });
+
+      // Reset form
+      setNewPart({ name: '', sku: '', price: 0, quantity: 1 });
+      setShowAddNew(false);
+
+      // Refresh parts list
+      refetch();
+    } catch (error: any) {
+      console.error('Error adding new part:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add new part',
+        variant: 'destructive'
+      });
+    }
+  };
+
   // Auto-expand first group if only one group
   useEffect(() => {
     const groups = Object.keys(filteredPartsByGroup);
@@ -190,7 +259,17 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Parts for {equipmentCategory}</span>
-          <Badge variant="secondary">{parts.length} parts</Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">{parts.length} parts</Badge>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowAddNew(!showAddNew)}
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add New Part
+            </Button>
+          </div>
         </CardTitle>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -201,6 +280,69 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
             className="pl-10"
           />
         </div>
+        
+        {/* Add New Part Form */}
+        {showAddNew && (
+          <div className="mt-4 p-4 border rounded-lg bg-accent/10">
+            <h4 className="font-semibold mb-3">Add New Part to Catalog</h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Part Name *</Label>
+                <Input
+                  value={newPart.name}
+                  onChange={(e) => setNewPart(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="e.g., Throttle Return Spring"
+                />
+              </div>
+              <div>
+                <Label>SKU</Label>
+                <Input
+                  value={newPart.sku}
+                  onChange={(e) => setNewPart(prev => ({ ...prev, sku: e.target.value }))}
+                  placeholder="Optional"
+                />
+              </div>
+              <div>
+                <Label>Sell Price * ($)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={newPart.price || ''}
+                  onChange={(e) => setNewPart(prev => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                  placeholder="0.00"
+                />
+              </div>
+              <div>
+                <Label>Quantity</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  value={newPart.quantity}
+                  onChange={(e) => setNewPart(prev => ({ ...prev, quantity: parseInt(e.target.value) || 1 }))}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowAddNew(false);
+                  setNewPart({ name: '', sku: '', price: 0, quantity: 1 });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleAddNewPart}
+              >
+                Create & Add to Job
+              </Button>
+            </div>
+          </div>
+        )}
       </CardHeader>
       <CardContent className="space-y-2 max-h-[600px] overflow-y-auto">
         {Object.keys(filteredPartsByGroup).length === 0 ? (

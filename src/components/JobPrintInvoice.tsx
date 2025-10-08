@@ -168,6 +168,13 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
             </div>
           )}
 
+          {job.additionalNotes && (
+            <div style={styles.concernSection}>
+              <div style={styles.concernTitle}>ADDITIONAL NOTES</div>
+              <div style={styles.concernText}>{job.additionalNotes}</div>
+            </div>
+          )}
+
           {job.servicePerformed && (
             <div style={styles.concernSection}>
               <div style={styles.concernTitle}>TECHNICIAN DIAGNOSIS</div>
@@ -311,6 +318,14 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
                   {formatCurrency(job.grandTotal)}
                 </span>
               </div>
+              {job.serviceDeposit > 0 && (
+                <div style={{...styles.totalsRow, color: '#16a34a'}}>
+                  <span style={styles.totalsLabel}>Deposit Applied:</span>
+                  <span style={styles.totalsValue}>
+                    -{formatCurrency(job.serviceDeposit)}
+                  </span>
+                </div>
+              )}
               {payments.length > 0 && (
                 <>
                   <div style={{...styles.totalsRow, borderTop: '2px solid #e5e7eb', marginTop: '8px', paddingTop: '8px'}}>
@@ -333,7 +348,7 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
               <div style={{...styles.totalsRow, ...styles.totalsBold, ...styles.balanceDue}}>
                 <span style={styles.totalsLabel}>Balance Due:</span>
                 <span style={styles.totalsValue}>
-                  {formatCurrency(balanceDue)}
+                  {formatCurrency(Math.max(0, balanceDue - (job.serviceDeposit || 0)))}
                 </span>
               </div>
               {isPaid && (

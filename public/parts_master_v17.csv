@@ -1,0 +1,938 @@
+SKU,Equipment Category,Part Group,Part Name,Base Price,Sell Price,Tax Code,Active,Competitor Site,Competitor Item,Competitor Price (AUD),Notes
+,Blower & Vacuum,Carburettor,Air Filter,18.33,22.0,,Yes,,,,
+,Blower & Vacuum,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,
+,Blower & Vacuum,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Blower & Vacuum,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,
+,Blower & Vacuum,Carburettor,Fuel Filter,13.33,16.0,,Yes,,,,
+,Blower & Vacuum,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,
+,Blower & Vacuum,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Carburettor,Primer,18.33,22.0,,Yes,,,,
+,Blower & Vacuum,Carburettor,Throttle Cable,32.5,39.0,,Yes,,,,
+,Blower & Vacuum,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Carburettor,Vent,13.33,16.0,,Yes,,,,
+,Blower & Vacuum,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Engine / Sundry Parts,Carburettor Assembly (New),81.67,98.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Blower & Vacuum,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Blower & Vacuum,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Blower & Vacuum,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Blower & Vacuum,Engine / Sundry Parts,Starter Assembly,62.5,75.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Blower & Vacuum,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Logistics / Service,Disposal,7.5,9.0,,Yes,,,,
+,Blower & Vacuum,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Parts,Carburettor Throttle Valve,32.5,39.0,,Yes,,,,
+,Blower & Vacuum,Parts,Clean Air Filter,8.33,10.0,,Yes,,,,
+,Blower & Vacuum,Parts,New Speed Head (Big),57.5,69.0,,Yes,,,,
+,Blower & Vacuum,Parts,New Speed Head (Small),49.17,59.0,,Yes,,,,
+,Blower & Vacuum,Parts,Starter Pulley,29.17,35.0,,Yes,,,,
+,Blower & Vacuum,Parts,Starter Spring,24.17,29.0,,Yes,,,,
+,Blower & Vacuum,Parts,Starter repair (incl. cord),37.5,45.0,,Yes,,,,
+,Blower & Vacuum,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Blower & Vacuum,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Blower & Vacuum,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Brushcutter / Line Trimmer,Air Filter,18.33,22.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Brushcutter / Line Trimmer,Blade (3T/8T) & Fixings,35.0,42.0,,Yes,,,,nan | Baseline autofill
+,Brushcutter / Line Trimmer,Brushcutter / Line Trimmer,Flexible Drive Cable,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Brushcutter / Line Trimmer,Fuel Filter,13.33,16.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Brushcutter / Line Trimmer,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Brushcutter / Line Trimmer,Fuel Tap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Brushcutter / Line Trimmer,Gear Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Brushcutter / Line Trimmer,Harness / Strap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Brushcutter / Line Trimmer,Spool,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Brushcutter / Line Trimmer,Throttle Trigger/Cable,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Brushcutter / Line Trimmer,Trimmer Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Brushcutter / Line Trimmer,Trimmer Line (various),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Carburettor,Air Filter,18.33,22.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Brushcutter / Line Trimmer,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Carburettor,Fuel Filter,13.33,16.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Carburettor,Primer,18.33,22.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Carburettor,Throttle Cable,32.5,39.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Carburettor,Vent,13.33,16.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Carburettor Assembly (New),81.67,98.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Starter Assembly,62.5,75.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Brushcutter / Line Trimmer,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Logistics / Service,Disposal,7.5,9.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Parts,Carburettor Throttle Valve,32.5,39.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Parts,Clean Air Filter,8.33,10.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Parts,New Speed Head (Big),57.5,69.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Parts,New Speed Head (Small),49.17,59.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Parts,Starter Pulley,29.17,35.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Parts,Starter Spring,24.17,29.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Parts,Starter repair (incl. cord),37.5,45.0,,Yes,,,,
+,Brushcutter / Line Trimmer,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Brushcutter / Line Trimmer,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Brushcutter / Line Trimmer,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Carburettor,Air Filter,18.33,22.0,,Yes,,,,
+,Chainsaw,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,
+,Chainsaw,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Chainsaw,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,
+,Chainsaw,Carburettor,Fuel Filter,13.33,16.0,,Yes,,,,
+,Chainsaw,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,
+,Chainsaw,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Carburettor,Primer,18.33,22.0,,Yes,,,,
+,Chainsaw,Carburettor,Throttle Cable,32.5,39.0,,Yes,,,,
+,Chainsaw,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Carburettor,Vent,13.33,16.0,,Yes,,,,
+,Chainsaw,Chainsaw,Bar & Chain Oil,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Chainsaw,Chainsaw,Chain,29.17,35.0,,Yes,,,,nan | Baseline autofill
+,Chainsaw,Chainsaw,Chain Catcher,7.5,9.0,,Yes,,,,nan | Baseline autofill
+,Chainsaw,Chainsaw,Clutch,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Chainsaw,Drive Sprocket / Rim Sprocket,29.17,35.0,,Yes,,,,nan | Baseline autofill
+,Chainsaw,Chainsaw,Guide Bar,57.5,69.0,,Yes,,,,nan | Baseline autofill
+,Chainsaw,Chainsaw,Oil Pump,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Engine / Sundry Parts,Carburettor Assembly (New),81.67,98.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Chainsaw,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Chainsaw,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Chainsaw,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Chainsaw,Engine / Sundry Parts,Starter Assembly,62.5,75.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Chainsaw,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Logistics / Service,Disposal,7.5,9.0,,Yes,,,,
+,Chainsaw,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Parts,Carburettor Throttle Valve,32.5,39.0,,Yes,,,,
+,Chainsaw,Parts,Clean Air Filter,8.33,10.0,,Yes,,,,
+,Chainsaw,Parts,Starter Pulley,29.17,35.0,,Yes,,,,
+,Chainsaw,Parts,Starter Spring,24.17,29.0,,Yes,,,,
+,Chainsaw,Parts,Starter repair (incl. cord),37.5,45.0,,Yes,,,,
+,Chainsaw,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Chainsaw,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chainsaw,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Carburettor,Air Filter,26.67,32.0,,Yes,,,,
+,Chipper / Shredder / Mulcher,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,nan | Baseline autofill
+,Chipper / Shredder / Mulcher,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Chipper / Shredder / Mulcher,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Chipper / Shredder / Mulcher,Carburettor,Fuel Filter,20.83,25.0,,Yes,,,,
+,Chipper / Shredder / Mulcher,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Chipper / Shredder / Mulcher,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Carburettor,Primer,15.83,19.0,,Yes,,,,
+,Chipper / Shredder / Mulcher,Carburettor,Throttle Cable,40.83,49.0,,Yes,,,,nan | Baseline autofill
+,Chipper / Shredder / Mulcher,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Carburettor,Vent,13.33,16.0,,Yes,,,,nan | Baseline autofill
+,Chipper / Shredder / Mulcher,Chipper Extras,Blade,35.0,42.0,,Yes,,,,nan | Baseline autofill
+,Chipper / Shredder / Mulcher,Chipper Extras,Blade Sharpen,54.17,65.0,,Yes,,,,
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Carburettor Assembly (New),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Starter Assembly,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Logistics / Service,Disposal,10.0,12.0,,Yes,,,,
+,Chipper / Shredder / Mulcher,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Chipper / Shredder / Mulcher,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Chipper / Shredder / Mulcher,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Carburettor,Air Filter,55.0,66.0,,Yes,,,,
+,Concrete / Floor Saw,Carburettor,Carburettor Gasket Kit,57.5,69.0,,Yes,,,,
+,Concrete / Floor Saw,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Concrete / Floor Saw,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Concrete / Floor Saw,Carburettor,Fuel Filter,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Concrete / Floor Saw,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Concrete / Floor Saw,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Carburettor,Primer,18.33,22.0,,Yes,,,,nan | Baseline autofill
+,Concrete / Floor Saw,Carburettor,Throttle Cable,40.83,49.0,,Yes,,,,nan | Baseline autofill
+,Concrete / Floor Saw,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Carburettor,Vent,13.33,16.0,,Yes,,,,nan | Baseline autofill
+,Concrete / Floor Saw,Concrete Saw Extras,Diamond Blade,149.0,178.8,,Yes,bwmachinery.com.au,"BWM AC40 Diamond Blade 14""",149.0,Sell = Base × 1.2 (competitor verified)
+,Concrete / Floor Saw,Concrete Saw Extras,Drive Belt,49.17,59.0,,Yes,,,,
+,Concrete / Floor Saw,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Engine / Sundry Parts,Carburettor Assembly (New),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Concrete / Floor Saw,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Concrete / Floor Saw,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Concrete / Floor Saw,Engine / Sundry Parts,Starter Assembly,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Logistics / Service,Disposal,10.0,12.0,,Yes,,,,
+,Concrete / Floor Saw,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Parts,Starter repair (incl. cord),54.17,65.0,,Yes,,,,
+,Concrete / Floor Saw,Parts,Water Housing,15.0,18.0,,Yes,,,,
+,Concrete / Floor Saw,Parts,Water Line,15.83,19.0,,Yes,,,,
+,Concrete / Floor Saw,Parts,Water Switch,29.17,35.0,,Yes,,,,
+,Concrete / Floor Saw,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Concrete / Floor Saw,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Concrete / Floor Saw,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Carburettor,Air Filter,20.0,24.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Carburettor,Fuel Filter,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Carburettor,Primer,18.33,22.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Carburettor,Throttle Cable,40.83,49.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Carburettor,Vent,13.33,16.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Cylinder / Reel Extras,Chain Replacement,29.17,35.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Engine / Sundry Parts,Carburettor Assembly (New),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Cylinder / Reel,Engine / Sundry Parts,Starter Assembly,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Logistics / Service,Disposal,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Cylinder / Reel,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Cylinder / Reel / Hand Mower,Parts,Air Filter,26.67,32.0,,Yes,,,,
+,Cylinder / Reel / Hand Mower,Parts,Blade Sharpen,104.17,125.0,,Yes,,,,
+,Cylinder / Reel / Hand Mower,Parts,Chain Replacement,32.5,39.0,,Yes,,,,
+,Cylinder / Reel / Hand Mower,Parts,Disposal,10.0,12.0,,Yes,,,,
+,Cylinder / Reel / Hand Mower,Parts,Fuel Filter,20.83,25.0,,Yes,,,,
+,Cylinder / Reel / Hand Mower,Parts,Primer,15.83,19.0,,Yes,,,,
+,Cylinder / Reel / Hand Mower,Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Cylinder / Reel / Hand Mower,Parts,Throttle Cable,49.17,59.0,,Yes,,,,
+,Edger,Carburettor,Air Filter,20.0,24.0,,Yes,,,,
+,Edger,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,nan | Baseline autofill
+,Edger,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Edger,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Edger,Carburettor,Fuel Filter,20.83,25.0,,Yes,,,,
+,Edger,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,
+,Edger,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Carburettor,Primer,15.83,19.0,,Yes,,,,
+,Edger,Carburettor,Throttle Cable,40.83,49.0,,Yes,,,,nan | Baseline autofill
+,Edger,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Carburettor,Vent,13.33,16.0,,Yes,,,,nan | Baseline autofill
+,Edger,Chassis,Axles,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Chassis,Blade Carrier,35.0,42.0,,Yes,,,,nan | Baseline autofill
+,Edger,Chassis,Blades & Bolt,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Chassis,Bush,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Chassis,Clip,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Chassis,G Bar,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Chassis,Height Adjustment,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Chassis,Oil Pump,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Chassis,Sharpen,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Chassis,Wheels,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Engine / Sundry Parts,Carburettor Assembly (New),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Edger,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Edger,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Edger,Engine / Sundry Parts,Starter Assembly,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Logistics / Service,Disposal,10.0,12.0,,Yes,,,,
+,Edger,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Parts,Blade (Set),31.67,38.0,,Yes,,,,
+,Edger,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Edger,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Edger,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Carburettor,Air Filter,20.0,24.0,,Yes,,,,
+,Generator,Carburettor,Carburettor Gasket Kit,57.5,69.0,,Yes,,,,
+,Generator,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Generator,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Generator,Carburettor,Fuel Filter,29.0,34.8,,Yes,hamptonmowercentre.com.au,Honda Fuel Filter 16910-KVS-611 (EU70is),29.0,Sell = Base × 1.2 (competitor verified)
+,Generator,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,
+,Generator,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Carburettor,Jet,37.5,45.0,,Yes,,,,
+,Generator,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Carburettor,Primer,15.83,19.0,,Yes,,,,
+,Generator,Carburettor,Throttle Cable,40.83,49.0,,Yes,,,,nan | Baseline autofill
+,Generator,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Carburettor,Vent,13.33,16.0,,Yes,,,,nan | Baseline autofill
+,Generator,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Engine / Sundry Parts,Carburettor Assembly (New),195.83,235.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Generator,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Generator,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Generator,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Generator,Engine / Sundry Parts,Starter Assembly,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Logistics / Service,Disposal,10.0,12.0,,Yes,,,,
+,Generator,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Generator,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Generator,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Carburettor,Air Filter,18.33,22.0,,Yes,,,,
+,Hedge Trimmer,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,
+,Hedge Trimmer,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Hedge Trimmer,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,
+,Hedge Trimmer,Carburettor,Fuel Filter,13.33,16.0,,Yes,,,,
+,Hedge Trimmer,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,
+,Hedge Trimmer,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Carburettor,Primer,18.33,22.0,,Yes,,,,
+,Hedge Trimmer,Carburettor,Throttle Cable,32.5,39.0,,Yes,,,,
+,Hedge Trimmer,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Carburettor,Vent,13.33,16.0,,Yes,,,,
+,Hedge Trimmer,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Engine / Sundry Parts,Carburettor Assembly (New),81.67,98.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Hedge Trimmer,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Hedge Trimmer,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Hedge Trimmer,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Hedge Trimmer,Engine / Sundry Parts,Starter Assembly,62.5,75.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Hedge Trimmer,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Logistics / Service,Disposal,7.5,9.0,,Yes,,,,
+,Hedge Trimmer,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Parts,Carburettor Throttle Valve,32.5,39.0,,Yes,,,,
+,Hedge Trimmer,Parts,Clean Air Filter,8.33,10.0,,Yes,,,,
+,Hedge Trimmer,Parts,New Speed Head (Big),57.5,69.0,,Yes,,,,
+,Hedge Trimmer,Parts,New Speed Head (Small),49.17,59.0,,Yes,,,,
+,Hedge Trimmer,Parts,Starter Pulley,29.17,35.0,,Yes,,,,
+,Hedge Trimmer,Parts,Starter Spring,24.17,29.0,,Yes,,,,
+,Hedge Trimmer,Parts,Starter repair (incl. cord),37.5,45.0,,Yes,,,,
+,Hedge Trimmer,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Hedge Trimmer,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Hedge Trimmer,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Carburettor,Air Filter,20.0,24.0,,Yes,,,,nan | Baseline autofill
+,Lawn Mower,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,nan | Baseline autofill
+,Lawn Mower,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Lawn Mower,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Lawn Mower,Carburettor,Fuel Filter,10.0,12.0,,Yes,bwmachinery.com.au,Briggs & Stratton Fuel Filter 298090S (gravity),10.0,Sell = Base × 1.2 (competitor verified)
+,Lawn Mower,Carburettor,Fuel Line,7.5,9.0,,Yes,,,,
+,Lawn Mower,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Carburettor,Jet,29.17,35.0,,Yes,,,,
+,Lawn Mower,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Carburettor,Primer,18.33,22.0,,Yes,,,,nan | Baseline autofill
+,Lawn Mower,Carburettor,Throttle Cable,40.83,49.0,,Yes,,,,
+,Lawn Mower,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Carburettor,Vent,13.33,16.0,,Yes,,,,nan | Baseline autofill
+,Lawn Mower,Chassis,Axles,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Chassis,Blade Carrier,35.0,42.0,,Yes,,,,
+,Lawn Mower,Chassis,Blades & Bolt,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Chassis,Bush,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Chassis,Clip,4.17,5.0,,Yes,,,,
+,Lawn Mower,Chassis,G Bar,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Chassis,Height Adjustment,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Chassis,Oil Pump,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Chassis,Sharpen,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Chassis,Wheels,31.67,38.0,,Yes,,,,
+,Lawn Mower,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Engine / Sundry Parts,Carburettor Assembly (New),90.0,108.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Lawn Mower,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Lawn Mower,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Engine / Sundry Parts,Oil Change,7.5,9.0,,Yes,,,,
+,Lawn Mower,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Lawn Mower,Engine / Sundry Parts,Starter Assembly,95.83,115.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Lawn Mower,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Logistics / Service,Disposal,7.5,9.0,,Yes,,,,
+,Lawn Mower,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Parts,Air Filter (Paper - Other),20.0,24.0,,Yes,,,,
+,Lawn Mower,Parts,Air Filter (Paper for victa 2 and rover Long rond),13.33,16.0,,Yes,,,,
+,Lawn Mower,Parts,Air Filter (Sponge),13.33,16.0,,Yes,,,,
+,Lawn Mower,Parts,Air Gaskets,12.5,15.0,,Yes,,,,
+,Lawn Mower,Parts,Blades & Bolt BY 2,31.67,38.0,,Yes,,,,
+,Lawn Mower,Parts,Blades & Bolt BY 4,40.0,48.0,,Yes,,,,
+,Lawn Mower,Parts,Governor Spring,15.83,19.0,,Yes,,,,
+,Lawn Mower,Parts,Idle Spring,13.33,16.0,,Yes,,,,
+,Lawn Mower,Parts,Starter Pulley,32.5,39.0,,Yes,,,,
+,Lawn Mower,Parts,Starter Spring,32.5,39.0,,Yes,,,,
+,Lawn Mower,Parts,Starter repair (incl. cord),45.83,55.0,,Yes,,,,
+,Lawn Mower,Parts,Throttle Cable (Heavy Duty),54.17,65.0,,Yes,,,,
+,Lawn Mower,Parts,Wheels (Drive Gear),45.83,55.0,,Yes,,,,
+,Lawn Mower,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Lawn Mower,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Lawn Mower,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Carburettor,Air Filter,18.33,22.0,,Yes,,,,
+,Multi-Tool,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,
+,Multi-Tool,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Multi-Tool,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,
+,Multi-Tool,Carburettor,Fuel Filter,13.33,16.0,,Yes,,,,
+,Multi-Tool,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,
+,Multi-Tool,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Carburettor,Primer,18.33,22.0,,Yes,,,,
+,Multi-Tool,Carburettor,Throttle Cable,32.5,39.0,,Yes,,,,
+,Multi-Tool,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Carburettor,Vent,13.33,16.0,,Yes,,,,
+,Multi-Tool,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Engine / Sundry Parts,Carburettor Assembly (New),81.67,98.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Multi-Tool,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Multi-Tool,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Multi-Tool,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Multi-Tool,Engine / Sundry Parts,Starter Assembly,62.5,75.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Multi-Tool,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Logistics / Service,Disposal,7.5,9.0,,Yes,,,,
+,Multi-Tool,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Parts,Carburettor Throttle Valve,32.5,39.0,,Yes,,,,
+,Multi-Tool,Parts,Clean Air Filter,8.33,10.0,,Yes,,,,
+,Multi-Tool,Parts,New Speed Head (Big),57.5,69.0,,Yes,,,,
+,Multi-Tool,Parts,New Speed Head (Small),49.17,59.0,,Yes,,,,
+,Multi-Tool,Parts,Starter Pulley,29.17,35.0,,Yes,,,,
+,Multi-Tool,Parts,Starter Spring,24.17,29.0,,Yes,,,,
+,Multi-Tool,Parts,Starter repair (incl. cord),37.5,45.0,,Yes,,,,
+,Multi-Tool,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Multi-Tool,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Multi-Tool,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Carburettor,Air Filter,18.33,22.0,,Yes,,,,
+,Pole Pruner,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,
+,Pole Pruner,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Pole Pruner,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,
+,Pole Pruner,Carburettor,Fuel Filter,13.33,16.0,,Yes,,,,
+,Pole Pruner,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,
+,Pole Pruner,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Carburettor,Primer,18.33,22.0,,Yes,,,,
+,Pole Pruner,Carburettor,Throttle Cable,32.5,39.0,,Yes,,,,
+,Pole Pruner,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Carburettor,Vent,13.33,16.0,,Yes,,,,
+,Pole Pruner,Chainsaw,Bar & Chain Oil,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Pole Pruner,Chainsaw,Chain,29.17,35.0,,Yes,,,,nan | Baseline autofill
+,Pole Pruner,Chainsaw,Chain Catcher,7.5,9.0,,Yes,,,,nan | Baseline autofill
+,Pole Pruner,Chainsaw,Clutch,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Chainsaw,Drive Sprocket / Rim Sprocket,29.17,35.0,,Yes,,,,nan | Baseline autofill
+,Pole Pruner,Chainsaw,Guide Bar,57.5,69.0,,Yes,,,,nan | Baseline autofill
+,Pole Pruner,Chainsaw,Oil Pump,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Engine / Sundry Parts,Carburettor Assembly (New),81.67,98.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Pole Pruner,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Pole Pruner,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Pole Pruner,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Pole Pruner,Engine / Sundry Parts,Starter Assembly,62.5,75.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Pole Pruner,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Logistics / Service,Disposal,7.5,9.0,,Yes,,,,
+,Pole Pruner,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Parts,Carburettor Throttle Valve,32.5,39.0,,Yes,,,,
+,Pole Pruner,Parts,Clean Air Filter,8.33,10.0,,Yes,,,,
+,Pole Pruner,Parts,New Speed Head (Big),57.5,69.0,,Yes,,,,
+,Pole Pruner,Parts,New Speed Head (Small),49.17,59.0,,Yes,,,,
+,Pole Pruner,Parts,Starter Pulley,29.17,35.0,,Yes,,,,
+,Pole Pruner,Parts,Starter Spring,24.17,29.0,,Yes,,,,
+,Pole Pruner,Parts,Starter repair (incl. cord),37.5,45.0,,Yes,,,,
+,Pole Pruner,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Pole Pruner,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pole Pruner,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Carburettor,Air Filter,26.67,32.0,,Yes,,,,
+,Pressure Washer,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Carburettor,Fuel Filter,20.83,25.0,,Yes,,,,
+,Pressure Washer,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Carburettor,Primer,15.83,19.0,,Yes,,,,
+,Pressure Washer,Carburettor,Throttle Cable,40.83,49.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Carburettor,Vent,13.33,16.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Engine / Sundry Parts,Carburettor Assembly (New),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,
+,Pressure Washer,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Pressure Washer,Engine / Sundry Parts,Starter Assembly,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Logistics / Service,Disposal,10.0,12.0,,Yes,,,,
+,Pressure Washer,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Parts,Test the Pump,37.5,45.0,,Yes,,,,
+,Pressure Washer,Pump Parts,Check Valve,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Pump Parts,Hose Tail & Clamps,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Pump Parts,Impeller / Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Pump Parts,Inlet Filter / Strainer,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Pump Parts,O-Ring Set,7.5,9.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Pump Parts,Pump Oil,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Pump Parts,Seal Kit,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Pump Parts,Unloader / Pressure Regulator,65.83,79.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Pressure Washer,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Pressure Washer,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Carburettor,Air Filter,40.83,49.0,,Yes,,,,
+,Ride-On,Carburettor,Carburettor Gasket Kit,57.5,69.0,,Yes,,,,
+,Ride-On,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Carburettor,Fuel Filter,10.0,12.0,,Yes,bwmachinery.com.au,Briggs & Stratton Fuel Filter 298090S (gravity),10.0,Sell = Base × 1.2 (competitor verified)
+,Ride-On,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Carburettor,Primer,15.83,19.0,,Yes,,,,
+,Ride-On,Carburettor,Throttle Cable,49.17,59.0,,Yes,,,,
+,Ride-On,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Carburettor,Vent,13.33,16.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Engine / Sundry Parts,Carburettor Assembly (New),187.5,225.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Ride-On,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Engine / Sundry Parts,Oil Change,15.83,19.0,,Yes,,,,
+,Ride-On,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Ride-On,Engine / Sundry Parts,Starter Assembly,120.83,145.0,,Yes,,,,nan | Fallback $25 | Owner target price applied (validated vs competitor ranges)
+,Ride-On,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Logistics / Service,Disposal,20.83,25.0,,Yes,,,,
+,Ride-On,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Parts,Blade (Set),35.0,42.0,,Yes,,,,
+,Ride-On,Parts,Blade Sharpen,45.83,55.0,,Yes,,,,
+,Ride-On,Parts,Fuse,12.5,15.0,,Yes,,,,
+,Ride-On,Parts,Oil Filter,37.5,45.0,,Yes,,,,
+,Ride-On,Parts,Transmission Belt,51.67,62.0,,Yes,,,,
+,Ride-On,Ride-On Common,Battery (U1/U1R),87.5,105.0,,Yes,,,,
+,Ride-On,Ride-On Common,Blade Bolt & Washer Set,35.0,42.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Ride-On Common,Blade Carrier / Boss,35.0,42.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Ride-On Common,Blades (Set),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Charging Regulator / Rectifier,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Deck Belt,57.5,69.0,,Yes,,,,
+,Ride-On,Ride-On Common,Deck Chute / Deflector,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Deck Engagement Cable,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Deck Lift Linkage Kit,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Deck Wheels / Anti-Scalp Wheels,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Drive Axle Key / Woodruff Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Front Tyre,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Fuel Cap (Ride-On),20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Ride-On Common,Fuel Line Kit (Ride-On),15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Ride-On Common,Fuel Pump,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Fuses (Set),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Hood / Bonnet Latch,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Hydro Filter (Hydrostatic models),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Hydro Oil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Idler Pulley (Deck),32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Ride-On Common,Idler Pulley (Drive),32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Ride-On Common,Ignition Switch,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Muffler / Exhaust,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,PTO Clutch (Electric),249.17,299.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Ride-On Common,PTO Switch,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Pedal Return Spring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Rear Tyre,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Seat Safety Switch,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Spindle / Mandrel Assembly,107.5,129.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Ride-On Common,Spindle Bearings,107.5,129.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Ride-On Common,Spindle Shaft,107.5,129.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Ride-On Common,Starter Motor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Starter Solenoid,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Steering Sector Gear,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Tie Rod / Ball Joint,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Transmission / Drive Belt,49.17,59.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Ride-On Common,Tube (Front/Rear),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Ride-On Common,Valve Stem,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Ride-On,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Ride-On,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Robotic Mower,Engine / Sundry Parts,Carburettor Assembly (New),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Robotic Mower,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Robotic Mower,Engine / Sundry Parts,Starter Assembly,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Robotic Mower,Parts,Labour (per hour),81.67,98.0,,Yes,,,,
+,Robotic Mower,Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Robotic Mower,Robotic Mower Common,Blades (Pack) & Screws,12.5,15.0,,Yes,,,,
+,Robotic Mower,Robotic Mower Common,Boundary Wire,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Robotic Mower,Robotic Mower Common,Charging Station Contacts,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Robotic Mower,Robotic Mower Common,Drive Wheel,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Robotic Mower,Robotic Mower Common,Front Wheel / Caster,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Robotic Mower,Robotic Mower Common,Fuse Set,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Robotic Mower,Robotic Mower Common,Pegs / Staples,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Robotic Mower,Robotic Mower Common,Power Supply,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Robotic Mower,Robotic Mower Common,Protective Cover,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Robotic Mower,Robotic Mower Common,Splice Connectors,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Carburettor,Air Filter,37.5,45.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Carburettor,Carburettor Gasket Kit,57.5,69.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Scarifier / Dethatcher / Aerator,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Scarifier / Dethatcher / Aerator,Carburettor,Fuel Filter,20.83,25.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Scarifier / Dethatcher / Aerator,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Carburettor,Primer,15.83,19.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Carburettor,Throttle Cable,49.17,59.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Carburettor,Vent,13.33,16.0,,Yes,,,,nan | Baseline autofill
+,Scarifier / Dethatcher / Aerator,Chassis,Axles,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Chassis,Blade Carrier,35.0,42.0,,Yes,,,,nan | Baseline autofill
+,Scarifier / Dethatcher / Aerator,Chassis,Blades & Bolt,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Chassis,Bush,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Chassis,Clip,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Chassis,G Bar,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Chassis,Height Adjustment,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Chassis,Oil Pump,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Chassis,Sharpen,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Chassis,Wheels,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Carburettor Assembly (New),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Oil Change,15.83,19.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Starter Assembly,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Logistics / Service,Disposal,20.83,25.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Parts,Blade (Set),35.0,42.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Parts,Blade Sharpen,79.17,95.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Parts,Deck Belt,57.5,69.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Parts,Oil Filter,37.5,45.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Parts,Transmission Belt,51.67,62.0,,Yes,,,,
+,Scarifier / Dethatcher / Aerator,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Scarifier / Dethatcher / Aerator,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Scarifier / Dethatcher / Aerator,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Carburettor,Air Filter,20.0,24.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Carburettor,Fuel Filter,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Carburettor,Primer,18.33,22.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Carburettor,Throttle Cable,40.83,49.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Carburettor,Vent,13.33,16.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Engine / Sundry Parts,Carburettor Assembly (New),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Sprayer,Engine / Sundry Parts,Starter Assembly,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Logistics / Service,Disposal,10.0,12.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Parts,Labour (per hour),65.83,79.0,,Yes,,,,
+,Sprayer,Pump Parts,Check Valve,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Pump Parts,Hose Tail & Clamps,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Pump Parts,Impeller / Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Pump Parts,Inlet Filter / Strainer,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Pump Parts,O-Ring Set,7.5,9.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Pump Parts,Pump Oil,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Pump Parts,Seal Kit,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Pump Parts,Unloader / Pressure Regulator,65.83,79.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Sprayer,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Sprayer,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Carburettor,Air Filter,26.67,32.0,,Yes,,,,
+,Tiller / Cultivator,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,nan | Baseline autofill
+,Tiller / Cultivator,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Tiller / Cultivator,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Tiller / Cultivator,Carburettor,Fuel Filter,20.83,25.0,,Yes,,,,
+,Tiller / Cultivator,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Tiller / Cultivator,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Carburettor,Primer,15.83,19.0,,Yes,,,,
+,Tiller / Cultivator,Carburettor,Throttle Cable,40.83,49.0,,Yes,,,,nan | Baseline autofill
+,Tiller / Cultivator,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Carburettor,Vent,13.33,16.0,,Yes,,,,nan | Baseline autofill
+,Tiller / Cultivator,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Engine / Sundry Parts,Carburettor Assembly (New),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Tiller / Cultivator,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,
+,Tiller / Cultivator,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Tiller / Cultivator,Engine / Sundry Parts,Starter Assembly,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Logistics / Service,Disposal,10.0,12.0,,Yes,,,,
+,Tiller / Cultivator,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Parts,Blade Sharpen,54.17,65.0,,Yes,,,,
+,Tiller / Cultivator,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Tiller / Cultivator,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Tiller / Cultivator,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Carburettor,Air Filter,26.67,32.0,,Yes,,,,
+,Water Pump,Carburettor,Carburettor Gasket Kit,40.0,48.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Carburettor,Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Carburettor,End Cap,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Carburettor,Fuel Cap,20.83,25.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Carburettor,Fuel Filter,20.83,25.0,,Yes,,,,
+,Water Pump,Carburettor,Fuel Line,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Carburettor,Grommet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Carburettor,Jet,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Carburettor,Lifter,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Carburettor,Needle & Seat,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Carburettor,Poppet Valve,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Carburettor,Primer,15.83,19.0,,Yes,,,,
+,Water Pump,Carburettor,Throttle Cable,40.83,49.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Carburettor,Throttle Control,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Carburettor,Vent,13.33,16.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Engine / Sundry Parts,Bearings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Engine / Sundry Parts,Carburettor Assembly (New),20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Engine / Sundry Parts,Cylinder Head,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Engine / Sundry Parts,Decompressor,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Engine / Sundry Parts,Flywheel Key,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Engine / Sundry Parts,Fuel Tank,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Engine / Sundry Parts,Gaskets,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Engine / Sundry Parts,Muffler,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Engine / Sundry Parts,Oil Change,10.0,12.0,,Yes,,,,
+,Water Pump,Engine / Sundry Parts,Oil Seal Bottom,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Engine / Sundry Parts,Oil Seal Top,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Engine / Sundry Parts,Piston Rings,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Engine / Sundry Parts,Spark Plug,15.0,18.0,,Yes,,,,
+,Water Pump,Engine / Sundry Parts,Starter Assembly,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Engine / Sundry Parts,Valves,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Logistics / Service,Disposal,10.0,12.0,,Yes,,,,
+,Water Pump,Magneto / Ignition,Boots,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Magneto / Ignition,Coil,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Parts,Test the Pump,37.5,45.0,,Yes,,,,
+,Water Pump,Pump Parts,Check Valve,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Pump Parts,Hose Tail & Clamps,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Pump Parts,Impeller / Diaphragm,32.5,39.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Pump Parts,Inlet Filter / Strainer,15.83,19.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Pump Parts,O-Ring Set,7.5,9.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Pump Parts,Pump Oil,12.5,15.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Pump Parts,Seal Kit,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Pump Parts,Unloader / Pressure Regulator,65.83,79.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Starter,Cord,24.17,29.0,,Yes,,,,nan | Baseline autofill
+,Water Pump,Starter,Ferrule,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Starter,Handle,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Starter,Mainspring,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Starter,Pulley,20.83,25.0,,Yes,,,,nan | Fallback $25
+,Water Pump,Starter,Washer,20.83,25.0,,Yes,,,,nan | Fallback $25

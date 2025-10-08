@@ -167,11 +167,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const labourRate = selectedCategory?.labourRate || 0;
   const baseCalculations = calculateJobTotals(parts, labourHours, labourRate, discountType, discountValue);
   
-  // Apply service deposit deduction to final total
+  // Apply service deposit deduction to final total (balance due after deposit)
+  const balanceAfterDeposit = Math.max(0, baseCalculations.grandTotal - serviceDeposit);
+  
   const calculations = {
     ...baseCalculations,
-    finalTotal: Math.max(0, baseCalculations.grandTotal - serviceDeposit),
-    serviceDeposit
+    finalTotal: balanceAfterDeposit,
+    serviceDeposit,
+    balanceDue: balanceAfterDeposit
   };
   
   // Generate Parts Required list reliably
@@ -223,8 +226,15 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setDiscountType(job.discountType || 'PERCENT');
       setDiscountValue(job.discountValue || 0);
       
-      // Phase 2 fields
-      setRequestedFinishDate(job.requestedFinishDate ? new Date(job.requestedFinishDate) : undefined);
+      // Phase 2 fields - ensure dates are properly parsed
+      if (job.requestedFinishDate) {
+        const parsedDate = typeof job.requestedFinishDate === 'string' 
+          ? new Date(job.requestedFinishDate) 
+          : job.requestedFinishDate;
+        setRequestedFinishDate(parsedDate);
+      } else {
+        setRequestedFinishDate(undefined);
+      }
       setAttachments(job.attachments || []);
       
       // Migrate parts to include stable IDs if missing
