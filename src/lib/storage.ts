@@ -123,6 +123,7 @@ class JobBookingDB {
       problem_description: job.problemDescription,
       service_performed: job.servicePerformed || null,
       notes: job.notes || null,
+      additional_notes: job.additionalNotes || null,
       recommendations: job.recommendations || null,
       parts_required: job.partsRequired || null,
       labour_hours: job.labourHours,
@@ -138,6 +139,27 @@ class JobBookingDB {
       quotation_amount: job.quotationAmount || null,
       status: job.status,
       balance_due: Math.max(0, job.grandTotal - (job.serviceDeposit || 0)),
+      // Phase 2 fields
+      requested_finish_date: job.requestedFinishDate 
+        ? new Date(job.requestedFinishDate).toISOString().split('T')[0]
+        : null,
+      attachments: job.attachments || [],
+      // Transport fields
+      transport_pickup_required: job.transportPickupRequired || false,
+      transport_delivery_required: job.transportDeliveryRequired || false,
+      transport_size_tier: job.transportSizeTier || null,
+      transport_distance_km: job.transportDistanceKm || null,
+      transport_total_charge: job.transportTotalCharge || 0,
+      transport_breakdown: job.transportBreakdown || null,
+      // Sharpen fields
+      sharpen_items: job.sharpenItems || [],
+      sharpen_total_charge: job.sharpenTotalCharge || 0,
+      sharpen_breakdown: job.sharpenBreakdown || null,
+      // Small Repair fields
+      small_repair_details: job.smallRepairDetails || null,
+      small_repair_minutes: job.smallRepairMinutes || 0,
+      small_repair_rate: job.smallRepairRate || 0,
+      small_repair_total: job.smallRepairTotal || 0,
       updated_at: new Date().toISOString()
     };
     
@@ -419,7 +441,12 @@ class JobBookingDB {
       // Sharpen fields
       sharpenItems: jobData.sharpen_items || [],
       sharpenTotalCharge: jobData.sharpen_total_charge || 0,
-      sharpenBreakdown: jobData.sharpen_breakdown || ''
+      sharpenBreakdown: jobData.sharpen_breakdown || '',
+      // Small Repair fields
+      smallRepairDetails: jobData.small_repair_details || '',
+      smallRepairMinutes: jobData.small_repair_minutes || 0,
+      smallRepairRate: parseFloat(jobData.small_repair_rate) || 0,
+      smallRepairTotal: parseFloat(jobData.small_repair_total) || 0
     };
   }
 

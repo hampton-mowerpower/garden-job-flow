@@ -94,6 +94,12 @@ export interface Job {
   sharpenTotalCharge?: number;
   sharpenBreakdown?: string;
   
+  // Small Repair details
+  smallRepairDetails?: string;
+  smallRepairMinutes?: number;
+  smallRepairRate?: number;
+  smallRepairTotal?: number;
+  
   // Computed parts list for display
   partsRequired?: string; // computed from parts array
   

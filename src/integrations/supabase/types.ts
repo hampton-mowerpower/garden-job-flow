@@ -918,6 +918,10 @@ export type Database = {
           sharpen_breakdown: string | null
           sharpen_items: Json | null
           sharpen_total_charge: number | null
+          small_repair_details: string | null
+          small_repair_minutes: number | null
+          small_repair_rate: number | null
+          small_repair_total: number | null
           status: string
           subtotal: number
           transport_breakdown: string | null
@@ -965,6 +969,10 @@ export type Database = {
           sharpen_breakdown?: string | null
           sharpen_items?: Json | null
           sharpen_total_charge?: number | null
+          small_repair_details?: string | null
+          small_repair_minutes?: number | null
+          small_repair_rate?: number | null
+          small_repair_total?: number | null
           status?: string
           subtotal?: number
           transport_breakdown?: string | null
@@ -1012,6 +1020,10 @@ export type Database = {
           sharpen_breakdown?: string | null
           sharpen_items?: Json | null
           sharpen_total_charge?: number | null
+          small_repair_details?: string | null
+          small_repair_minutes?: number | null
+          small_repair_rate?: number | null
+          small_repair_total?: number | null
           status?: string
           subtotal?: number
           transport_breakdown?: string | null

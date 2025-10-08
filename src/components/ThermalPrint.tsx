@@ -376,6 +376,19 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
   </div>
   ` : ''}
   
+  ${job.smallRepairTotal && parseFloat(job.smallRepairTotal.toString()) > 0 ? `
+  <div class="section">
+    <div class="section-title">SMALL REPAIR</div>
+    <div class="inline-row">
+      <div class="inline-label">CHARGE:</div>
+      <div class="inline-value">${formatCurrency(parseFloat(job.smallRepairTotal.toString()))}</div>
+    </div>
+    ${job.smallRepairDetails ? `
+    <div style="font-size: ${width === 79 ? '9px' : '8px'}; margin-top: 1mm;">${escapeHtml(job.smallRepairDetails)}</div>
+    ` : ''}
+  </div>
+  ` : ''}
+  
   ${job.servicePerformed ? `
   <div class="section">
     <div class="section-title">SERVICE NOTES</div>

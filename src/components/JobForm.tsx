@@ -517,6 +517,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         sharpenItems: sharpenData.items,
         sharpenTotalCharge: sharpenData.totalCharge,
         sharpenBreakdown: sharpenData.breakdown,
+        smallRepairDetails: smallRepairData.repairDetails,
+        smallRepairMinutes: smallRepairData.minutes,
+        smallRepairRate: smallRepairData.rate,
+        smallRepairTotal: smallRepairData.includeInTotals 
+          ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
+          : 0,
         // Phase 2 fields
         requestedFinishDate,
         attachments,
