@@ -22,7 +22,10 @@ export function calculateJobTotals(
   labourHours: number,
   labourRate: number,
   discountType?: 'PERCENT' | 'AMOUNT',
-  discountValue?: number
+  discountValue?: number,
+  transportTotal: number = 0,
+  sharpenTotal: number = 0,
+  smallRepairTotal: number = 0
 ): JobCalculations {
   // Calculate parts subtotal
   const partsSubtotal = parts.reduce((sum, part) => sum + part.totalPrice, 0);
@@ -30,8 +33,8 @@ export function calculateJobTotals(
   // Calculate labour total (hours × rate)
   const labourTotal = labourHours * labourRate;
   
-  // Calculate subtotal (parts + labour)
-  const subtotal = partsSubtotal + labourTotal;
+  // Calculate subtotal (parts + labour + transport + sharpen + small repair)
+  const subtotal = partsSubtotal + labourTotal + transportTotal + sharpenTotal + smallRepairTotal;
   
   // Calculate discount amount
   let discountAmount = 0;

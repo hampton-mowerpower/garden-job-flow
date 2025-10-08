@@ -16,21 +16,39 @@ export interface CatalogPart {
 
 // Map equipment categories to parts catalogue categories
 const normalizeCategoryForParts = (category: string): string => {
+  if (!category) return '';
+  
   // Remove "Battery" prefix first
-  let normalized = category.replace(/^Battery\s+/i, '');
+  let normalized = category.replace(/^Battery\s+/i, '').trim();
   
   // Map common variations to catalogue categories
   const categoryMap: Record<string, string> = {
     'lawn-mowers': 'Lawn Mower',
+    'lawn mower': 'Lawn Mower',
+    'lawnmower': 'Lawn Mower',
     'ride-on-mowers': 'Ride-On',
+    'ride-on': 'Ride-On',
+    'rideon': 'Ride-On',
     'chainsaws': 'Chainsaw',
+    'chainsaw': 'Chainsaw',
     'brushcutters': 'Brushcutter / Line Trimmer',
+    'brushcutter': 'Brushcutter / Line Trimmer',
+    'line trimmer': 'Brushcutter / Line Trimmer',
     'hedge-trimmers': 'Hedge Trimmer',
+    'hedge trimmer': 'Hedge Trimmer',
+    'hedgetrimmer': 'Hedge Trimmer',
     'blowers': 'Blower & Vacuum',
+    'blower': 'Blower & Vacuum',
+    'vacuum': 'Blower & Vacuum',
     'pressure-washers': 'Pressure Washer',
+    'pressure washer': 'Pressure Washer',
     'generators': 'Generator',
+    'generator': 'Generator',
     'multi-tool': 'Multi-Tool',
+    'multi tool': 'Multi-Tool',
+    'multitool': 'Multi-Tool',
     'battery multi-tool': 'Multi-Tool',
+    'battery multi tool': 'Multi-Tool',
   };
   
   // Try exact match first (case-insensitive)
@@ -39,7 +57,7 @@ const normalizeCategoryForParts = (category: string): string => {
     return categoryMap[lowerCategory];
   }
   
-  // Return as-is if no mapping found
+  // Return as-is if no mapping found (already trimmed and battery-prefix removed)
   return normalized;
 };
 
