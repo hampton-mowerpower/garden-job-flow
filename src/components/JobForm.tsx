@@ -185,6 +185,18 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     setLastEditedField('fee');
   };
   
+  // Debug logging for charge calculations
+  console.log('Calculation inputs:', {
+    partsCount: parts.length,
+    labourHours,
+    labourRate,
+    transportCharge: transportData.totalCharge,
+    sharpenCharge: sharpenData.totalCharge,
+    smallRepairCharge: smallRepairData.includeInTotals 
+      ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
+      : 0
+  });
+
   const baseCalculations = calculateJobTotals(
     parts, 
     labourHours, 
@@ -197,6 +209,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
       : 0
   );
+  
+  console.log('Base calculations result:', baseCalculations);
   
   // Apply service deposit deduction to final total (balance due after deposit)
   const balanceAfterDeposit = Math.max(0, baseCalculations.grandTotal - serviceDeposit);
