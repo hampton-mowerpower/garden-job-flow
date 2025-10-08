@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { TextareaTranslated } from '@/components/ui/textarea-translated';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Save, Printer } from 'lucide-react';
+import { Plus, Trash2, Save, Printer, Check } from 'lucide-react';
 import { Job, Customer, JobPart, ChecklistItem } from '@/types/job';
 import { HAMPTON_MACHINE_CATEGORIES } from '@/data/hamptonMachineData';
 import { DEFAULT_PARTS } from '@/data/defaultParts';
@@ -57,6 +57,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
   const [showServiceLabelDialog, setShowServiceLabelDialog] = useState(false);
   const [showPrintPromptDialog, setShowPrintPromptDialog] = useState(false);
   const [savedJob, setSavedJob] = useState<Job | null>(null);
@@ -236,6 +237,51 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     loadQuickDescriptions();
   }, []);
 
+  // Auto-save when transport, sharpen, or small repair data changes (for existing jobs only)
+  useEffect(() => {
+    if (!job?.id) return; // Only auto-save for existing jobs
+    
+    const timeoutId = setTimeout(async () => {
+      try {
+        setAutoSaveStatus('saving');
+        
+        // Create updated job data with new charges
+        const jobData: Job = {
+          ...job,
+          transportPickupRequired: transportData.pickupRequired,
+          transportDeliveryRequired: transportData.deliveryRequired,
+          transportSizeTier: transportData.sizeTier || undefined,
+          transportDistanceKm: transportData.distanceKm,
+          transportTotalCharge: transportData.totalCharge,
+          transportBreakdown: transportData.breakdown,
+          sharpenItems: sharpenData.items,
+          sharpenTotalCharge: sharpenData.totalCharge,
+          sharpenBreakdown: sharpenData.breakdown,
+          smallRepairDetails: smallRepairData.repairDetails,
+          smallRepairMinutes: smallRepairData.minutes,
+          smallRepairRate: smallRepairData.rate,
+          smallRepairTotal: smallRepairData.includeInTotals 
+            ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
+            : 0,
+          // Recalculate totals
+          ...calculations,
+          updatedAt: new Date()
+        };
+        
+        await jobBookingDB.saveJob(jobData);
+        setAutoSaveStatus('saved');
+        
+        // Reset to idle after 2 seconds
+        setTimeout(() => setAutoSaveStatus('idle'), 2000);
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+        setAutoSaveStatus('idle');
+      }
+    }, 500); // 500ms debounce
+    
+    return () => clearTimeout(timeoutId);
+  }, [transportData, sharpenData, smallRepairData, job?.id]);
+
   const loadQuickDescriptions = async () => {
     try {
       const descriptions = await jobBookingDB.getQuickDescriptions();
@@ -295,26 +341,33 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setChecklistCategory(job.checklistCategory || []);
       setHasAccount(job.hasAccount || false);
       
-      // Load transport data if exists
-      if (job.transportPickupRequired || job.transportDeliveryRequired) {
-        setTransportData({
-          pickupRequired: job.transportPickupRequired || false,
-          deliveryRequired: job.transportDeliveryRequired || false,
-          sizeTier: (job.transportSizeTier as MachineSizeTier) || null,
-          distanceKm: job.transportDistanceKm || 5,
-          totalCharge: job.transportTotalCharge || 0,
-          breakdown: job.transportBreakdown || ''
-        });
-      }
+      // Load transport data - ALWAYS load to preserve totalCharge
+      setTransportData({
+        pickupRequired: job.transportPickupRequired || false,
+        deliveryRequired: job.transportDeliveryRequired || false,
+        sizeTier: (job.transportSizeTier as MachineSizeTier) || null,
+        distanceKm: job.transportDistanceKm || 5,
+        totalCharge: job.transportTotalCharge || 0,
+        breakdown: job.transportBreakdown || ''
+      });
       
-      // Load sharpen data if exists
-      if (job.sharpenItems && job.sharpenItems.length > 0) {
-        setSharpenData({
-          items: job.sharpenItems,
-          totalCharge: job.sharpenTotalCharge || 0,
-          breakdown: job.sharpenBreakdown || ''
-        });
-      }
+      // Load sharpen data - ALWAYS load to preserve totalCharge
+      setSharpenData({
+        items: job.sharpenItems || [],
+        totalCharge: job.sharpenTotalCharge || 0,
+        breakdown: job.sharpenBreakdown || ''
+      });
+      
+      // Load small repair data
+      setSmallRepairData({
+        repairDetails: job.smallRepairDetails || '',
+        minutes: job.smallRepairMinutes || 0,
+        rateType: 'per_hr' as 'per_min' | 'per_hr',
+        rate: job.smallRepairRate || 100,
+        calculatedTotal: job.smallRepairTotal || 0,
+        overrideTotal: job.smallRepairTotal > 0 ? job.smallRepairTotal : undefined,
+        includeInTotals: (job.smallRepairTotal || 0) > 0
+      });
     } else {
       // New job
       try {
@@ -615,6 +668,17 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           <Save className="w-4 h-4 mr-2" />
           {isLoading ? t('jobs.saving') : t('jobs.save')}
         </Button>
+        {autoSaveStatus === 'saved' && (
+          <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+            <Check className="w-4 h-4" />
+            Saved
+          </span>
+        )}
+        {autoSaveStatus === 'saving' && (
+          <span className="text-sm text-muted-foreground">
+            Saving...
+          </span>
+        )}
       </div>
       </div>
 
