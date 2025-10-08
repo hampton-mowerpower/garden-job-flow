@@ -483,7 +483,7 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
 InvoiceContent.displayName = 'InvoiceContent';
 
 // Professional Workshop Palette - Minimal, Print-Ready
-const styles: Record<string, React.CSSProperties> = {
+var styles: Record<string, React.CSSProperties> = {
   page: {
     fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
     fontSize: '13px',

@@ -332,6 +332,20 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
   </div>
   ` : ''}
   
+  ${job.labourHours && job.labourHours > 0 ? `
+  <div class="section">
+    <div class="section-title">LABOUR</div>
+    <div class="inline-row">
+      <div class="inline-label">HOURS:</div>
+      <div class="inline-value">${job.labourHours.toFixed(2)}h @ ${formatCurrency(job.labourRate || 0)}/hr</div>
+    </div>
+    <div class="inline-row">
+      <div class="inline-label">CHARGE:</div>
+      <div class="inline-value">${formatCurrency((job.labourHours || 0) * (job.labourRate || 0))}</div>
+    </div>
+  </div>
+  ` : ''}
+  
   ${job.servicePerformed ? `
   <div class="section">
     <div class="section-title">SERVICE NOTES</div>
