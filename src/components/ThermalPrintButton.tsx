@@ -31,6 +31,17 @@ export function ThermalPrintButton({
 
   const handlePrint = async () => {
     setOpen(false);
+    
+    // Debug logging
+    console.log('[Thermal Print] Job data:', {
+      jobNumber: job.jobNumber,
+      machineCategory: job.machineCategory,
+      labourHours: job.labourHours,
+      labourRate: job.labourRate,
+      attachments: job.attachments,
+      attachmentCount: job.attachments?.length || 0
+    });
+    
     try {
       // For Multi-Tool service labels with attachments, print separate labels
       if (
@@ -41,6 +52,8 @@ export function ThermalPrintButton({
           att => att.problemDescription && att.problemDescription.trim() !== ''
         );
 
+        console.log('[Multi-Tool Print] Attachments with problems:', attachmentsWithProblems.length);
+
         if (attachmentsWithProblems.length > 0) {
           // Print one label per attachment
           for (const attachment of attachmentsWithProblems) {
@@ -50,6 +63,7 @@ export function ThermalPrintButton({
               problemDescription: attachment.problemDescription,
             };
             
+            console.log('[Multi-Tool Print] Printing label for:', attachment.name);
             await printThermal({ job: attachmentJob, type, width: printerWidth });
             
             // Small delay between prints
@@ -61,17 +75,20 @@ export function ThermalPrintButton({
             description: `${attachmentsWithProblems.length} labels sent to printer`
           });
           return;
+        } else {
+          console.log('[Multi-Tool Print] No attachments with problems - printing standard label');
         }
       }
 
       // Standard single label print
+      console.log('[Thermal Print] Printing standard label');
       await printThermal({ job, type, width: printerWidth });
       toast({
         title: 'Print sent',
         description: `${type === 'service-label' ? 'Service label' : 'Collection receipt'} sent to printer`
       });
     } catch (error) {
-      console.error('Print error:', error);
+      console.error('[Thermal Print] Error:', error);
       toast({
         title: 'Print failed',
         description: 'Failed to print. Please check your printer connection.',

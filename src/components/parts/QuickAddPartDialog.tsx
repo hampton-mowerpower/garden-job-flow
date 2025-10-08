@@ -12,14 +12,18 @@ import { Plus } from 'lucide-react';
 import { z } from 'zod';
 
 const CATEGORIES = [
-  'Engine Parts',
+  'Engine',
+  'Fluids',
+  'Cutting',
+  'Drive System',
+  'Hardware',
   'Electrical',
   'Hydraulics',
   'Transmission',
   'Filters',
   'Belts & Hoses',
-  'Hardware',
   'Tools',
+  'Multi-Tool',
   'Other'
 ];
 

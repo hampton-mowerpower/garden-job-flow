@@ -332,17 +332,25 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
   </div>
   ` : ''}
   
-  ${job.labourHours && job.labourHours > 0 ? `
+  ${(job.labourHours && parseFloat(job.labourHours.toString()) > 0) || (job.labourRate && parseFloat(job.labourRate.toString()) > 0) ? `
   <div class="section">
     <div class="section-title">LABOUR</div>
+    ${job.labourHours && parseFloat(job.labourHours.toString()) > 0 ? `
     <div class="inline-row">
       <div class="inline-label">HOURS:</div>
-      <div class="inline-value">${job.labourHours.toFixed(2)}h @ ${formatCurrency(job.labourRate || 0)}/hr</div>
+      <div class="inline-value">${parseFloat(job.labourHours.toString()).toFixed(2)}h @ ${formatCurrency(parseFloat((job.labourRate || 0).toString()))}/hr</div>
     </div>
     <div class="inline-row">
       <div class="inline-label">CHARGE:</div>
-      <div class="inline-value">${formatCurrency((job.labourHours || 0) * (job.labourRate || 0))}</div>
+      <div class="inline-value">${formatCurrency(parseFloat(job.labourHours.toString()) * parseFloat((job.labourRate || 0).toString()))}</div>
     </div>
+    ` : ''}
+    ${job.labourRate && parseFloat(job.labourRate.toString()) > 0 && (!job.labourHours || parseFloat(job.labourHours.toString()) === 0) ? `
+    <div class="inline-row">
+      <div class="inline-label">RATE:</div>
+      <div class="inline-value">${formatCurrency(parseFloat(job.labourRate.toString()))}/hr</div>
+    </div>
+    ` : ''}
   </div>
   ` : ''}
   
