@@ -14,6 +14,35 @@ export interface CatalogPart {
   brand_id?: string;
 }
 
+// Map equipment categories to parts catalogue categories
+const normalizeCategoryForParts = (category: string): string => {
+  // Remove "Battery" prefix first
+  let normalized = category.replace(/^Battery\s+/i, '');
+  
+  // Map common variations to catalogue categories
+  const categoryMap: Record<string, string> = {
+    'lawn-mowers': 'Lawn Mower',
+    'ride-on-mowers': 'Ride-On',
+    'chainsaws': 'Chainsaw',
+    'brushcutters': 'Brushcutter / Line Trimmer',
+    'hedge-trimmers': 'Hedge Trimmer',
+    'blowers': 'Blower & Vacuum',
+    'pressure-washers': 'Pressure Washer',
+    'generators': 'Generator',
+    'multi-tool': 'Multi-Tool',
+    'battery multi-tool': 'Multi-Tool',
+  };
+  
+  // Try exact match first (case-insensitive)
+  const lowerCategory = normalized.toLowerCase();
+  if (categoryMap[lowerCategory]) {
+    return categoryMap[lowerCategory];
+  }
+  
+  // Return as-is if no mapping found
+  return normalized;
+};
+
 export const usePartsCatalog = (equipmentCategory?: string) => {
   const [parts, setParts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -35,8 +64,11 @@ export const usePartsCatalog = (equipmentCategory?: string) => {
         .is('deleted_at', null);
 
       if (equipmentCategory) {
-        // Normalize category: "Battery Multi-Tool" -> "Multi-Tool"
-        const normalizedCategory = equipmentCategory.replace(/^Battery\s+/i, '');
+        const normalizedCategory = normalizeCategoryForParts(equipmentCategory);
+        console.log('Parts lookup:', { 
+          original: equipmentCategory, 
+          normalized: normalizedCategory 
+        });
         query = query.eq('category', normalizedCategory);
       }
 
