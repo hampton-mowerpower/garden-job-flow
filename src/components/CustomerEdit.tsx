@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Trash2 } from 'lucide-react';
+import { toTitleCase } from '@/lib/utils';
 
 interface Customer {
   id: string;
@@ -65,7 +66,7 @@ export function CustomerEdit({ customer, open, onOpenChange, onSaved }: Customer
       const { error } = await supabase
         .from('customers_db')
         .update({
-          name: formData.name.trim(),
+          name: toTitleCase(formData.name.trim()),
           phone: formData.phone.trim(),
           email: formData.email?.trim() || null,
           address: formData.address.trim(),
@@ -176,6 +177,12 @@ export function CustomerEdit({ customer, open, onOpenChange, onSaved }: Customer
                 id="edit-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onBlur={(e) => {
+                  const formatted = toTitleCase(e.target.value);
+                  if (formatted !== e.target.value) {
+                    setFormData({ ...formData, name: formatted });
+                  }
+                }}
               />
             </div>
 

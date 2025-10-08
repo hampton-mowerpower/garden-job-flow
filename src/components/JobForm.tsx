@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { TextareaTranslated } from '@/components/ui/textarea-translated';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Save, Printer, Check } from 'lucide-react';
+import { Plus, Trash2, Save, Printer, Check, Loader2 } from 'lucide-react';
 import { Job, Customer, JobPart, ChecklistItem } from '@/types/job';
 import { HAMPTON_MACHINE_CATEGORIES } from '@/data/hamptonMachineData';
 import { DEFAULT_PARTS } from '@/data/defaultParts';
@@ -23,6 +23,8 @@ import { printServiceLabel } from './ServiceLabelPrint';
 import GooglePlacesAutocomplete from './GooglePlacesAutocomplete';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Checkbox } from '@/components/ui/checkbox';
+import { toTitleCase } from '@/lib/utils';
+import { printThermal } from './ThermalPrint';
 
 import { ThermalPrintButton } from './ThermalPrintButton';
 import { PrintPromptDialog } from './PrintPromptDialog';
@@ -57,7 +59,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(false);
-  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'printing'>('idle');
   const [showServiceLabelDialog, setShowServiceLabelDialog] = useState(false);
   const [showPrintPromptDialog, setShowPrintPromptDialog] = useState(false);
   const [savedJob, setSavedJob] = useState<Job | null>(null);
@@ -542,11 +544,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     }
 
     setIsLoading(true);
+    setAutoSaveStatus('saving');
 
     try {
       const customerData: Customer = {
         id: customer.id || '', // Will be ignored for new customers
-        name: customer.name,
+        name: toTitleCase(customer.name.trim()),
         phone: customer.phone,
         address: customer.address || '',
         email: customer.email,
@@ -614,17 +617,68 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
 
       const savedJob = await jobBookingDB.saveJob(jobData);
       
+      setAutoSaveStatus('saved');
+      
       toast({
         title: job ? t('msg.job.updated') : t('msg.job.created'),
         description: job ? t('msg.job.updated') : t('msg.job.created')
       });
       
-      // Show print prompts after save
+      // For new jobs, automatically print collection receipt
+      if (!job) {
+        setAutoSaveStatus('printing');
+        
+        // Small delay to ensure job is fully saved
+        await new Promise(resolve => setTimeout(resolve, 200));
+        
+        try {
+          // Retry logic for printing
+          let printSuccess = false;
+          let retries = 0;
+          const maxRetries = 3;
+          
+          while (!printSuccess && retries < maxRetries) {
+            try {
+              await printThermal({ 
+                job: savedJob, 
+                type: 'collection-receipt', 
+                width: 79 
+              });
+              printSuccess = true;
+              
+              toast({
+                title: 'Collection receipt sent',
+                description: 'Label sent to printer successfully'
+              });
+            } catch (printError) {
+              retries++;
+              if (retries < maxRetries) {
+                // Backoff: 300ms, 600ms, 900ms
+                await new Promise(resolve => setTimeout(resolve, 300 * retries));
+              } else {
+                throw printError;
+              }
+            }
+          }
+        } catch (printError) {
+          console.error('Print failed after retries:', printError);
+          toast({
+            title: 'Print failed',
+            description: 'Could not print collection receipt. Please print manually.',
+            variant: 'destructive'
+          });
+        } finally {
+          setAutoSaveStatus('saved');
+        }
+      }
+      
+      // Show print prompts for other labels
       setSavedJob(savedJob);
       setShowPrintPromptDialog(true);
       
     } catch (error) {
       console.error('Error saving job:', error);
+      setAutoSaveStatus('idle');
       toast({
         title: t('msg.error'),
         description: t('msg.job.failed'),
@@ -665,10 +719,19 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           </>
         )}
         <Button onClick={handleSave} disabled={isLoading} className="flex-1 sm:flex-initial">
-          <Save className="w-4 h-4 mr-2" />
-          {isLoading ? t('jobs.saving') : t('jobs.save')}
+          {isLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              {autoSaveStatus === 'printing' ? 'Printing...' : 'Saving...'}
+            </>
+          ) : (
+            <>
+              <Save className="w-4 h-4 mr-2" />
+              {t('jobs.save')}
+            </>
+          )}
         </Button>
-        {autoSaveStatus === 'saved' && (
+        {autoSaveStatus === 'saved' && !isLoading && (
           <span className="flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
             <Check className="w-4 h-4" />
             Saved

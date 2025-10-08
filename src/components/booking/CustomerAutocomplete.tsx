@@ -5,7 +5,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, User, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, toTitleCase } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import {
   AlertDialog,
@@ -274,7 +274,13 @@ export const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({
               id="customer-name"
               value={customer.name || ''}
               onChange={(e) => onCustomerChange({ ...customer, name: e.target.value })}
-              onBlur={handleSaveWithDuplicateCheck}
+              onBlur={(e) => {
+                const formatted = toTitleCase(e.target.value);
+                if (formatted !== e.target.value) {
+                  onCustomerChange({ ...customer, name: formatted });
+                }
+                handleSaveWithDuplicateCheck();
+              }}
               required
             />
           </div>
