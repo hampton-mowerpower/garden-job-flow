@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Check, FileText, Download, Upload, Loader2 } from 'lucide-react';
+import { Plus, Search, Check, FileText, Download, Upload, Loader2, Trash2 } from 'lucide-react';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { parseCSV, importPartsToSupabase } from '@/utils/csvImport';
@@ -268,11 +268,31 @@ export const PartsManagementAdmin: React.FC = () => {
 
     try {
       setImporting(true);
-      const response = await fetch('/parts_master_v16.csv');
-      const csvText = await response.text();
+      
+      // Try both v16 and v17 CSV files
+      let csvText = '';
+      try {
+        const response = await fetch('/parts_master_v17.csv');
+        csvText = await response.text();
+      } catch {
+        const response = await fetch('/parts_master_v16.csv');
+        csvText = await response.text();
+      }
+      
       const { parseCSV, importPartsToSupabase } = await import('@/utils/csvImport');
       
       const allParts = parseCSV(csvText);
+      const categoryParts = allParts.filter(p => p.equipment_category === selectedCategory);
+      
+      if (categoryParts.length === 0) {
+        toast({
+          title: 'No Parts Found',
+          description: `No parts found for category "${selectedCategory}" in master CSV`,
+          variant: 'destructive'
+        });
+        return;
+      }
+      
       const result = await importPartsToSupabase(allParts, selectedCategory);
       
       toast({
@@ -295,6 +315,72 @@ export const PartsManagementAdmin: React.FC = () => {
       });
     } finally {
       setImporting(false);
+    }
+  };
+
+  const handleDeleteCategory = async () => {
+    if (!selectedCategory) return;
+
+    // Check if category has parts
+    if (parts.length > 0) {
+      toast({
+        title: 'Cannot Delete',
+        description: 'Remove all parts from this category before deleting it.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!confirm(`Delete category "${selectedCategory}"? This cannot be undone.`)) return;
+
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({ active: false })
+        .eq('name', selectedCategory);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Category deleted'
+      });
+
+      // Reload categories
+      await loadCategories();
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete category',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeletePart = async (partId: string) => {
+    if (!confirm('Delete this part? This cannot be undone.')) return;
+
+    try {
+      const { error } = await supabase
+        .from('parts_catalogue')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', partId);
+
+      if (error) throw error;
+
+      setParts(prev => prev.filter(p => p.id !== partId));
+      toast({
+        title: 'Success',
+        description: 'Part deleted'
+      });
+    } catch (error) {
+      console.error('Error deleting part:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete part',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -425,6 +511,10 @@ export const PartsManagementAdmin: React.FC = () => {
                   <Download className="h-4 w-4 mr-2" />
                   Export
                 </Button>
+                <Button onClick={handleDeleteCategory} size="sm" variant="destructive">
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Category
+                </Button>
                 <Button onClick={handleAddPart} size="sm">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Part
@@ -456,8 +546,20 @@ export const PartsManagementAdmin: React.FC = () => {
                     </TableRow>
                   ) : filteredParts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                        No parts found. Click "Add Part" to create one.
+                      <TableCell colSpan={8} className="text-center py-8">
+                        <p className="text-muted-foreground mb-2">
+                          No parts found for <strong>{selectedCategory}</strong>
+                        </p>
+                        <div className="flex gap-2 justify-center">
+                          <Button size="sm" variant="outline" onClick={handleBulkImportFromMaster}>
+                            <Upload className="h-4 w-4 mr-2" />
+                            Bulk Import v16
+                          </Button>
+                          <Button size="sm" onClick={handleAddPart}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Part Manually
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -570,9 +672,14 @@ export const PartsManagementAdmin: React.FC = () => {
                                 </Button>
                               </div>
                             ) : (
-                              <Button size="sm" variant="ghost" onClick={() => startEdit(part)}>
-                                Edit
-                              </Button>
+                              <div className="flex gap-1">
+                                <Button size="sm" variant="ghost" onClick={() => startEdit(part)}>
+                                  Edit
+                                </Button>
+                                <Button size="sm" variant="ghost" onClick={() => handleDeletePart(part.id)}>
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
                             )}
                           </TableCell>
                         </TableRow>

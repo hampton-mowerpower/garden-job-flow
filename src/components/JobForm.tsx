@@ -26,6 +26,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toTitleCase } from '@/lib/utils';
 import { printThermal } from './ThermalPrint';
 import { useCategories } from '@/hooks/useCategories';
+import { useCategorySync } from '@/hooks/useCategorySync';
 
 import { ThermalPrintButton } from './ThermalPrintButton';
 import { PrintPromptDialog } from './PrintPromptDialog';
@@ -60,6 +61,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
   const { categories, getLabourRate, ensureCategoryExists, updateCategoryRateByName } = useCategories();
+  const { reconcileCategories, ensureCategoryExists: syncEnsureCategory } = useCategorySync();
   const [isLoading, setIsLoading] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'printing'>('idle');
   const [showServiceLabelDialog, setShowServiceLabelDialog] = useState(false);
@@ -221,6 +223,36 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
       : 0
   });
+
+  // Reconcile categories on mount
+  useEffect(() => {
+    reconcileCategories();
+  }, []);
+
+  // Sync labour rate changes back to category
+  useEffect(() => {
+    if (!machineCategory || labourRate <= 0) return;
+    
+    const category = categories.find(c => c.name === machineCategory);
+    if (category && category.rate_default !== labourRate) {
+      // Debounce the update
+      const timer = setTimeout(() => {
+        updateCategoryRateByName(machineCategory, labourRate);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [machineCategory, labourRate, categories]);
+
+  // Ensure category exists when changed
+  useEffect(() => {
+    if (!machineCategory) return;
+    
+    const category = categories.find(c => c.name === machineCategory);
+    if (!category) {
+      // Category doesn't exist in database yet, create it
+      syncEnsureCategory(machineCategory, labourRate);
+    }
+  }, [machineCategory]);
 
   const baseCalculations = calculateJobTotals(
     parts, 

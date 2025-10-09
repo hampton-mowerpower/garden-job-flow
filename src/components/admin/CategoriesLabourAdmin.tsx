@@ -222,6 +222,87 @@ export const CategoriesLabourAdmin: React.FC = () => {
     }
   };
 
+  const handleEditCategoryName = async (categoryId: string, newName: string) => {
+    if (!newName.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Category name cannot be empty',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({ name: newName.trim() })
+        .eq('id', categoryId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Saved ✓',
+        description: 'Category name updated'
+      });
+    } catch (error) {
+      console.error('Error updating category name:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update category name',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    // Check if category is in use
+    const { data: jobsUsingCategory } = await supabase
+      .from('jobs_db')
+      .select('id')
+      .eq('machine_category', categories.find(c => c.id === categoryId)?.name)
+      .limit(1);
+
+    if (jobsUsingCategory && jobsUsingCategory.length > 0) {
+      toast({
+        title: 'Cannot Delete',
+        description: 'This category is referenced by existing jobs. Archive it instead.',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    if (!confirm('Delete this category? This cannot be undone.')) return;
+
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({ active: false })
+        .eq('id', categoryId);
+
+      if (error) throw error;
+
+      setCategories(prev => prev.filter(c => c.id !== categoryId));
+      if (selectedCategory?.id === categoryId) {
+        setSelectedCategory(categories[0] || null);
+      }
+
+      toast({
+        title: 'Success',
+        description: 'Category deleted'
+      });
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete category',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const [editingCategoryName, setEditingCategoryName] = useState<string | null>(null);
+  const [editedCategoryName, setEditedCategoryName] = useState<string>('');
+
   const handleSaveRate = async (categoryId: string) => {
     try {
       const { error } = await supabase
@@ -391,8 +472,9 @@ export const CategoriesLabourAdmin: React.FC = () => {
             <ScrollArea className="h-[calc(100vh-18rem)]">
               <div className="space-y-1">
                 {categories.map(category => {
-                  const isEditing = editingCategoryId === category.id;
-                  const displayRate = isEditing ? editedRate : category.rate_default;
+                  const isEditingRate = editingCategoryId === category.id;
+                  const isEditingName = editingCategoryName === category.id;
+                  const displayRate = isEditingRate ? editedRate : category.rate_default;
 
                   return (
                     <div
@@ -400,13 +482,50 @@ export const CategoriesLabourAdmin: React.FC = () => {
                       className={`flex items-center gap-2 p-2 rounded-md cursor-pointer ${
                         selectedCategory?.id === category.id ? 'bg-secondary' : 'hover:bg-secondary/50'
                       }`}
-                      onClick={() => setSelectedCategory(category)}
+                      onClick={() => !isEditingName && setSelectedCategory(category)}
                     >
                       <Folder className="h-4 w-4 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{category.name}</p>
+                        {isEditingName ? (
+                          <div className="flex items-center gap-1 mb-1" onClick={(e) => e.stopPropagation()}>
+                            <Input
+                              value={editedCategoryName}
+                              onChange={(e) => setEditedCategoryName(e.target.value)}
+                              className="h-6 text-sm"
+                              autoFocus
+                              onKeyPress={(e) => {
+                                if (e.key === 'Enter') {
+                                  handleEditCategoryName(category.id, editedCategoryName);
+                                  setEditingCategoryName(null);
+                                }
+                              }}
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 px-2"
+                              onClick={() => {
+                                handleEditCategoryName(category.id, editedCategoryName);
+                                setEditingCategoryName(null);
+                              }}
+                            >
+                              <Check className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <p 
+                            className="font-medium text-sm truncate cursor-pointer hover:underline"
+                            onDoubleClick={(e) => {
+                              e.stopPropagation();
+                              setEditingCategoryName(category.id);
+                              setEditedCategoryName(category.name);
+                            }}
+                          >
+                            {category.name}
+                          </p>
+                        )}
                         <div className="flex items-center gap-2 mt-1">
-                          {isEditing ? (
+                          {isEditingRate ? (
                             <>
                               <Input
                                 type="number"
@@ -428,17 +547,30 @@ export const CategoriesLabourAdmin: React.FC = () => {
                               </Button>
                             </>
                           ) : (
-                            <Badge
-                              variant="outline"
-                              className="text-xs cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setEditingCategoryId(category.id);
-                                setEditedRate(category.rate_default);
-                              }}
-                            >
-                              ${category.rate_default}/hr
-                            </Badge>
+                            <>
+                              <Badge
+                                variant="outline"
+                                className="text-xs cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingCategoryId(category.id);
+                                  setEditedRate(category.rate_default);
+                                }}
+                              >
+                                ${category.rate_default}/hr
+                              </Badge>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-5 w-5 p-0 ml-auto"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleDeleteCategory(category.id);
+                                }}
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            </>
                           )}
                         </div>
                       </div>

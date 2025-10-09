@@ -115,36 +115,64 @@ export const importPartsToSupabase = async (
 
 export const preloadCommonParts = async (categoryName: string): Promise<void> => {
   try {
-    // Fetch CSV data
-    const response = await fetch('/parts_master_v16.csv');
-    const csvText = await response.text();
+    // Try v17 first, fallback to v16
+    let csvText = '';
+    try {
+      const response = await fetch('/parts_master_v17.csv');
+      csvText = await response.text();
+    } catch {
+      const response = await fetch('/parts_master_v16.csv');
+      csvText = await response.text();
+    }
+    
     const allParts = parseCSV(csvText);
     
     // Filter parts for this category
     const categoryParts = allParts.filter(p => p.equipment_category === categoryName);
     
+    if (categoryParts.length === 0) {
+      console.log(`No preload parts found for category: ${categoryName}`);
+      return;
+    }
+    
     // Insert parts without prices (set to 0)
+    let successCount = 0;
     for (const part of categoryParts) {
-      const { error } = await supabase
-        .from('parts_catalogue')
-        .insert({
-          sku: part.sku || `AUTO-${Date.now()}-${Math.random()}`,
-          name: part.part_name,
-          category: categoryName,
-          part_group: part.part_group,
-          base_price: 0, // No price initially
-          sell_price: 0, // No price initially
-          in_stock: true,
-          description: `Preloaded - needs pricing`,
-          stock_quantity: 0
-        });
-      
-      // Ignore duplicate errors
-      if (error && !error.message.includes('duplicate')) {
-        console.error(`Error preloading part ${part.part_name}:`, error);
+      try {
+        // Check if part already exists
+        const { data: existing } = await supabase
+          .from('parts_catalogue')
+          .select('id')
+          .eq('category', categoryName)
+          .eq('name', part.part_name)
+          .single();
+        
+        if (existing) continue; // Skip if exists
+        
+        const { error } = await supabase
+          .from('parts_catalogue')
+          .insert({
+            sku: part.sku || `AUTO-${Date.now()}-${Math.random()}`,
+            name: part.part_name,
+            category: categoryName,
+            part_group: part.part_group,
+            base_price: 0, // No price initially
+            sell_price: 0, // No price initially
+            in_stock: true,
+            description: `Preloaded - needs pricing`,
+            stock_quantity: 0
+          });
+        
+        if (!error) successCount++;
+      } catch (err: any) {
+        // Silently continue on errors (likely duplicates)
+        console.log(`Skipped part ${part.part_name}:`, err.message);
       }
     }
+    
+    console.log(`Preloaded ${successCount} parts for ${categoryName}`);
   } catch (error) {
     console.error('Error preloading common parts:', error);
+    throw error;
   }
 };

@@ -246,9 +246,26 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
           <p className="text-muted-foreground mb-2">
             No parts available for <strong>{equipmentCategory}</strong>
           </p>
-          <p className="text-sm text-muted-foreground">
-            Add parts to the catalog in Admin → Parts & Pricing
+          <p className="text-sm text-muted-foreground mb-4">
+            Add parts in Admin → Parts Management or import from Parts Master v16
           </p>
+          <div className="flex gap-2 justify-center">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => window.open('/#/admin', '_blank')}
+            >
+              Go to Admin
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setShowAddNew(true)}
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add Part Now
+            </Button>
+          </div>
         </CardContent>
       </Card>
     );
