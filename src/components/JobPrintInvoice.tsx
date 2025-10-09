@@ -97,14 +97,22 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
             {/* Bill To */}
             <div style={styles.panel}>
               <div style={styles.panelTitle}>BILL TO</div>
-              <div style={styles.panelContent}>
-                <div style={styles.panelText}><strong>{job.customer.name}</strong></div>
-                {job.customer.email && (
-                  <div style={styles.panelText}>{job.customer.email}</div>
-                )}
-                <div style={styles.panelText}>{job.customer.phone}</div>
-                <div style={styles.panelText}>{job.customer.address}</div>
-              </div>
+            <div style={styles.panelContent}>
+              <div style={styles.panelText}><strong>{job.customer.name}</strong></div>
+              {job.customer.companyName && (
+                <div style={{...styles.panelText, fontStyle: 'italic'}}>
+                  {job.customer.companyName}
+                </div>
+              )}
+              {job.customer.companyAbn && (
+                <div style={styles.panelText}>ABN: {job.customer.companyAbn}</div>
+              )}
+              {job.customer.email && (
+                <div style={styles.panelText}>{job.customer.email}</div>
+              )}
+              <div style={styles.panelText}>{job.customer.phone}</div>
+              <div style={styles.panelText}>{job.customer.address}</div>
+            </div>
             </div>
 
             {/* Job Summary */}

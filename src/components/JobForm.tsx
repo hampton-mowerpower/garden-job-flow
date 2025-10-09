@@ -48,6 +48,7 @@ import { SmallRepairSection } from './booking/SmallRepairSection';
 import { MultiToolAttachments } from './booking/MultiToolAttachments';
 import { RequestedFinishDatePicker } from './booking/RequestedFinishDatePicker';
 import { PartsPicker } from './booking/PartsPicker';
+import { syncJobToAccountCustomer } from '@/utils/accountCustomerSync';
 
 // Simple unique ID generator for UI elements (not database records)
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -731,6 +732,16 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           });
         } finally {
           setAutoSaveStatus('saved');
+        }
+      }
+      
+      // Sync to Account Customer if applicable
+      if (savedJob.accountCustomerId) {
+        try {
+          await syncJobToAccountCustomer(savedJob);
+        } catch (syncError) {
+          console.error('Account customer sync failed (non-blocking):', syncError);
+          // Don't block the save flow
         }
       }
       

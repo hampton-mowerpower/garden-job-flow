@@ -159,9 +159,12 @@ export function EmailNotificationDialog({ job, open, onOpenChange }: EmailNotifi
             customerEmail: job.customer.email,
             customerPhone: job.customer.phone,
             customerAddress: job.customer.address,
+            companyName: job.customer.companyName,
+            companyAbn: job.customer.companyAbn,
             machineBrand: job.machineBrand,
             machineModel: job.machineModel,
             machineSerial: job.machineSerial,
+            machineCategory: job.machineCategory,
             status: job.status,
             grandTotal: job.grandTotal,
             serviceDeposit: job.serviceDeposit,
@@ -169,7 +172,16 @@ export function EmailNotificationDialog({ job, open, onOpenChange }: EmailNotifi
             parts: job.parts,
             labourHours: job.labourHours,
             labourRate: job.labourRate,
-            gst: job.gst
+            gst: job.gst,
+            transportTotalCharge: job.transportTotalCharge,
+            transportBreakdown: job.transportBreakdown,
+            sharpenTotalCharge: job.sharpenTotalCharge,
+            sharpenBreakdown: job.sharpenBreakdown,
+            smallRepairTotal: job.smallRepairTotal,
+            smallRepairDetails: job.smallRepairDetails,
+            problemDescription: job.problemDescription,
+            additionalNotes: job.additionalNotes,
+            requestedFinishDate: job.requestedFinishDate ? job.requestedFinishDate.toString() : undefined
           }
         }
       });

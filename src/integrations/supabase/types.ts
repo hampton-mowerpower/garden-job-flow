@@ -450,6 +450,11 @@ export type Database = {
       customers_db: {
         Row: {
           address: string
+          billing_address: string | null
+          company_abn: string | null
+          company_email: string | null
+          company_name: string | null
+          company_phone: string | null
           created_at: string
           email: string | null
           id: string
@@ -464,6 +469,11 @@ export type Database = {
         }
         Insert: {
           address: string
+          billing_address?: string | null
+          company_abn?: string | null
+          company_email?: string | null
+          company_name?: string | null
+          company_phone?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -478,6 +488,11 @@ export type Database = {
         }
         Update: {
           address?: string
+          billing_address?: string | null
+          company_abn?: string | null
+          company_email?: string | null
+          company_name?: string | null
+          company_phone?: string | null
           created_at?: string
           email?: string | null
           id?: string

@@ -136,6 +136,7 @@ export interface Job {
   
   // Customer account settings
   hasAccount?: boolean; // true if customer has 30-day account terms
+  accountCustomerId?: string; // Link to account_customers table if this is an account customer job
   
   // Phase 2 additions
   requestedFinishDate?: Date; // Customer requested completion date
