@@ -59,7 +59,7 @@ interface JobFormProps {
 export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
-  const { categories, getLabourRate, ensureCategoryExists } = useCategories();
+  const { categories, getLabourRate, ensureCategoryExists, updateCategoryRateByName } = useCategories();
   const [isLoading, setIsLoading] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'printing'>('idle');
   const [showServiceLabelDialog, setShowServiceLabelDialog] = useState(false);
@@ -180,6 +180,18 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setLabourHours(Math.round((labourFee / labourRate) * 100) / 100);
     }
   }, [machineCategory, labourRate]);
+
+  // Sync labour rate changes back to category
+  useEffect(() => {
+    const syncLabourRate = async () => {
+      if (machineCategory && labourRate > 0 && labourRate !== getLabourRate(machineCategory)) {
+        await updateCategoryRateByName(machineCategory, labourRate);
+      }
+    };
+    
+    const timer = setTimeout(syncLabourRate, 1000);
+    return () => clearTimeout(timer);
+  }, [labourRate, machineCategory]);
   
   // Labour Fee <-> Hours sync
   const handleLabourHoursChange = (hours: number) => {

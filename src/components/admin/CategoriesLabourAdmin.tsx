@@ -199,12 +199,19 @@ export const CategoriesLabourAdmin: React.FC = () => {
         description: 'Loading common parts for this category'
       });
       
-      await preloadCommonParts(data.name);
-
-      toast({
-        title: 'Success',
-        description: 'New category added with common parts preloaded'
-      });
+      try {
+        await preloadCommonParts(data.name);
+        toast({
+          title: 'Success',
+          description: 'New category added with common parts preloaded'
+        });
+      } catch (error) {
+        console.error('Error preloading parts:', error);
+        toast({
+          title: 'Category Added',
+          description: 'Category created. Parts preload may have encountered issues.'
+        });
+      }
     } catch (error) {
       console.error('Error adding category:', error);
       toast({

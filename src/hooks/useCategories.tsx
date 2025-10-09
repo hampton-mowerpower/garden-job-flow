@@ -122,6 +122,27 @@ export const useCategories = () => {
     }
   };
 
+  const updateCategoryRateByName = async (
+    categoryName: string,
+    newRate: number
+  ): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('categories')
+        .update({ rate_default: newRate })
+        .eq('name', categoryName);
+
+      if (error) throw error;
+
+      await loadCategories();
+      return true;
+    } catch (err: any) {
+      console.error('Error updating category rate by name:', err);
+      setError(err.message);
+      return false;
+    }
+  };
+
   return {
     categories,
     loading,
@@ -130,6 +151,7 @@ export const useCategories = () => {
     getLabourRate,
     ensureCategoryExists,
     updateCategoryRate,
+    updateCategoryRateByName,
     refetch: loadCategories
   };
 };

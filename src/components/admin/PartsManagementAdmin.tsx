@@ -256,6 +256,48 @@ export const PartsManagementAdmin: React.FC = () => {
     }
   };
 
+  const handleBulkImportFromMaster = async () => {
+    if (!selectedCategory) {
+      toast({
+        title: 'Error',
+        description: 'Please select a category first',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    try {
+      setImporting(true);
+      const response = await fetch('/parts_master_v16.csv');
+      const csvText = await response.text();
+      const { parseCSV, importPartsToSupabase } = await import('@/utils/csvImport');
+      
+      const allParts = parseCSV(csvText);
+      const result = await importPartsToSupabase(allParts, selectedCategory);
+      
+      toast({
+        title: 'Import Complete',
+        description: `Imported ${result.success} parts for ${selectedCategory}. ${result.errors.length} errors.`,
+        variant: result.errors.length > 0 ? 'destructive' : 'default'
+      });
+      
+      if (result.errors.length > 0) {
+        console.error('Import errors:', result.errors.slice(0, 10));
+      }
+      
+      await loadParts(selectedCategory);
+    } catch (error: any) {
+      console.error('Bulk import error:', error);
+      toast({
+        title: 'Import Failed',
+        description: 'Failed to import parts: ' + error.message,
+        variant: 'destructive'
+      });
+    } finally {
+      setImporting(false);
+    }
+  };
+
   const handleExportCSV = () => {
     if (filteredParts.length === 0) return;
     
@@ -343,6 +385,24 @@ export const PartsManagementAdmin: React.FC = () => {
                   onChange={handleCSVImport}
                   className="hidden"
                 />
+                <Button 
+                  onClick={handleBulkImportFromMaster}
+                  size="sm" 
+                  variant="outline"
+                  disabled={importing || !selectedCategory}
+                >
+                  {importing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Bulk Import v16
+                    </>
+                  )}
+                </Button>
                 <Button 
                   onClick={() => fileInputRef.current?.click()} 
                   size="sm" 
