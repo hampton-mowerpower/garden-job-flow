@@ -27,36 +27,38 @@ export function calculateJobTotals(
   sharpenTotal: number = 0,
   smallRepairTotal: number = 0
 ): JobCalculations {
-  // Calculate parts subtotal (GST-inclusive)
+  // All input prices are GST-inclusive
   const partsSubtotal = parts.reduce((sum, part) => sum + part.totalPrice, 0);
-  
-  // Calculate labour total (hours × rate, GST-inclusive)
   const labourTotal = labourHours * labourRate;
   
-  // Calculate subtotal (all amounts are GST-inclusive)
+  // Subtotal is sum of all GST-inclusive amounts
   const subtotal = partsSubtotal + labourTotal + transportTotal + sharpenTotal + smallRepairTotal;
   
-  // Convert to ex-GST for discount calculation (match invoice logic)
-  const subtotalExGST = subtotal / (1 + GST_RATE);
-  
-  // Calculate discount amount (on ex-GST basis)
+  // Calculate discount on the GST-inclusive subtotal
   let discountAmount = 0;
   if (discountType && discountValue && discountValue > 0) {
     if (discountType === 'PERCENT') {
-      discountAmount = subtotalExGST * (discountValue / 100);
+      discountAmount = subtotal * (discountValue / 100);
     } else {
+      // Discount amount is also GST-inclusive
       discountAmount = discountValue;
     }
   }
   
-  // Apply discount
-  const subtotalAfterDiscountExGST = Math.max(0, subtotalExGST - discountAmount);
+  // Apply discount to get subtotal after discount (still GST-inclusive)
+  const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount);
   
-  // Calculate GST on discounted ex-GST amount (extract GST, don't add it)
-  const gst = subtotalAfterDiscountExGST * GST_RATE;
+  // Back-calculate GST from the discounted GST-inclusive amount
+  // If total is GST-inclusive: total = ex_gst + (ex_gst * GST_RATE) = ex_gst * (1 + GST_RATE)
+  // Therefore: ex_gst = total / (1 + GST_RATE)
+  // And: gst = total - ex_gst = total - (total / (1 + GST_RATE)) = total * (GST_RATE / (1 + GST_RATE))
+  const gst = subtotalAfterDiscount * (GST_RATE / (1 + GST_RATE));
   
-  // Calculate grand total (ex-GST + GST)
-  const grandTotal = subtotalAfterDiscountExGST + gst;
+  // Grand total is the subtotal after discount (which already includes GST)
+  const grandTotal = subtotalAfterDiscount;
+  
+  // Calculate ex-GST amount for interface
+  const subtotalAfterDiscountExGST = subtotalAfterDiscount / (1 + GST_RATE);
   
   return {
     partsSubtotal: Math.round(partsSubtotal * 100) / 100,

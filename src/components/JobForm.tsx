@@ -674,6 +674,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
 
       const savedJob = await jobBookingDB.saveJob(jobData);
       
+      // Update local savedJob state immediately so invoice uses fresh data
+      setSavedJob(savedJob);
       setAutoSaveStatus('saved');
       
       toast({
@@ -770,9 +772,9 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
               <Bell className="w-4 h-4" />
               Notify Customer
             </Button>
-            <JobPrintInvoice job={job} />
-            <ThermalPrintButton job={job} type="service-label" label="Service Label" size="sm" width={79} />
-            <ThermalPrintButton job={job} type="collection-receipt" label="Collection Receipt" size="sm" width={79} />
+            <JobPrintInvoice job={savedJob || job} />
+            <ThermalPrintButton job={savedJob || job} type="service-label" label="Service Label" size="sm" width={79} />
+            <ThermalPrintButton job={savedJob || job} type="collection-receipt" label="Collection Receipt" size="sm" width={79} />
           </>
         )}
         <Button onClick={handleSave} disabled={isLoading} className="flex-1 sm:flex-initial">

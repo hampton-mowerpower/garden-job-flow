@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { MACHINE_CATEGORIES } from '@/data/machineCategories';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -441,10 +442,38 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
   const availableModels = machineCategory && machineBrand ? 
     customData.models[machineCategory]?.[machineBrand] || [] : [];
 
+  const handleClearCategory = () => {
+    onCategoryChange('');
+    onBrandChange('');
+    onModelChange('');
+  };
+
+  const handleClearBrand = () => {
+    onBrandChange('');
+    onModelChange('');
+  };
+
+  const handleClearModel = () => {
+    onModelChange('');
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
-        <Label htmlFor="machine-category">Category *</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="machine-category">Category *</Label>
+          {machineCategory && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearCategory}
+              className="h-6 px-2 text-xs text-destructive"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
         {showCategoryInput ? (
           <div className="space-y-2">
             <Input
@@ -497,7 +526,20 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
       </div>
       
       <div>
-        <Label htmlFor="machine-brand">Brand</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="machine-brand">Brand</Label>
+          {machineBrand && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearBrand}
+              className="h-6 px-2 text-xs text-destructive"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
         {showBrandInput ? (
           <div className="space-y-2">
             <Input
@@ -550,7 +592,20 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
       </div>
 
       <div>
-        <Label htmlFor="machine-model">Model</Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="machine-model">Model</Label>
+          {machineModel && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleClearModel}
+              className="h-6 px-2 text-xs text-destructive"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
         <Input
           id="machine-model"
           value={machineModel}

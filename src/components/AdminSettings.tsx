@@ -20,6 +20,8 @@ import { PartsCSVImporter } from './admin/PartsCSVImporter';
 import { PartsImportTester } from './admin/PartsImportTester';
 import { PartsManagementAdmin } from './admin/PartsManagementAdmin';
 import { CategoriesLabourAdmin } from './admin/CategoriesLabourAdmin';
+import { QuickProblemsAdmin } from './admin/QuickProblemsAdmin';
+import { TransportSettingsAdmin } from './admin/TransportSettingsAdmin';
 
 // Simple unique ID generator for UI elements
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -326,10 +328,11 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
         </div>
 
         <Tabs defaultValue="categories" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="categories">Categories & Rates</TabsTrigger>
             <TabsTrigger value="parts">Parts Management</TabsTrigger>
-            <TabsTrigger value="descriptions">Quick Descriptions</TabsTrigger>
+            <TabsTrigger value="descriptions">Quick Problems</TabsTrigger>
+            <TabsTrigger value="transport">Transport Settings</TabsTrigger>
             <TabsTrigger value="print">Print Settings</TabsTrigger>
             <TabsTrigger value="export">Data Export</TabsTrigger>
           </TabsList>
@@ -343,50 +346,11 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
           </TabsContent>
 
           <TabsContent value="descriptions">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  Quick Problem Descriptions
-                  <Button variant="default" size="sm" onClick={saveQuickDescriptions}>
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Changes
-                  </Button>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Input
-                    value={newDescription}
-                    onChange={(e) => setNewDescription(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && addQuickDescription()}
-                    placeholder="Enter new quick description"
-                  />
-                  <Button onClick={addQuickDescription}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add
-                  </Button>
-                </div>
-                <Separator />
-                <div className="space-y-2">
-                  {quickDescriptions.map((desc, index) => (
-                    <div key={index} className="flex gap-2 items-center">
-                      <Input
-                        value={desc}
-                        onChange={(e) => updateQuickDescription(index, e.target.value)}
-                        className="flex-1"
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => removeQuickDescription(index)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+            <QuickProblemsAdmin />
+          </TabsContent>
+
+          <TabsContent value="transport">
+            <TransportSettingsAdmin />
           </TabsContent>
 
           <TabsContent value="print">
