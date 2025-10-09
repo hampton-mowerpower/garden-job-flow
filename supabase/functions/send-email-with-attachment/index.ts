@@ -172,11 +172,15 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     // Prepare email payload
+    // IMPORTANT: Use your verified domain email here
+    // After verifying hamptonmowerpower.com.au in Resend, change to:
+    // from: 'Hampton Mowerpower <noreply@hamptonmowerpower.com.au>'
     const emailPayload: any = {
       from: 'Hampton Mowerpower <onboarding@resend.dev>',
       to: [recipient],
       subject: subject,
       html: emailHtml,
+      reply_to: 'hamptonmowerpower@gmail.com', // Customer replies go here
     };
 
     if (cc) emailPayload.cc = [cc];
