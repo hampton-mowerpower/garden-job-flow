@@ -780,9 +780,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         }
       }
       
-      // Show print prompts for other labels
-      setSavedJob(savedJob);
-      setShowPrintPromptDialog(true);
+      // Show print prompts for manual printing (ONLY for edits, not for new jobs)
+      // New jobs already auto-printed collection receipt above
+      if (job && job.id) {
+        setSavedJob(savedJob);
+        setShowPrintPromptDialog(true);
+      }
+      
+      onSave(savedJob);
       
     } catch (error) {
       console.error('Error saving job:', error);

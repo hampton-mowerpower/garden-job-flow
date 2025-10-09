@@ -1,4 +1,4 @@
-// Simplified PDF Generation using jsPDF
+// PDF Generation with Logo and Quotation T&Cs
 import { jsPDF } from "https://esm.sh/jspdf@2.5.2";
 
 interface JobData {
@@ -31,6 +31,9 @@ interface JobData {
   requestedFinishDate?: string;
 }
 
+// Hampton Mowerpower logo as base64 (embedded for PDF generation)
+const HAMPTON_LOGO_BASE64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
 export async function generateInvoicePDF(
   jobData: JobData,
   jobNumber: string,
@@ -48,20 +51,27 @@ export async function generateInvoicePDF(
   
   let yPos = 20;
 
-  // Header
-  doc.setFontSize(20);
+  // Header with Logo and Company Details
+  doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
-  doc.setTextColor(37, 99, 235); // Blue
+  doc.setTextColor(0, 0, 0);
   doc.text('HAMPTON MOWERPOWER', 15, yPos);
   
-  yPos += 7;
-  doc.setFontSize(9);
+  yPos += 5;
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 100, 100);
-  doc.text('87 Ludstone Street, Hampton VIC 3188, Australia', 15, yPos);
+  doc.setTextColor(80, 80, 80);
+  doc.text('Garden Equipment Sales & Service', 15, yPos);
+  
+  yPos += 5;
+  doc.setFontSize(8);
+  doc.text('87 Ludstone Street, Hampton 3188 | (03) 9598 6741', 15, yPos);
+  
   yPos += 4;
-  doc.text('Phone: 03-9598-6741 | Email: hamptonmowerpower@gmail.com', 15, yPos);
+  doc.text('hamptonmowerpower@gmail.com | https://www.hamptonmowerpower.com.au', 15, yPos);
+  
   yPos += 4;
+  doc.setFont('helvetica', 'bold');
   doc.text('ABN: 97 161 289 069', 15, yPos);
   
   // Document Title (right side)
@@ -331,22 +341,87 @@ export async function generateInvoicePDF(
     doc.text(`$${jobData.balanceDue.toFixed(2)}`, 193, yPos, { align: 'right' });
   }
 
-  // Footer
-  yPos = 270;
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  doc.setTextColor(100, 100, 100);
-  doc.text('Thank you for your business!', 105, yPos, { align: 'center' });
-  yPos += 5;
-  doc.setFontSize(9);
-  doc.text(
-    isQuotation
-      ? 'This quotation is valid for 30 days.'
-      : 'Payment is due upon collection.',
-    105,
-    yPos,
-    { align: 'center' }
-  );
+  // Quotation Terms & Conditions (only for quotations)
+  if (isQuotation) {
+    yPos += 10;
+    
+    // Check if we need a new page
+    if (yPos > 250) {
+      doc.addPage();
+      yPos = 20;
+    }
+    
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Quotation Terms and Conditions', 15, yPos);
+    yPos += 8;
+    
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(40, 40, 40);
+    
+    const termsText = [
+      { title: '1. Non-Refundable Fee', content: 'The quotation fee is non-refundable under all circumstances. This fee covers the time, labour, and technical expertise required to inspect and assess the machine.' },
+      { title: '2. Deduction Policy', content: 'If the customer proceeds with the repair, the quotation fee will be deducted from the final repair cost once the job is approved and completed.' },
+      { title: '3. Quotation Estimate', content: 'All quotations are provided as an estimate only, based on the initial inspection and diagnosis. Additional faults, labour, or replacement parts may be identified during the repair process. As such, the quoted amount is subject to variation and is not a fixed or guaranteed price. Any change in cost will be communicated to the customer before additional work is undertaken.' },
+      { title: '4. Machine Assessment', content: 'To provide an accurate quotation, it may be necessary to partially or fully disassemble the machine for inspection, assessment, and diagnosis. The customer acknowledges that such disassembly may render the machine temporarily inoperable.' },
+      { title: '5. Reassembly Fee', content: 'If the customer chooses not to proceed with the repair and requests that the machine be reassembled, an additional labour fee may apply to cover the reassembly process.' },
+      { title: '6. Limitation of Liability', content: 'Hampton Mowerpower shall not be liable for any loss, damage, or delay arising from unforeseen circumstances, parts availability, or decisions made by the customer not to proceed with the repair.' },
+      { title: '7. Customer Acknowledgement', content: 'By accepting this quotation, the customer acknowledges that they have read, understood, and agreed to the above terms and conditions, and authorise Hampton Mowerpower to perform the diagnostic and repair work as outlined.' }
+    ];
+    
+    for (const term of termsText) {
+      // Check if we need a new page
+      if (yPos > 260) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text(term.title, 15, yPos);
+      yPos += 5;
+      
+      doc.setFont('helvetica', 'normal');
+      const contentLines = doc.splitTextToSize(term.content, 180);
+      doc.text(contentLines, 15, yPos);
+      yPos += (contentLines.length * 4) + 6;
+    }
+    
+    // Disclaimer
+    if (yPos > 250) {
+      doc.addPage();
+      yPos = 20;
+    }
+    
+    doc.setFont('helvetica', 'bold');
+    doc.text('Disclaimer:', 15, yPos);
+    yPos += 5;
+    
+    doc.setFont('helvetica', 'normal');
+    doc.text('All prices include GST unless otherwise stated.', 15, yPos);
+    yPos += 4;
+    const disclaimerLines = doc.splitTextToSize('Hampton Mowerpower reserves the right to revise quotations in the event of unforeseen circumstances, additional labour, or replacement parts required to safely and effectively complete the repair.', 180);
+    doc.text(disclaimerLines, 15, yPos);
+  }
+
+  // Footer (on last page)
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120, 120, 120);
+    doc.text('Thank you for your business!', 105, 285, { align: 'center' });
+    doc.text(
+      isQuotation
+        ? 'This quotation is valid for 30 days.'
+        : 'Payment is due upon collection.',
+      105,
+      289,
+      { align: 'center' }
+    );
+  }
 
   // Generate PDF as Uint8Array
   const pdfOutput = doc.output('arraybuffer');

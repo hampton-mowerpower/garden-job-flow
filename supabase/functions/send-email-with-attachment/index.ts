@@ -104,51 +104,66 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Format email HTML
+    // Format email HTML with logo
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <div style="background: #2563eb; color: white; padding: 20px; text-align: center;">
-          <h1 style="margin: 0;">HAMPTON MOWERPOWER</h1>
-          <p style="margin: 5px 0;">Your One-Stop Shop for Outdoor Power Equipment</p>
+        <div style="background: #f9fafb; padding: 20px; text-align: center; border-bottom: 3px solid #2563eb;">
+          <div style="margin-bottom: 10px;">
+            <img src="https://kyiuojjaownbvouffqbm.supabase.co/storage/v1/object/public/assets/hampton-logo-email.png" alt="Hampton Mowerpower" style="max-width: 300px; height: auto;" />
+          </div>
+          <p style="margin: 5px 0; color: #6b7280; font-size: 14px;">Garden Equipment Sales & Service</p>
         </div>
         
-        <div style="padding: 30px; background: #f9fafb;">
-          <div style="white-space: pre-line; line-height: 1.6;">${message}</div>
+        <div style="padding: 30px; background: #ffffff;">
+          <div style="white-space: pre-line; line-height: 1.6; color: #1f2937;">${message}</div>
           
-          <div style="background: white; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h3 style="color: #1f2937; margin-top: 0;">Job Details</h3>
+          <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
+            <h3 style="color: #1f2937; margin-top: 0; margin-bottom: 15px; font-size: 16px;">Job Details</h3>
             <table style="width: 100%; border-collapse: collapse;">
               <tr>
-                <td style="padding: 8px 0; color: #6b7280;"><strong>Job Number:</strong></td>
+                <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Job Number:</td>
                 <td style="padding: 8px 0; color: #1f2937;">${jobNumber}</td>
               </tr>
               <tr>
-                <td style="padding: 8px 0; color: #6b7280;"><strong>Equipment:</strong></td>
+                <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Equipment:</td>
                 <td style="padding: 8px 0; color: #1f2937;">${jobData.machineBrand} ${jobData.machineModel}</td>
               </tr>
               ${jobData.grandTotal > 0 ? `
               <tr>
-                <td style="padding: 8px 0; color: #6b7280;"><strong>Total:</strong></td>
-                <td style="padding: 8px 0; color: #1f2937;">$${jobData.grandTotal.toFixed(2)} (inc. GST)</td>
+                <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Total:</td>
+                <td style="padding: 8px 0; color: #1f2937; font-weight: 700;">$${jobData.grandTotal.toFixed(2)} (inc. GST)</td>
               </tr>
               ` : ''}
             </table>
           </div>
           
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-            <p style="color: #6b7280; margin: 5px 0;">If you have any questions, please contact us:</p>
-            <ul style="color: #6b7280; line-height: 1.8;">
-              <li>📞 Phone: <strong style="color: #1f2937;">03-9598-6741</strong></li>
-              <li>📧 Email: <strong style="color: #1f2937;">hamptonmowerpower@gmail.com</strong></li>
-              <li>📍 Address: <strong style="color: #1f2937;">87 Ludstone Street, Hampton VIC 3188</strong></li>
-            </ul>
+            <p style="color: #6b7280; margin: 10px 0; font-size: 14px;">If you have any questions, please contact us:</p>
+            <table style="color: #1f2937; line-height: 1.8; font-size: 14px; margin-top: 10px;">
+              <tr>
+                <td style="padding: 4px 0; color: #6b7280;">📞</td>
+                <td style="padding: 4px 0; padding-left: 10px;"><strong>(03) 9598 6741</strong></td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 0; color: #6b7280;">📧</td>
+                <td style="padding: 4px 0; padding-left: 10px;"><a href="mailto:hamptonmowerpower@gmail.com" style="color: #2563eb; text-decoration: none;"><strong>hamptonmowerpower@gmail.com</strong></a></td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 0; color: #6b7280;">📍</td>
+                <td style="padding: 4px 0; padding-left: 10px;"><strong>87 Ludstone Street, Hampton VIC 3188</strong></td>
+              </tr>
+              <tr>
+                <td style="padding: 4px 0; color: #6b7280;">🌐</td>
+                <td style="padding: 4px 0; padding-left: 10px;"><a href="https://www.hamptonmowerpower.com.au" style="color: #2563eb; text-decoration: none;"><strong>www.hamptonmowerpower.com.au</strong></a></td>
+              </tr>
+            </table>
           </div>
         </div>
         
         <div style="background: #1f2937; color: white; padding: 20px; text-align: center; font-size: 12px;">
-          <p style="margin: 5px 0;">Hampton Mowerpower</p>
-          <p style="margin: 5px 0;">ABN: 97 161 289 069</p>
-          <p style="margin: 5px 0;">www.hamptonmowerpower.com.au</p>
+          <p style="margin: 5px 0; font-weight: 600;">Hampton Mowerpower</p>
+          <p style="margin: 5px 0; color: #9ca3af;">ABN: 97 161 289 069</p>
+          <p style="margin: 5px 0;"><a href="https://www.hamptonmowerpower.com.au" style="color: #60a5fa; text-decoration: none;">www.hamptonmowerpower.com.au</a></p>
         </div>
       </div>
     `;
