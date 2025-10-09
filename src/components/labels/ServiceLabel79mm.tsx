@@ -74,15 +74,25 @@ export const ServiceLabel79mm: React.FC<ServiceLabel79mmProps> = ({
       {/* Customer Info */}
       <div className="mb-3 border-b border-gray-400 pb-2">
         <div className="font-bold">{truncate(job.customer.name, 35)}</div>
+        
+        {/* Customer Type - Always show */}
+        <div className="text-xs font-bold uppercase mt-1">
+          {job.customerType === 'commercial' ? '🏢 COMMERCIAL' : '🏠 DOMESTIC'}
+        </div>
+        
+        {/* Company Name */}
         {job.jobCompanyName && (
-          <div className="text-sm font-semibold">{truncate(job.jobCompanyName, 35)}</div>
+          <div className="text-sm font-semibold mt-1">{truncate(job.jobCompanyName, 35)}</div>
         )}
-        {job.customerType && (
-          <div className="text-xs font-bold uppercase">
-            {job.customerType === 'commercial' ? '🏢 COMMERCIAL' : '🏠 DOMESTIC'}
+        
+        {/* Account Customer Badge */}
+        {job.accountCustomerId && (
+          <div className="text-xs font-bold bg-blue-100 text-blue-800 px-2 py-1 rounded mt-1 inline-block">
+            ACCOUNT CUSTOMER
           </div>
         )}
-        <div className="text-sm">{job.customer.phone}</div>
+        
+        <div className="text-sm mt-1">{job.customer.phone}</div>
       </div>
 
       {/* Machine Info */}

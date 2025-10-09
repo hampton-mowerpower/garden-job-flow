@@ -27,6 +27,7 @@ import { toTitleCase } from '@/lib/utils';
 import { printThermal } from './ThermalPrint';
 import { useCategories } from '@/hooks/useCategories';
 import { useCategorySync } from '@/hooks/useCategorySync';
+import { supabase } from '@/integrations/supabase/client';
 
 import { ThermalPrintButton } from './ThermalPrintButton';
 import { PrintPromptDialog } from './PrintPromptDialog';
@@ -134,6 +135,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [checklistUniversal, setChecklistUniversal] = useState<ChecklistItem[]>([]);
   const [checklistCategory, setChecklistCategory] = useState<ChecklistItem[]>([]);
   const [hasAccount, setHasAccount] = useState(false);
+  const [accountCustomerId, setAccountCustomerId] = useState<string | undefined>(undefined);
   const [showLabelDialog, setShowLabelDialog] = useState(false);
   const [newJobData, setNewJobData] = useState<Job | null>(null);
   
@@ -405,6 +407,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setChecklistUniversal(job.checklistUniversal || []);
       setChecklistCategory(job.checklistCategory || []);
       setHasAccount(job.hasAccount || false);
+      setAccountCustomerId(job.accountCustomerId);
       
       // Load transport data - ALWAYS load to preserve totalCharge
       setTransportData({
@@ -452,6 +455,108 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       }
     }
   };
+
+  // Auto-link Account Customer when hasAccount is checked and company name exists
+  useEffect(() => {
+    const linkAccountCustomer = async () => {
+      if (!hasAccount || !jobCompanyName.trim()) {
+        setAccountCustomerId(undefined);
+        return;
+      }
+
+      try {
+        // Search for existing account customer by name (case-insensitive)
+        const { data: existingCustomers, error: searchError } = await supabase
+          .from('account_customers')
+          .select('*')
+          .ilike('name', jobCompanyName.trim())
+          .eq('active', true)
+          .limit(1);
+
+        if (searchError) throw searchError;
+
+        if (existingCustomers && existingCustomers.length > 0) {
+          // Found existing account customer
+          const accountCustomer = existingCustomers[0];
+          setAccountCustomerId(accountCustomer.id);
+          
+          // Auto-fill email from account customer if not already set
+          if (accountCustomer.emails && accountCustomer.emails.length > 0 && !customer.email) {
+            setCustomer(prev => ({
+              ...prev,
+              email: accountCustomer.emails[0]
+            }));
+          }
+          
+          toast({
+            title: 'Account Customer Linked',
+            description: `Linked to ${accountCustomer.name}`,
+          });
+        } else {
+          // Create new account customer
+          const { data: newAccountCustomer, error: createError } = await supabase
+            .from('account_customers')
+            .insert({
+              name: jobCompanyName.trim(),
+              emails: customer.email ? [customer.email] : [],
+              phone: customer.phone || null,
+              default_payment_terms: '30 days',
+              active: true
+            })
+            .select()
+            .single();
+
+          if (createError) throw createError;
+
+          setAccountCustomerId(newAccountCustomer.id);
+          
+          toast({
+            title: 'Account Customer Created',
+            description: `Created new account: ${newAccountCustomer.name}`,
+          });
+        }
+      } catch (error) {
+        console.error('Error linking account customer:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to link account customer',
+          variant: 'destructive',
+        });
+      }
+    };
+
+    // Debounce the account customer linking
+    const timeoutId = setTimeout(linkAccountCustomer, 600);
+    return () => clearTimeout(timeoutId);
+  }, [hasAccount, jobCompanyName, customer.phone]);
+
+  // Auto-fill email when account customer is linked
+  useEffect(() => {
+    const fillEmailFromAccount = async () => {
+      if (!accountCustomerId) return;
+
+      try {
+        const { data: accountCustomer, error } = await supabase
+          .from('account_customers')
+          .select('emails')
+          .eq('id', accountCustomerId)
+          .single();
+
+        if (error) throw error;
+
+        if (accountCustomer?.emails && accountCustomer.emails.length > 0 && !customer.email) {
+          setCustomer(prev => ({
+            ...prev,
+            email: accountCustomer.emails[0]
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching account customer email:', error);
+      }
+    };
+
+    fillEmailFromAccount();
+  }, [accountCustomerId]);
 
   const addPart = () => {
     const newPart: JobPart = {
@@ -683,7 +788,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         updatedAt: new Date(),
         completedAt: status === 'completed' && !job?.completedAt ? new Date() : job?.completedAt,
         deliveredAt: status === 'delivered' && !job?.deliveredAt ? new Date() : job?.deliveredAt,
-        hasAccount
+        hasAccount,
+        accountCustomerId: hasAccount ? accountCustomerId : undefined
       };
 
       const savedJob = await jobBookingDB.saveJob(jobData);
