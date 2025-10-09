@@ -49,6 +49,7 @@ import { MultiToolAttachments } from './booking/MultiToolAttachments';
 import { RequestedFinishDatePicker } from './booking/RequestedFinishDatePicker';
 import { PartsPicker } from './booking/PartsPicker';
 import { syncJobToAccountCustomer } from '@/utils/accountCustomerSync';
+import { scheduleServiceReminder, cancelMachineReminders } from '@/utils/reminderScheduler';
 
 // Simple unique ID generator for UI elements (not database records)
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -79,8 +80,11 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     phone: '',
     address: '',
     email: '',
-    notes: ''
+    notes: '',
+    customerType: 'domestic' // default
   });
+  const [customerType, setCustomerType] = useState<'commercial' | 'domestic'>('domestic');
+  const [jobCompanyName, setJobCompanyName] = useState('');
   
   const [machineCategory, setMachineCategory] = useState('');
   const [machineBrand, setMachineBrand] = useState('');
@@ -362,6 +366,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       // Edit existing job
       setJobNumber(job.jobNumber);
       setCustomer(job.customer);
+      setCustomerType(job.customerType || job.customer.customerType || 'domestic');
+      setJobCompanyName(job.jobCompanyName || job.customer.companyName || '');
       setMachineCategory(job.machineCategory);
       setMachineBrand(job.machineBrand);
       setMachineModel(job.machineModel);
@@ -614,6 +620,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         address: customer.address || '',
         email: customer.email,
         notes: customer.notes,
+        customerType: customerType, // save customer type to customer profile
+        companyName: jobCompanyName || customer.companyName, // save company name to customer profile
         createdAt: customer.createdAt || new Date(),
         updatedAt: new Date()
       };
@@ -630,6 +638,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         jobNumber: jobNumber || `JB${Date.now()}`,
         customerId: customer.id || '',
         customer: customerData,
+        customerType, // save customer type to job
+        jobCompanyName, // save company name to job
         machineCategory,
         machineBrand,
         machineModel,
@@ -672,6 +682,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         createdAt: job?.createdAt || new Date(),
         updatedAt: new Date(),
         completedAt: status === 'completed' && !job?.completedAt ? new Date() : job?.completedAt,
+        deliveredAt: status === 'delivered' && !job?.deliveredAt ? new Date() : job?.deliveredAt,
         hasAccount
       };
 
@@ -742,6 +753,30 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         } catch (syncError) {
           console.error('Account customer sync failed (non-blocking):', syncError);
           // Don't block the save flow
+        }
+      }
+      
+      // Schedule service reminder if job is delivered
+      if (savedJob.status === 'delivered') {
+        try {
+          await scheduleServiceReminder(savedJob);
+        } catch (reminderError) {
+          console.error('Reminder scheduling failed (non-blocking):', reminderError);
+        }
+      }
+      
+      // Cancel reminders if job is marked as write-off
+      if (savedJob.status === 'write_off') {
+        try {
+          await cancelMachineReminders(
+            savedJob.customerId,
+            savedJob.machineCategory,
+            savedJob.machineBrand,
+            savedJob.machineModel,
+            savedJob.machineSerial
+          );
+        } catch (cancelError) {
+          console.error('Reminder cancellation failed (non-blocking):', cancelError);
         }
       }
       
@@ -838,8 +873,50 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             <CardContent className="space-y-4">
               <CustomerAutocomplete
                 customer={customer}
-                onCustomerChange={setCustomer}
+                onCustomerChange={(newCustomer) => {
+                  setCustomer(newCustomer);
+                  // Pre-fill customer type and company from stored customer data
+                  const custType = (newCustomer as Customer).customerType;
+                  const compName = (newCustomer as Customer).companyName;
+                  if (custType) {
+                    setCustomerType(custType);
+                  }
+                  if (compName) {
+                    setJobCompanyName(compName);
+                  }
+                }}
               />
+              
+              {/* Customer Type */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="customer-type">Customer Type</Label>
+                  <Select value={customerType} onValueChange={(v: 'commercial' | 'domestic') => setCustomerType(v)}>
+                    <SelectTrigger id="customer-type">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="domestic">🏠 Domestic</SelectItem>
+                      <SelectItem value="commercial">🏢 Commercial</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {customerType === 'commercial' ? '3-month service reminders' : '11-month service reminders'}
+                  </p>
+                </div>
+                
+                {/* Company Name */}
+                <div>
+                  <Label htmlFor="company-name">Company Name (Optional)</Label>
+                  <Input
+                    id="company-name"
+                    value={jobCompanyName}
+                    onChange={(e) => setJobCompanyName(e.target.value)}
+                    placeholder="Company name..."
+                  />
+                </div>
+              </div>
+              
               <div className="flex items-center gap-2 pt-2">
                 <Checkbox
                   id="has-account"
@@ -1366,8 +1443,14 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                     <SelectItem value="in-progress">{t('status.inprogress')}</SelectItem>
                     <SelectItem value="completed">{t('status.completed')}</SelectItem>
                     <SelectItem value="delivered">{t('status.delivered')}</SelectItem>
+                    <SelectItem value="write_off">🗑️ Write Off</SelectItem>
                   </SelectContent>
                 </Select>
+                {status === 'write_off' && (
+                  <p className="text-xs text-muted-foreground mt-1 text-amber-600">
+                    ⚠️ Machine marked as write-off will be excluded from future service reminders
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>

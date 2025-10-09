@@ -74,6 +74,14 @@ export const ServiceLabel79mm: React.FC<ServiceLabel79mmProps> = ({
       {/* Customer Info */}
       <div className="mb-3 border-b border-gray-400 pb-2">
         <div className="font-bold">{truncate(job.customer.name, 35)}</div>
+        {job.jobCompanyName && (
+          <div className="text-sm font-semibold">{truncate(job.jobCompanyName, 35)}</div>
+        )}
+        {job.customerType && (
+          <div className="text-xs font-bold uppercase">
+            {job.customerType === 'commercial' ? '🏢 COMMERCIAL' : '🏠 DOMESTIC'}
+          </div>
+        )}
         <div className="text-sm">{job.customer.phone}</div>
       </div>
 

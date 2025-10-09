@@ -11,6 +11,7 @@ export interface Customer {
   companyEmail?: string;
   companyPhone?: string;
   billingAddress?: string;
+  customerType?: 'commercial' | 'domestic';
   createdAt: Date;
   updatedAt: Date;
 }
@@ -129,10 +130,15 @@ export interface Job {
   balanceDue?: number;
   
   // Status
-  status: 'pending' | 'in-progress' | 'completed' | 'delivered';
+  status: 'pending' | 'in-progress' | 'completed' | 'delivered' | 'write_off';
   createdAt: Date;
   updatedAt: Date;
   completedAt?: Date;
+  deliveredAt?: Date;
+  
+  // Customer type and company for this job
+  customerType?: 'commercial' | 'domestic';
+  jobCompanyName?: string;
   
   // Customer account settings
   hasAccount?: boolean; // true if customer has 30-day account terms

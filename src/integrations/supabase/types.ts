@@ -456,6 +456,7 @@ export type Database = {
           company_name: string | null
           company_phone: string | null
           created_at: string
+          customer_type: Database["public"]["Enums"]["customer_type"] | null
           email: string | null
           id: string
           is_deleted: boolean | null
@@ -475,6 +476,7 @@ export type Database = {
           company_name?: string | null
           company_phone?: string | null
           created_at?: string
+          customer_type?: Database["public"]["Enums"]["customer_type"] | null
           email?: string | null
           id?: string
           is_deleted?: boolean | null
@@ -494,6 +496,7 @@ export type Database = {
           company_name?: string | null
           company_phone?: string | null
           created_at?: string
+          customer_type?: Database["public"]["Enums"]["customer_type"] | null
           email?: string | null
           id?: string
           is_deleted?: boolean | null
@@ -908,11 +911,14 @@ export type Database = {
           completed_at: string | null
           created_at: string
           customer_id: string
+          customer_type: Database["public"]["Enums"]["customer_type"] | null
+          delivered_at: string | null
           discount_type: string | null
           discount_value: number | null
           grand_total: number
           gst: number
           id: string
+          job_company_name: string | null
           job_number: string
           labour_hours: number
           labour_rate: number
@@ -959,11 +965,14 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           customer_id: string
+          customer_type?: Database["public"]["Enums"]["customer_type"] | null
+          delivered_at?: string | null
           discount_type?: string | null
           discount_value?: number | null
           grand_total?: number
           gst?: number
           id?: string
+          job_company_name?: string | null
           job_number: string
           labour_hours?: number
           labour_rate?: number
@@ -1010,11 +1019,14 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           customer_id?: string
+          customer_type?: Database["public"]["Enums"]["customer_type"] | null
+          delivered_at?: string | null
           discount_type?: string | null
           discount_value?: number | null
           grand_total?: number
           gst?: number
           id?: string
+          job_company_name?: string | null
           job_number?: string
           labour_hours?: number
           labour_rate?: number
@@ -1493,6 +1505,10 @@ export type Database = {
           error_message: string | null
           id: string
           job_id: string | null
+          machine_brand: string | null
+          machine_category: string | null
+          machine_model: string | null
+          machine_serial: string | null
           message: string | null
           reminder_date: string
           reminder_type: string
@@ -1509,6 +1525,10 @@ export type Database = {
           error_message?: string | null
           id?: string
           job_id?: string | null
+          machine_brand?: string | null
+          machine_category?: string | null
+          machine_model?: string | null
+          machine_serial?: string | null
           message?: string | null
           reminder_date: string
           reminder_type: string
@@ -1525,6 +1545,10 @@ export type Database = {
           error_message?: string | null
           id?: string
           job_id?: string | null
+          machine_brand?: string | null
+          machine_category?: string | null
+          machine_model?: string | null
+          machine_serial?: string | null
           message?: string | null
           reminder_date?: string
           reminder_type?: string
@@ -1874,6 +1898,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "technician" | "clerk" | "cashier"
+      customer_type: "commercial" | "domestic"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2002,6 +2027,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "technician", "clerk", "cashier"],
+      customer_type: ["commercial", "domestic"],
     },
   },
 } as const

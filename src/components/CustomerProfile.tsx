@@ -312,29 +312,47 @@ export const CustomerProfile: React.FC<CustomerProfileProps> = ({
               {reminders.length === 0 ? (
                 <p className="text-center py-4 text-muted-foreground">No reminders found</p>
               ) : (
-                reminders.map(reminder => (
-                  <Card key={reminder.id}>
-                    <CardContent className="pt-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium capitalize">{reminder.reminder_type.replace('_', ' ')}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(reminder.reminder_date), 'PP')}
-                          </p>
-                          {reminder.message && (
-                            <p className="text-xs mt-1">{reminder.message}</p>
-                          )}
+                reminders.map(reminder => {
+                  const reminderDate = new Date(reminder.reminder_date);
+                  const today = new Date();
+                  const daysRemaining = Math.ceil((reminderDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+                  
+                  return (
+                    <Card key={reminder.id}>
+                      <CardContent className="pt-4">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium capitalize">{reminder.reminder_type.replace('_', ' ')}</p>
+                              {reminder.status === 'pending' && daysRemaining > 0 && (
+                                <Badge variant="outline" className="text-xs">
+                                  {daysRemaining} days remaining
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground">
+                              {format(reminderDate, 'PP')}
+                            </p>
+                            {(reminder.machine_brand || reminder.machine_model) && (
+                              <p className="text-xs mt-1 text-muted-foreground">
+                                {reminder.machine_brand} {reminder.machine_model}
+                              </p>
+                            )}
+                            {reminder.message && (
+                              <p className="text-xs mt-1">{reminder.message}</p>
+                            )}
+                          </div>
+                          <Badge variant={
+                            reminder.status === 'sent' ? 'default' :
+                            reminder.status === 'failed' ? 'destructive' : 'secondary'
+                          }>
+                            {reminder.status}
+                          </Badge>
                         </div>
-                        <Badge variant={
-                          reminder.status === 'sent' ? 'default' :
-                          reminder.status === 'failed' ? 'destructive' : 'secondary'
-                        }>
-                          {reminder.status}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                      </CardContent>
+                    </Card>
+                  );
+                })
               )}
             </TabsContent>
           </Tabs>
