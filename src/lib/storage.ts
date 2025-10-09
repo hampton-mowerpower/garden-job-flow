@@ -179,6 +179,8 @@ class JobBookingDB {
       small_repair_minutes: job.smallRepairMinutes || 0,
       small_repair_rate: job.smallRepairRate || 0,
       small_repair_total: job.smallRepairTotal || 0,
+      // Account Customer link
+      account_customer_id: job.accountCustomerId || null,
       updated_at: new Date().toISOString()
     };
     
@@ -473,7 +475,9 @@ class JobBookingDB {
       smallRepairDetails: jobData.small_repair_details || '',
       smallRepairMinutes: jobData.small_repair_minutes || 0,
       smallRepairRate: parseFloat(jobData.small_repair_rate) || 0,
-      smallRepairTotal: parseFloat(jobData.small_repair_total) || 0
+      smallRepairTotal: parseFloat(jobData.small_repair_total) || 0,
+      // Account Customer link
+      accountCustomerId: jobData.account_customer_id || undefined
     };
   }
 
