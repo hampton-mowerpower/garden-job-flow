@@ -406,7 +406,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setStatus(job.status);
       setChecklistUniversal(job.checklistUniversal || []);
       setChecklistCategory(job.checklistCategory || []);
-      setHasAccount(job.hasAccount || false);
+      setHasAccount(!!job.accountCustomerId); // Set checkbox based on whether accountCustomerId exists
       setAccountCustomerId(job.accountCustomerId);
       
       // Load transport data - ALWAYS load to preserve totalCharge
