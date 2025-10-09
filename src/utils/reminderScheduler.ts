@@ -26,7 +26,7 @@ export async function scheduleServiceReminder(job: Job): Promise<void> {
       .eq('machine_brand', job.machineBrand)
       .eq('machine_model', job.machineModel)
       .eq('status', 'pending')
-      .gte('reminder_date', new Date().toISOString());
+      .gte('reminder_date', new Date().toISOString().split('T')[0]);
 
     if (existingReminders && existingReminders.length > 0) {
       console.log('Reminder already scheduled for this machine');
@@ -35,7 +35,9 @@ export async function scheduleServiceReminder(job: Job): Promise<void> {
 
     // Calculate reminder date based on customer type
     const monthsToAdd = job.customerType === 'commercial' ? 3 : 11;
-    const reminderDate = addMonths(job.deliveredAt || new Date(), monthsToAdd);
+    // Use deliveredAt if available, otherwise use current date
+    const baseDate = job.deliveredAt ? new Date(job.deliveredAt) : new Date();
+    const reminderDate = addMonths(baseDate, monthsToAdd);
 
     // Create reminder
     const { error } = await supabase

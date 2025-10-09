@@ -763,6 +763,7 @@ export type Database = {
       }
       job_parts: {
         Row: {
+          awaiting_stock: boolean | null
           created_at: string
           description: string | null
           equipment_category: string | null
@@ -780,6 +781,7 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          awaiting_stock?: boolean | null
           created_at?: string
           description?: string | null
           equipment_category?: string | null
@@ -797,6 +799,7 @@ export type Database = {
           unit_price: number
         }
         Update: {
+          awaiting_stock?: boolean | null
           created_at?: string
           description?: string | null
           equipment_category?: string | null
@@ -932,6 +935,8 @@ export type Database = {
           parts_subtotal: number
           problem_description: string
           quotation_amount: number | null
+          quotation_approved_at: string | null
+          quotation_status: string | null
           recommendations: string | null
           requested_finish_date: string | null
           service_deposit: number | null
@@ -986,6 +991,8 @@ export type Database = {
           parts_subtotal?: number
           problem_description: string
           quotation_amount?: number | null
+          quotation_approved_at?: string | null
+          quotation_status?: string | null
           recommendations?: string | null
           requested_finish_date?: string | null
           service_deposit?: number | null
@@ -1040,6 +1047,8 @@ export type Database = {
           parts_subtotal?: number
           problem_description?: string
           quotation_amount?: number | null
+          quotation_approved_at?: string | null
+          quotation_status?: string | null
           recommendations?: string | null
           requested_finish_date?: string | null
           service_deposit?: number | null

@@ -322,24 +322,39 @@ export const CustomerProfile: React.FC<CustomerProfileProps> = ({
                       <CardContent className="pt-4">
                         <div className="flex justify-between items-start">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <p className="font-medium capitalize">{reminder.reminder_type.replace('_', ' ')}</p>
-                              {reminder.status === 'pending' && daysRemaining > 0 && (
-                                <Badge variant="outline" className="text-xs">
-                                  {daysRemaining} days remaining
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {format(reminderDate, 'PP')}
-                            </p>
-                            {(reminder.machine_brand || reminder.machine_model) && (
-                              <p className="text-xs mt-1 text-muted-foreground">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-medium">
+                                {reminder.machine_category && `${reminder.machine_category} - `}
                                 {reminder.machine_brand} {reminder.machine_model}
                               </p>
+                              {reminder.machine_serial && (
+                                <span className="text-xs text-muted-foreground">
+                                  S/N: {reminder.machine_serial}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Next Service: {format(reminderDate, 'PP')}
+                            </p>
+                            {reminder.status === 'pending' && daysRemaining > 0 && (
+                              <p className="text-sm font-medium text-primary mt-1">
+                                📅 {daysRemaining} days remaining
+                              </p>
                             )}
-                            {reminder.message && (
-                              <p className="text-xs mt-1">{reminder.message}</p>
+                            {reminder.status === 'pending' && daysRemaining <= 0 && (
+                              <p className="text-sm font-medium text-red-600 mt-1">
+                                ⚠️ Service overdue by {Math.abs(daysRemaining)} days
+                              </p>
+                            )}
+                            {reminder.status === 'sent' && reminder.sent_at && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Sent: {format(new Date(reminder.sent_at), 'PP')}
+                              </p>
+                            )}
+                            {reminder.error_message && (
+                              <p className="text-xs text-red-600 mt-1">
+                                Error: {reminder.error_message}
+                              </p>
                             )}
                           </div>
                           <Badge variant={
