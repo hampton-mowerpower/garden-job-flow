@@ -35,7 +35,8 @@ import { MachineManager } from './MachineManager';
 import { initializeChecklists, getUniversalChecklist, getCategoryChecklist } from '@/data/serviceChecklist';
 import { format } from 'date-fns';
 import { CustomerNotificationDialog } from './CustomerNotificationDialog';
-import { Bell } from 'lucide-react';
+import { EmailNotificationDialog } from './EmailNotificationDialog';
+import { Bell, Mail } from 'lucide-react';
 import { TransportSection } from './booking/TransportSection';
 import { SharpenSection } from './booking/SharpenSection';
 import { DraggableQuickProblems } from './booking/DraggableQuickProblems';
@@ -68,6 +69,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [showPrintPromptDialog, setShowPrintPromptDialog] = useState(false);
   const [savedJob, setSavedJob] = useState<Job | null>(null);
   const [showNotificationDialog, setShowNotificationDialog] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
   
   // Form state
   const [jobNumber, setJobNumber] = useState('');
@@ -683,8 +685,9 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         description: job ? t('msg.job.updated') : t('msg.job.created')
       });
       
-      // For new jobs, automatically print collection receipt
-      if (!job) {
+      // For NEW jobs ONLY, automatically print collection receipt
+      // IMPORTANT: Only trigger auto-print for brand new jobs, not edits
+      if (!job || !job.id) {
         setAutoSaveStatus('printing');
         
         // Small delay to ensure job is fully saved
@@ -771,6 +774,15 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             >
               <Bell className="w-4 h-4" />
               Notify Customer
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowEmailDialog(true)}
+              className="gap-2"
+            >
+              <Mail className="w-4 h-4" />
+              Email
             </Button>
             <JobPrintInvoice job={savedJob || job} />
             <ThermalPrintButton job={savedJob || job} type="service-label" label="Service Label" size="sm" width={79} />
@@ -1390,6 +1402,15 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           job={job}
           open={showNotificationDialog}
           onOpenChange={setShowNotificationDialog}
+        />
+      )}
+
+      {/* Email Notification Dialog */}
+      {job && (
+        <EmailNotificationDialog
+          job={job}
+          open={showEmailDialog}
+          onOpenChange={setShowEmailDialog}
         />
       )}
     </div>

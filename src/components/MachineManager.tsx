@@ -93,12 +93,49 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
     };
   }, []);
 
-  // Auto-save brand when typed
+  // Auto-save brand when typed to Supabase brands table
   useEffect(() => {
     if (machineBrand && machineCategory && !isStandardBrand(machineBrand)) {
-      saveBrand(machineBrand, machineCategory);
+      const timeoutId = setTimeout(async () => {
+        try {
+          // Check if brand already exists in dbBrands
+          const normalizedBrand = machineBrand.trim().toLowerCase();
+          const existing = dbBrands.find(b => b.name.toLowerCase() === normalizedBrand);
+          if (existing) return;
+
+          // Get category_id if available
+          let categoryId: string | null = null;
+          if (machineCategory && machineCategory !== 'Other') {
+            const category = dbCategories.find(c => c.name === machineCategory);
+            categoryId = category?.id || null;
+          }
+
+          // Insert into brands table
+          const { error } = await supabase
+            .from('brands')
+            .insert({
+              name: machineBrand.trim(),
+              active: true,
+              category_id: categoryId
+            });
+
+          if (error && !error.message?.includes('duplicate key')) {
+            console.error('Error auto-saving brand:', error);
+          } else {
+            console.log('[Brand Auto-Save] Saved:', machineBrand);
+            toast({
+              title: "Saved ✓",
+              description: `Brand "${machineBrand}" saved`
+            });
+          }
+        } catch (error: any) {
+          console.error('Error auto-saving brand:', error);
+        }
+      }, 600); // Debounce 600ms
+
+      return () => clearTimeout(timeoutId);
     }
-  }, [machineBrand, machineCategory]);
+  }, [machineBrand, machineCategory, dbBrands, dbCategories]);
 
   // Auto-save model when typed
   useEffect(() => {

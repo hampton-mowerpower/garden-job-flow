@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Eye, Edit, Download, Trash2, RotateCcw, Bell } from 'lucide-react';
+import { Search, Eye, Edit, Download, Trash2, RotateCcw, Bell, Mail } from 'lucide-react';
 import { Job } from '@/types/job';
 import { formatCurrency } from '@/lib/calculations';
 import { jobBookingDB } from '@/lib/storage';
@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { JobPrintInvoice } from './JobPrintInvoice';
 import { ThermalPrintButton } from './ThermalPrintButton';
 import { CustomerNotificationDialog } from './CustomerNotificationDialog';
+import { EmailNotificationDialog } from './EmailNotificationDialog';
 
 interface JobSearchProps {
   onSelectJob: (job: Job) => void;
@@ -32,6 +33,7 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
   const [notificationJob, setNotificationJob] = useState<Job | null>(null);
+  const [emailJob, setEmailJob] = useState<Job | null>(null);
 
   // Load search preferences from database
   useEffect(() => {
@@ -317,6 +319,15 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
                         <Button
                           variant="outline"
                           size="sm"
+                          onClick={() => setEmailJob(job)}
+                          className="gap-2"
+                        >
+                          <Mail className="h-4 w-4" />
+                          Email
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => onSelectJob(job)}
                           className="gap-2"
                         >
@@ -364,6 +375,15 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
           job={notificationJob}
           open={!!notificationJob}
           onOpenChange={(open) => !open && setNotificationJob(null)}
+        />
+      )}
+
+      {/* Email Notification Dialog */}
+      {emailJob && (
+        <EmailNotificationDialog
+          job={emailJob}
+          open={!!emailJob}
+          onOpenChange={(open) => !open && setEmailJob(null)}
         />
       )}
     </div>
