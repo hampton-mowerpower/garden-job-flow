@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { generateInvoicePDF } from "./pdf-generator.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
@@ -23,9 +24,12 @@ interface EmailRequest {
     customerEmail?: string;
     customerPhone: string;
     customerAddress: string;
+    companyName?: string;
+    companyAbn?: string;
     machineBrand: string;
     machineModel: string;
     machineSerial?: string;
+    machineCategory?: string;
     status: string;
     grandTotal: number;
     serviceDeposit: number;
@@ -34,145 +38,19 @@ interface EmailRequest {
     labourHours: number;
     labourRate: number;
     gst: number;
+    transportTotalCharge?: number;
+    transportBreakdown?: string;
+    sharpenTotalCharge?: number;
+    sharpenBreakdown?: string;
+    smallRepairTotal?: number;
+    smallRepairDetails?: string;
+    problemDescription?: string;
+    additionalNotes?: string;
+    requestedFinishDate?: string;
   };
 }
 
-const generatePdfContent = (jobData: EmailRequest['jobData'], jobNumber: string, template: EmailTemplate): string => {
-  const isQuotation = template === 'quotation';
-  const title = isQuotation ? 'QUOTATION' : 'INVOICE';
-  const date = new Date().toLocaleDateString('en-AU');
-  
-  let itemsHtml = '';
-  let subtotal = 0;
-  
-  // Add parts
-  if (jobData.parts && jobData.parts.length > 0) {
-    jobData.parts.forEach((part: any) => {
-      const lineTotal = part.unitPrice * part.quantity;
-      subtotal += lineTotal;
-      itemsHtml += `
-        <tr>
-          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${part.description || 'Part'}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">${part.quantity}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">$${part.unitPrice.toFixed(2)}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">$${lineTotal.toFixed(2)}</td>
-        </tr>
-      `;
-    });
-  }
-  
-  // Add labour
-  if (jobData.labourHours > 0) {
-    const labourTotal = jobData.labourHours * jobData.labourRate;
-    subtotal += labourTotal;
-    itemsHtml += `
-      <tr>
-        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">Labour</td>
-        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">${jobData.labourHours.toFixed(2)} hrs</td>
-        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">$${jobData.labourRate.toFixed(2)}/hr</td>
-        <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">$${labourTotal.toFixed(2)}</td>
-      </tr>
-    `;
-  }
-
-  return `
-    <html>
-    <head>
-      <meta charset="utf-8">
-      <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .company-name { font-size: 24px; font-weight: bold; color: #2563eb; }
-        .document-title { font-size: 20px; font-weight: bold; margin: 20px 0; }
-        .info-section { margin: 20px 0; }
-        .info-row { display: flex; justify-content: space-between; margin: 5px 0; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th { background: #f3f4f6; padding: 10px; text-align: left; border-bottom: 2px solid #d1d5db; }
-        .totals { margin-top: 20px; float: right; min-width: 300px; }
-        .totals tr td { padding: 8px; }
-        .total-row { font-weight: bold; font-size: 16px; border-top: 2px solid #000; }
-      </style>
-    </head>
-    <body>
-      <div class="header">
-        <div class="company-name">HAMPTON MOWERPOWER</div>
-        <p>87 Ludstone Street, Hampton VIC 3188</p>
-        <p>Phone: 03-9598-6741 | Email: hamptonmowerpower@gmail.com</p>
-        <p>ABN: 97 161 289 069</p>
-      </div>
-
-      <div class="document-title">${title}</div>
-
-      <div class="info-section">
-        <div class="info-row">
-          <div><strong>${isQuotation ? 'Quote' : 'Invoice'} #:</strong> ${jobNumber}</div>
-          <div><strong>Date:</strong> ${date}</div>
-        </div>
-        <div class="info-row">
-          <div>
-            <strong>Customer:</strong><br>
-            ${jobData.customerName}<br>
-            ${jobData.customerAddress}<br>
-            ${jobData.customerPhone}
-            ${jobData.customerEmail ? `<br>${jobData.customerEmail}` : ''}
-          </div>
-          <div>
-            <strong>Equipment:</strong><br>
-            ${jobData.machineBrand} ${jobData.machineModel}
-            ${jobData.machineSerial ? `<br>Serial: ${jobData.machineSerial}` : ''}
-          </div>
-        </div>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Description</th>
-            <th style="text-align: center;">Qty</th>
-            <th style="text-align: right;">Unit Price</th>
-            <th style="text-align: right;">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${itemsHtml}
-        </tbody>
-      </table>
-
-      <table class="totals">
-        <tr>
-          <td>Subtotal:</td>
-          <td style="text-align: right;">$${subtotal.toFixed(2)}</td>
-        </tr>
-        <tr>
-          <td>GST (10%):</td>
-          <td style="text-align: right;">$${jobData.gst.toFixed(2)}</td>
-        </tr>
-        <tr class="total-row">
-          <td>Total (inc. GST):</td>
-          <td style="text-align: right;">$${jobData.grandTotal.toFixed(2)}</td>
-        </tr>
-        ${!isQuotation && jobData.serviceDeposit > 0 ? `
-        <tr>
-          <td>Deposit Paid:</td>
-          <td style="text-align: right;">-$${jobData.serviceDeposit.toFixed(2)}</td>
-        </tr>
-        <tr class="total-row">
-          <td>Balance Due:</td>
-          <td style="text-align: right;">$${jobData.balanceDue.toFixed(2)}</td>
-        </tr>
-        ` : ''}
-      </table>
-
-      <div style="clear: both; margin-top: 60px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-        <p style="text-align: center; color: #6b7280; font-size: 12px;">
-          Thank you for your business!<br>
-          ${isQuotation ? 'This quotation is valid for 30 days.' : 'Payment is due upon collection.'}
-        </p>
-      </div>
-    </body>
-    </html>
-  `;
-};
+// Remove old HTML generation function - now using PDF generator
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
@@ -202,17 +80,28 @@ const handler = async (req: Request): Promise<Response> => {
     if (needsAttachment) {
       console.log('Generating PDF attachment...');
       
-      // Generate PDF HTML content
-      const pdfHtml = generatePdfContent(jobData, jobNumber, template);
-      
-      // For simplicity, we're sending HTML as attachment
-      // In production, you'd want to use a proper PDF generation library
-      attachmentBase64 = btoa(unescape(encodeURIComponent(pdfHtml)));
-      
-      const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
-      attachmentFilename = template === 'quotation' 
-        ? `QUOTE_${jobNumber}_${dateStr}.html`
-        : `INVOICE_${jobNumber}_${dateStr}.html`;
+      try {
+        // Generate proper PDF using pdfmake
+        const pdfBuffer = await generateInvoicePDF(
+          jobData,
+          jobNumber,
+          template === 'quotation'
+        );
+        
+        // Convert to base64
+        attachmentBase64 = btoa(String.fromCharCode(...pdfBuffer));
+        
+        const dateStr = new Date().toISOString().split('T')[0].replace(/-/g, '');
+        attachmentFilename = template === 'quotation' 
+          ? `QUOTE_${jobNumber}_${dateStr}.pdf`
+          : `INVOICE_${jobNumber}_${dateStr}.pdf`;
+        
+        console.log(`PDF generated successfully: ${attachmentFilename}`);
+      } catch (pdfError) {
+        console.error('PDF generation error:', pdfError);
+        const errorMessage = pdfError instanceof Error ? pdfError.message : 'Unknown error';
+        throw new Error(`PDF generation failed: ${errorMessage}`);
+      }
     }
 
     // Format email HTML

@@ -5,6 +5,12 @@ export interface Customer {
   address: string;
   email?: string;
   notes?: string;
+  // Company details (optional)
+  companyName?: string;
+  companyAbn?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  billingAddress?: string;
   createdAt: Date;
   updatedAt: Date;
 }

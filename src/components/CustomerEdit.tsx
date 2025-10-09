@@ -17,6 +17,11 @@ interface Customer {
   email?: string;
   address: string;
   notes?: string;
+  companyName?: string;
+  companyAbn?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  billingAddress?: string;
 }
 
 interface CustomerEditProps {
@@ -71,6 +76,11 @@ export function CustomerEdit({ customer, open, onOpenChange, onSaved }: Customer
           email: formData.email?.trim() || null,
           address: formData.address.trim(),
           notes: formData.notes?.trim() || null,
+          company_name: formData.companyName?.trim() || null,
+          company_abn: formData.companyAbn?.trim() || null,
+          company_email: formData.companyEmail?.trim() || null,
+          company_phone: formData.companyPhone?.trim() || null,
+          billing_address: formData.billingAddress?.trim() || null,
         })
         .eq('id', formData.id);
 
@@ -222,6 +232,63 @@ export function CustomerEdit({ customer, open, onOpenChange, onSaved }: Customer
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                 rows={3}
               />
+            </div>
+
+            {/* Company Details Section */}
+            <div className="border-t pt-4 mt-4">
+              <h3 className="text-sm font-semibold mb-3">Company Details (Optional)</h3>
+              
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor="edit-company-name">Company Name</Label>
+                  <Input
+                    id="edit-company-name"
+                    value={formData.companyName || ''}
+                    onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-company-abn">Company ABN</Label>
+                  <Input
+                    id="edit-company-abn"
+                    value={formData.companyAbn || ''}
+                    onChange={(e) => setFormData({ ...formData, companyAbn: e.target.value })}
+                    placeholder="XX XXX XXX XXX"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="edit-company-email">Company Email</Label>
+                    <Input
+                      id="edit-company-email"
+                      type="email"
+                      value={formData.companyEmail || ''}
+                      onChange={(e) => setFormData({ ...formData, companyEmail: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="edit-company-phone">Company Phone</Label>
+                    <Input
+                      id="edit-company-phone"
+                      value={formData.companyPhone || ''}
+                      onChange={(e) => setFormData({ ...formData, companyPhone: e.target.value })}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="edit-billing-address">Billing Address</Label>
+                  <Textarea
+                    id="edit-billing-address"
+                    value={formData.billingAddress || ''}
+                    onChange={(e) => setFormData({ ...formData, billingAddress: e.target.value })}
+                    rows={2}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
