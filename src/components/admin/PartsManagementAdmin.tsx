@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,15 +8,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Check, FileText, Download, Upload } from 'lucide-react';
+import { Plus, Search, Check, FileText, Download, Upload, Loader2 } from 'lucide-react';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { parseCSV, importPartsToSupabase } from '@/utils/csvImport';
 
 interface Part {
   id: string;
   sku: string;
   name: string;
   category: string;
+  part_group: string | null;
   base_price: number;
   sell_price: number;
   markup: number | null;
@@ -35,6 +37,8 @@ export const PartsManagementAdmin: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editedPart, setEditedPart] = useState<Partial<Part>>({});
+  const [importing, setImporting] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load categories
   useEffect(() => {
@@ -210,6 +214,74 @@ export const PartsManagementAdmin: React.FC = () => {
     setEditedPart(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleCSVImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setImporting(true);
+      
+      const text = await file.text();
+      const parsedParts = parseCSV(text);
+      
+      // Import only for selected category
+      const result = await importPartsToSupabase(parsedParts, selectedCategory || undefined);
+      
+      toast({
+        title: 'Import Complete',
+        description: `${result.success} parts imported. ${result.errors.length} errors.`,
+        variant: result.errors.length > 0 ? 'destructive' : 'default'
+      });
+      
+      if (result.errors.length > 0) {
+        console.error('Import errors:', result.errors.slice(0, 10));
+      }
+      
+      // Reload parts
+      if (selectedCategory) {
+        await loadParts(selectedCategory);
+      }
+    } catch (error) {
+      console.error('CSV import error:', error);
+      toast({
+        title: 'Import Failed',
+        description: 'Failed to import CSV file',
+        variant: 'destructive'
+      });
+    } finally {
+      setImporting(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleExportCSV = () => {
+    if (filteredParts.length === 0) return;
+    
+    const headers = ['SKU', 'Equipment Category', 'Part Group', 'Part Name', 'Base Price', 'Sell Price', 'Tax Code', 'Active', 'Notes'];
+    const rows = filteredParts.map(part => [
+      part.sku,
+      part.category,
+      part.part_group || '',
+      part.name,
+      part.base_price,
+      part.sell_price,
+      'GST',
+      part.in_stock ? 'Yes' : 'No',
+      part.description || ''
+    ]);
+    
+    const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${selectedCategory}_parts_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="grid grid-cols-12 gap-6 h-[calc(100vh-12rem)]">
       {/* Left Panel - Categories */}
@@ -264,6 +336,35 @@ export const PartsManagementAdmin: React.FC = () => {
                     className="pl-8 w-64"
                   />
                 </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCSVImport}
+                  className="hidden"
+                />
+                <Button 
+                  onClick={() => fileInputRef.current?.click()} 
+                  size="sm" 
+                  variant="outline"
+                  disabled={importing}
+                >
+                  {importing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Importing...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="h-4 w-4 mr-2" />
+                      Import CSV
+                    </>
+                  )}
+                </Button>
+                <Button onClick={handleExportCSV} size="sm" variant="outline">
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
+                </Button>
                 <Button onClick={handleAddPart} size="sm">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Part

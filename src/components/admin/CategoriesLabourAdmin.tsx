@@ -10,6 +10,7 @@ import { Plus, Folder, Check, GripVertical, Trash2 } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { preloadCommonParts } from '@/utils/csvImport';
 
 interface Category {
   id: string;
@@ -192,9 +193,17 @@ export const CategoriesLabourAdmin: React.FC = () => {
       setEditingCategoryId(data.id);
       setEditedRate(data.rate_default);
 
+      // Preload common parts for this category (without prices)
+      toast({
+        title: 'Preloading parts...',
+        description: 'Loading common parts for this category'
+      });
+      
+      await preloadCommonParts(data.name);
+
       toast({
         title: 'Success',
-        description: 'New category added'
+        description: 'New category added with common parts preloaded'
       });
     } catch (error) {
       console.error('Error adding category:', error);

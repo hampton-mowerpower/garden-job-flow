@@ -25,6 +25,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toTitleCase } from '@/lib/utils';
 import { printThermal } from './ThermalPrint';
+import { useCategories } from '@/hooks/useCategories';
 
 import { ThermalPrintButton } from './ThermalPrintButton';
 import { PrintPromptDialog } from './PrintPromptDialog';
@@ -58,6 +59,7 @@ interface JobFormProps {
 export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
+  const { categories, getLabourRate, ensureCategoryExists } = useCategories();
   const [isLoading, setIsLoading] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'printing'>('idle');
   const [showServiceLabelDialog, setShowServiceLabelDialog] = useState(false);
@@ -167,9 +169,8 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     breakdown: ''
   });
   
-  // Calculations
-  const selectedCategory = HAMPTON_MACHINE_CATEGORIES.find(cat => cat.id === machineCategory);
-  const labourRate = selectedCategory?.labourRate || 0;
+  // Calculations - use Supabase categories for labour rate
+  const labourRate = getLabourRate(machineCategory) || 95;
   
   // Labour Fee <-> Hours sync
   const handleLabourHoursChange = (hours: number) => {
@@ -547,6 +548,9 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
     setAutoSaveStatus('saving');
 
     try {
+      // Ensure category exists in Supabase (for new categories added from booking)
+      await ensureCategoryExists(machineCategory, labourRate);
+
       const customerData: Customer = {
         id: customer.id || '', // Will be ignored for new customers
         name: toTitleCase(customer.name.trim()),
@@ -558,7 +562,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         updatedAt: new Date()
       };
 
-      const labourRateForCategory = HAMPTON_MACHINE_CATEGORIES.find(c => c.name === machineCategory)?.labourRate || 100;
+      const labourRateForCategory = getLabourRate(machineCategory) || 95;
       
       // Calculate labour total including small repair if enabled
       const smallRepairLabour = smallRepairData.includeInTotals 
