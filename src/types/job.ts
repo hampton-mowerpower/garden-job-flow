@@ -148,6 +148,10 @@ export interface Job {
   requestedFinishDate?: Date; // Customer requested completion date
   attachments?: Array<{ name: string; problemDescription: string }>; // For Multi-Tool attachments
   additionalNotes?: string; // Extra notes separate from problem description
+  
+  // Quotation tracking
+  quotationStatus?: 'pending' | 'approved' | 'rejected';
+  quotationApprovedAt?: Date;
 }
 
 export interface JobBookingStats {

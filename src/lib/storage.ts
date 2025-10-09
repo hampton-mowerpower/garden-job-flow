@@ -14,7 +14,9 @@ class JobBookingDB {
       phone: customer.phone,
       email: customer.email || null,
       address: customer.address,
-      notes: customer.notes || null
+      notes: customer.notes || null,
+      customer_type: customer.customerType || 'domestic',
+      company_name: customer.companyName || null
     };
     
     // Only include ID if it exists and is a valid UUID
@@ -37,6 +39,8 @@ class JobBookingDB {
       email: data.email || '',
       address: data.address,
       notes: data.notes || '',
+      customerType: data.customer_type || 'domestic',
+      companyName: data.company_name || undefined,
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at)
     };
@@ -64,6 +68,8 @@ class JobBookingDB {
       email: data.email || '',
       address: data.address,
       notes: data.notes || '',
+      customerType: data.customer_type || 'domestic',
+      companyName: data.company_name || undefined,
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at)
     };
@@ -84,6 +90,8 @@ class JobBookingDB {
       email: d.email || '',
       address: d.address,
       notes: d.notes || '',
+      customerType: d.customer_type || 'domestic',
+      companyName: d.company_name || undefined,
       createdAt: new Date(d.created_at),
       updatedAt: new Date(d.updated_at)
     }));
@@ -103,6 +111,8 @@ class JobBookingDB {
       email: d.email || '',
       address: d.address,
       notes: d.notes || '',
+      customerType: d.customer_type || 'domestic',
+      companyName: d.company_name || undefined,
       createdAt: new Date(d.created_at),
       updatedAt: new Date(d.updated_at)
     }));
@@ -139,6 +149,15 @@ class JobBookingDB {
       quotation_amount: job.quotationAmount || null,
       status: job.status,
       balance_due: Math.max(0, job.grandTotal - (job.serviceDeposit || 0)),
+      // Customer type and company
+      customer_type: job.customerType || null,
+      job_company_name: job.jobCompanyName || null,
+      // Timestamps
+      delivered_at: job.deliveredAt ? new Date(job.deliveredAt).toISOString() : null,
+      completed_at: job.completedAt ? new Date(job.completedAt).toISOString() : null,
+      // Quotation tracking
+      quotation_status: job.quotationStatus || null,
+      quotation_approved_at: job.quotationApprovedAt ? new Date(job.quotationApprovedAt).toISOString() : null,
       // Phase 2 fields
       requested_finish_date: job.requestedFinishDate 
         ? new Date(job.requestedFinishDate).toISOString().split('T')[0]
@@ -426,6 +445,14 @@ class JobBookingDB {
       status: jobData.status,
       createdAt: jobData.created_at,
       updatedAt: jobData.updated_at,
+      completedAt: jobData.completed_at ? new Date(jobData.completed_at) : undefined,
+      deliveredAt: jobData.delivered_at ? new Date(jobData.delivered_at) : undefined,
+      // Customer type and company
+      customerType: jobData.customer_type || undefined,
+      jobCompanyName: jobData.job_company_name || undefined,
+      // Quotation tracking
+      quotationStatus: jobData.quotation_status || undefined,
+      quotationApprovedAt: jobData.quotation_approved_at ? new Date(jobData.quotation_approved_at) : undefined,
       // Phase 2 fields - ensure proper date parsing
       requestedFinishDate: jobData.requested_finish_date 
         ? new Date(jobData.requested_finish_date)
