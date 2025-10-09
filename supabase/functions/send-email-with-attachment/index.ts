@@ -104,12 +104,15 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Format email HTML with logo
+    // Format email HTML with logo (user will need to upload logo to Supabase Storage)
+    // Logo URL will be: https://kyiuojjaownbvouffqbm.supabase.co/storage/v1/object/public/email-assets/hampton-logo-email.png
+    const logoUrl = 'https://kyiuojjaownbvouffqbm.supabase.co/storage/v1/object/public/email-assets/hampton-logo-email.png';
+    
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #f9fafb; padding: 20px; text-align: center; border-bottom: 3px solid #2563eb;">
           <div style="margin-bottom: 10px;">
-            <img src="https://kyiuojjaownbvouffqbm.supabase.co/storage/v1/object/public/assets/hampton-logo-email.png" alt="Hampton Mowerpower" style="max-width: 300px; height: auto;" />
+            <img src="${logoUrl}" alt="Hampton Mowerpower" style="max-width: 300px; height: auto;" />
           </div>
           <p style="margin: 5px 0; color: #6b7280; font-size: 14px;">Garden Equipment Sales & Service</p>
         </div>
