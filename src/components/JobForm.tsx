@@ -172,6 +172,15 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   // Calculations - use Supabase categories for labour rate
   const labourRate = getLabourRate(machineCategory) || 95;
   
+  // Auto-update labour fee when category (and thus rate) changes
+  useEffect(() => {
+    if (labourHours > 0 && lastEditedField === 'hours') {
+      setLabourFee(Math.round(labourHours * labourRate * 100) / 100);
+    } else if (labourFee > 0 && lastEditedField === 'fee' && labourRate > 0) {
+      setLabourHours(Math.round((labourFee / labourRate) * 100) / 100);
+    }
+  }, [machineCategory, labourRate]);
+  
   // Labour Fee <-> Hours sync
   const handleLabourHoursChange = (hours: number) => {
     const sanitized = Math.max(0, Math.min(100, hours || 0));
