@@ -35,7 +35,7 @@ export const useJobNotes = (jobId: string) => {
         .from('job_notes')
         .select(`
           *,
-          user_profiles!user_id(full_name, email)
+          user_profiles!job_notes_user_id_fkey(full_name, email)
         `)
         .eq('job_id', jobId)
         .order('created_at', { ascending: false });
@@ -80,7 +80,7 @@ export const useJobNotes = (jobId: string) => {
         })
         .select(`
           *,
-          user_profiles!user_id(full_name, email)
+          user_profiles!job_notes_user_id_fkey(full_name, email)
         `)
         .single();
 
