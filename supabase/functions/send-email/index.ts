@@ -326,21 +326,23 @@ function getDefaultSubject(template: string, jobNumber: string): string {
 
 function getDefaultMessage(template: string, job: any): string {
   const customerName = job.customer?.name || 'Valued Customer';
+  const customerFirstName = customerName.split(' ')[0];
   const machineDesc = `${job.machine_brand} ${job.machine_model}${job.machine_serial ? ` (SN: ${job.machine_serial})` : ''}`;
+  const statusText = job.status ? job.status.toUpperCase() : 'PENDING';
   
   switch (template) {
     case 'quotation':
-      return `Dear ${customerName},\n\nPlease find attached the quotation for your ${machineDesc}.\n\nYou can approve this quotation by clicking the button below.\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
+      return `Dear ${customerFirstName},\n\nPlease find attached the quotation for your ${machineDesc}.\n\nYou can approve this quotation by clicking the button below.\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
     case 'service-reminder':
-      return `Dear ${customerName},\n\nThis is a reminder that your ${machineDesc} is due for service.\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
+      return `Dear ${customerFirstName},\n\nThis is a reminder that your ${machineDesc} is due for service.\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
     case 'completion-reminder':
-      return `Dear ${customerName},\n\nGreat news — we've completed the service/repair on your ${machineDesc}.\n\nPickup\nFrom: Hampton Mowerpower, 87 Ludstone Street, Hampton VIC 3188\nHours: Monday-Friday 8:00 AM - 5:00 PM, Saturday 8:00 AM - 12:00 PM\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
+      return `Dear ${customerFirstName},\n\nGreat news — we've completed the service/repair on your ${machineDesc}.\n\nPickup\nFrom: Hampton Mowerpower, 87 Ludstone Street, Hampton VIC 3188\nHours: Monday-Friday 8:00 AM - 5:00 PM, Saturday 8:00 AM - 12:00 PM\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
     case 'completion':
-      return `Dear ${customerName},\n\nYour ${machineDesc} service has been completed. Please find the invoice attached.\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
+      return `Dear ${customerFirstName},\n\nYour ${machineDesc} service has been completed. Please find the invoice attached.\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
     case 'notify-customer':
-      return `Dear ${customerName},\n\nYour service job (#${job.job_number}) — ${machineDesc} — has been received and is pending review.\n\n${job.problem_description ? `Reported problems:\n${job.problem_description}\n\n` : ''}Please do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
+      return `Dear ${customerFirstName}\n\nThis is an update regarding your ${machineDesc} service (Job #${job.job_number}).\n\nCurrent Status: ${statusText}\n\n${job.problem_description ? `Reported Issue:\n${job.problem_description}\n\n` : ''}We will keep you updated on the progress. Please do not reply to this email. If you have any questions, call us on 03-9598 6741.\n\nBest regards,\nHampton Mowerpower Team`;
     default:
-      return `Dear ${customerName},\n\nThank you for choosing Hampton Mowerpower.\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
+      return `Dear ${customerFirstName},\n\nThank you for choosing Hampton Mowerpower.\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
   }
 }
 

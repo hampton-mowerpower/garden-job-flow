@@ -28,18 +28,31 @@ export function CustomerNotificationDialog({ job, open, onOpenChange }: Customer
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
 
-  const statusMessages = {
-    'pending': `Your service job (#${job.jobNumber}) has been received and is pending review. We'll contact you soon with an update.`,
-    'in-progress': `Great news! Your service job (#${job.jobNumber}) is now in progress. Our technicians are working on your ${job.machineBrand} ${job.machineModel}.`,
-    'completed': `Your service job (#${job.jobNumber}) has been completed! Your ${job.machineBrand} ${job.machineModel} is ready for collection at Hampton Mowerpower.`,
-    'delivered': `Thank you! Your service job (#${job.jobNumber}) has been marked as delivered. We appreciate your business!`
-  };
-
   React.useEffect(() => {
     if (open) {
-      setMessage(statusMessages[job.status]);
+      // Generate default message based on job details
+      const customerFirstName = job.customer.name.split(' ')[0];
+      const statusText = job.status.toUpperCase();
+      const machineDesc = `${job.machineBrand} ${job.machineModel}`;
+      const problemDesc = job.problemDescription || 'Service required';
+      
+      const defaultMessage = `Dear ${customerFirstName}
+
+This is an update regarding your ${machineDesc} service (Job #${job.jobNumber}).
+
+Current Status: ${statusText}
+
+Reported Issue:
+${problemDesc}
+
+We will keep you updated on the progress. Please do not reply to this email. If you have any questions, call us on 03-9598 6741.
+
+Best regards,
+Hampton Mowerpower Team`;
+      
+      setMessage(defaultMessage);
     }
-  }, [open, job.status]);
+  }, [open, job]);
 
   const handleSend = async () => {
     if (!message.trim()) {
@@ -72,18 +85,13 @@ export function CustomerNotificationDialog({ job, open, onOpenChange }: Customer
     setIsSending(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('send-customer-notification', {
+      const { data, error } = await supabase.functions.invoke('send-email', {
         body: {
-          jobId: job.id,
-          jobNumber: job.jobNumber,
-          customerName: job.customer.name,
-          customerEmail: job.customer.email,
-          customerPhone: job.customer.phone,
-          notificationType,
-          message,
-          jobStatus: job.status,
-          machineBrand: job.machineBrand,
-          machineModel: job.machineModel
+          job_id: job.id,
+          template: 'notify-customer',
+          to: job.customer.email,
+          message: message,
+          idempotency_key: `notify-${job.id}-${Date.now()}`
         }
       });
 
@@ -91,17 +99,33 @@ export function CustomerNotificationDialog({ job, open, onOpenChange }: Customer
         throw error;
       }
 
-      toast({
-        title: 'Notification Sent',
-        description: `${notificationType === 'email' ? 'Email' : 'SMS'} notification sent successfully to ${job.customer.name}`
-      });
+      if (data?.already_sent) {
+        toast({
+          title: 'Already Sent',
+          description: 'This notification has already been sent to the customer',
+          variant: 'default'
+        });
+      } else {
+        toast({
+          title: 'Notification Sent',
+          description: `Email notification sent successfully to ${job.customer.name}`
+        });
+      }
 
       onOpenChange(false);
     } catch (error: any) {
       console.error('Error sending notification:', error);
+      
+      let errorMessage = error.message || 'Failed to send notification. Please try again.';
+      
+      // Check for Resend domain verification error
+      if (errorMessage.includes('verify a domain') || errorMessage.includes('fonzren@gmail.com')) {
+        errorMessage = 'Email domain not verified. Please verify your domain at resend.com/domains before sending emails to customers.';
+      }
+      
       toast({
         title: 'Error',
-        description: error.message || 'Failed to send notification. Please try again.',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
