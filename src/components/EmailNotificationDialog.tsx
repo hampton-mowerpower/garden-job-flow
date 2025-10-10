@@ -144,49 +144,31 @@ export function EmailNotificationDialog({ job, open, onOpenChange }: EmailNotifi
 
     try {
       // Call edge function to send email with attachment
-      const { data, error } = await supabase.functions.invoke('send-email-with-attachment', {
+      const { data, error } = await supabase.functions.invoke('send-email', {
         body: {
-          jobId: job.id,
-          jobNumber: job.jobNumber,
-          template,
-          recipient: recipient.trim(),
+          job_id: job.id,
+          template: template === 'quotation' ? 'quotation' : template === 'service-reminder' ? 'service-reminder' : template === 'completion-reminder' ? 'completion-reminder' : 'completion',
+          to: recipient.trim(),
           cc: cc.trim() || undefined,
           bcc: bcc.trim() || undefined,
           subject: subject.trim(),
           message: message.trim(),
-          jobData: {
-            customerName: job.customer.name,
-            customerEmail: job.customer.email,
-            customerPhone: job.customer.phone,
-            customerAddress: job.customer.address,
-            companyName: job.customer.companyName,
-            companyAbn: job.customer.companyAbn,
-            machineBrand: job.machineBrand,
-            machineModel: job.machineModel,
-            machineSerial: job.machineSerial,
-            machineCategory: job.machineCategory,
-            status: job.status,
-            grandTotal: job.grandTotal,
-            serviceDeposit: job.serviceDeposit,
-            quotationAmount: job.quotationAmount,
-            parts: job.parts,
-            labourHours: job.labourHours,
-            labourRate: job.labourRate,
-            gst: job.gst,
-            transportTotalCharge: job.transportTotalCharge,
-            transportBreakdown: job.transportBreakdown,
-            sharpenTotalCharge: job.sharpenTotalCharge,
-            sharpenBreakdown: job.sharpenBreakdown,
-            smallRepairTotal: job.smallRepairTotal,
-            smallRepairDetails: job.smallRepairDetails,
-            problemDescription: job.problemDescription,
-            additionalNotes: job.additionalNotes,
-            requestedFinishDate: job.requestedFinishDate ? job.requestedFinishDate.toString() : undefined
-          }
+          idempotency_key: `${job.id}-${template}-${Date.now()}`,
         }
       });
 
-      if (error) throw error;
+      if (error || !data?.ok) {
+        throw new Error(error?.message || data?.error || 'Failed to send email');
+      }
+
+      if (data.already_sent) {
+        toast({
+          title: 'Already Sent',
+          description: 'This email was already sent to prevent duplicates'
+        });
+        onOpenChange(false);
+        return;
+      }
 
       toast({
         title: 'Email Sent',

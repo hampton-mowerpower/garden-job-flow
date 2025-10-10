@@ -22,6 +22,7 @@ import { PartsManagementAdmin } from './admin/PartsManagementAdmin';
 import { CategoriesLabourAdmin } from './admin/CategoriesLabourAdmin';
 import { QuickProblemsAdmin } from './admin/QuickProblemsAdmin';
 import { TransportSettingsAdmin } from './admin/TransportSettingsAdmin';
+import { EmailHealthMonitor } from './admin/EmailHealthMonitor';
 
 // Simple unique ID generator for UI elements
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -328,11 +329,12 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
         </div>
 
         <Tabs defaultValue="categories" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="categories">Categories & Rates</TabsTrigger>
             <TabsTrigger value="parts">Parts Management</TabsTrigger>
             <TabsTrigger value="descriptions">Quick Problems</TabsTrigger>
             <TabsTrigger value="transport">Transport Settings</TabsTrigger>
+            <TabsTrigger value="email-health">Email Health</TabsTrigger>
             <TabsTrigger value="print">Print Settings</TabsTrigger>
             <TabsTrigger value="export">Data Export</TabsTrigger>
           </TabsList>
@@ -351,6 +353,10 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
 
           <TabsContent value="transport">
             <TransportSettingsAdmin />
+          </TabsContent>
+
+          <TabsContent value="email-health">
+            <EmailHealthMonitor />
           </TabsContent>
 
           <TabsContent value="print">

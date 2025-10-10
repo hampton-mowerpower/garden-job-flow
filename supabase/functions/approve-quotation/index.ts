@@ -10,9 +10,9 @@ const corsHeaders = {
 };
 
 interface ApprovalRequest {
-  jobId: string;
-  customerEmail?: string;
-  customerNote?: string;
+  job_id: string;
+  customer_email?: string;
+  customer_note?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -21,11 +21,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const { jobId, customerEmail, customerNote }: ApprovalRequest = await req.json();
+    const { job_id, customer_email, customer_note }: ApprovalRequest = await req.json();
 
-    console.log('Approving quotation:', { jobId, customerEmail });
+    console.log('Approving quotation:', { job_id, customer_email });
 
-    if (!jobId) {
+    if (!job_id) {
       throw new Error('Job ID is required');
     }
 
@@ -36,7 +36,7 @@ const handler = async (req: Request): Promise<Response> => {
     const { data: job, error: jobError } = await supabase
       .from('jobs_db')
       .select('*, customer:customers_db(*)')
-      .eq('id', jobId)
+      .eq('id', job_id)
       .single();
 
     if (jobError || !job) {
@@ -65,11 +65,11 @@ const handler = async (req: Request): Promise<Response> => {
       .update({
         quotation_status: 'approved',
         quotation_approved_at: new Date().toISOString(),
-        additional_notes: customerNote 
-          ? `${job.additional_notes || ''}\n\nCustomer Approval Note: ${customerNote}`.trim()
+        additional_notes: customer_note 
+          ? `${job.additional_notes || ''}\n\nCustomer Approval Note: ${customer_note}`.trim()
           : job.additional_notes
       })
-      .eq('id', jobId);
+      .eq('id', job_id);
 
     if (updateError) {
       console.error('Update error:', updateError);
@@ -82,11 +82,11 @@ const handler = async (req: Request): Promise<Response> => {
       .insert({
         action: 'quotation_approved',
         target_type: 'jobs_db',
-        target_id: jobId,
+        target_id: job_id,
         meta: {
           job_number: job.job_number,
-          customer_email: customerEmail || job.customer?.email,
-          customer_note: customerNote,
+          customer_email: customer_email || job.customer?.email,
+          customer_note: customer_note,
           approved_via: 'email_link'
         }
       });
@@ -95,7 +95,7 @@ const handler = async (req: Request): Promise<Response> => {
       console.error('Audit log error:', auditError);
     }
 
-    console.log('Quotation approved successfully:', jobId);
+    console.log('Quotation approved successfully:', job_id);
 
     return new Response(
       JSON.stringify({ 
