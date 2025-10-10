@@ -518,6 +518,109 @@ export type Database = {
           },
         ]
       }
+      email_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          meta_json: Json | null
+          outbox_id: string | null
+          provider_id: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          meta_json?: Json | null
+          outbox_id?: string | null
+          provider_id?: string | null
+          status: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          meta_json?: Json | null
+          outbox_id?: string | null
+          provider_id?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_logs_outbox_id_fkey"
+            columns: ["outbox_id"]
+            isOneToOne: false
+            referencedRelation: "email_outbox"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_outbox: {
+        Row: {
+          attempts: number
+          bcc_email: string | null
+          cc_email: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          idempotency_key: string
+          job_id: string | null
+          payload_json: Json
+          provider_id: string | null
+          sent_at: string | null
+          status: string
+          subject: string
+          template: string
+          to_email: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          bcc_email?: string | null
+          cc_email?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          idempotency_key: string
+          job_id?: string | null
+          payload_json?: Json
+          provider_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject: string
+          template: string
+          to_email: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          bcc_email?: string | null
+          cc_email?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          idempotency_key?: string
+          job_id?: string | null
+          payload_json?: Json
+          provider_id?: string | null
+          sent_at?: string | null
+          status?: string
+          subject?: string
+          template?: string
+          to_email?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_outbox_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       invoice_lines: {
         Row: {
           brand_id: string | null
