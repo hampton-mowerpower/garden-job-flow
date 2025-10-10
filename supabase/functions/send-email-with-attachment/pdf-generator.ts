@@ -16,6 +16,7 @@ interface JobData {
   grandTotal: number;
   serviceDeposit: number;
   balanceDue: number;
+  quotationAmount?: number;
   parts?: any[];
   labourHours: number;
   labourRate: number;
@@ -329,6 +330,20 @@ export async function generateInvoicePDF(
   doc.text('Total (inc. GST):', totalsX, yPos);
   doc.text(`$${jobData.grandTotal.toFixed(2)}`, 193, yPos, { align: 'right' });
   yPos += 8;
+  
+  // Quotation fee deduction (only for quotations with a quotation fee)
+  if (isQuotation && jobData.quotationAmount && jobData.quotationAmount > 0) {
+    doc.setFont('helvetica', 'normal');
+    doc.text('Quotation Fee (deducted):', totalsX, yPos);
+    doc.text(`-$${jobData.quotationAmount.toFixed(2)}`, 193, yPos, { align: 'right' });
+    yPos += 6;
+    
+    const amountAfterDeduction = jobData.grandTotal - jobData.quotationAmount;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Amount Payable:', totalsX, yPos);
+    doc.text(`$${amountAfterDeduction.toFixed(2)}`, 193, yPos, { align: 'right' });
+    yPos += 8;
+  }
   
   if (!isQuotation && jobData.serviceDeposit > 0) {
     doc.setFont('helvetica', 'normal');

@@ -34,6 +34,7 @@ interface EmailRequest {
     grandTotal: number;
     serviceDeposit: number;
     balanceDue: number;
+    quotationAmount?: number;
     parts?: any[];
     labourHours: number;
     labourRate: number;
@@ -59,6 +60,7 @@ const handler = async (req: Request): Promise<Response> => {
 
   try {
     const {
+      jobId,
       jobNumber,
       template,
       recipient,
@@ -68,6 +70,9 @@ const handler = async (req: Request): Promise<Response> => {
       message,
       jobData
     }: EmailRequest = await req.json();
+    
+    // Store job ID in request for later use in approve URL
+    req.headers.set('x-job-id', jobId);
 
     console.log('Sending email with attachment:', { jobNumber, template, recipient });
 
@@ -104,21 +109,31 @@ const handler = async (req: Request): Promise<Response> => {
       }
     }
 
-    // Format email HTML with logo (user will need to upload logo to Supabase Storage)
-    // Logo URL will be: https://kyiuojjaownbvouffqbm.supabase.co/storage/v1/object/public/email-assets/hampton-logo-email.png
-    const logoUrl = 'https://kyiuojjaownbvouffqbm.supabase.co/storage/v1/object/public/email-assets/hampton-logo-email.png';
+    // Generate approve quotation URL if this is a quotation
+    const approveUrl = template === 'quotation' && jobData.customerEmail
+      ? `https://dbf3f430-ba0b-4367-a8eb-b3b04d093b9f.lovableproject.com/approve-quotation.html?job=${encodeURIComponent(jobId)}&email=${encodeURIComponent(jobData.customerEmail)}`
+      : null;
     
     const emailHtml = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background: #f9fafb; padding: 20px; text-align: center; border-bottom: 3px solid #2563eb;">
           <div style="margin-bottom: 10px;">
-            <img src="${logoUrl}" alt="Hampton Mowerpower" style="max-width: 300px; height: auto;" />
+            <img src="https://dbf3f430-ba0b-4367-a8eb-b3b04d093b9f.lovableproject.com/hampton-logo-email.png" alt="Hampton Mowerpower" style="max-width: 300px; height: auto;" />
           </div>
           <p style="margin: 5px 0; color: #6b7280; font-size: 14px;">Garden Equipment Sales & Service</p>
         </div>
         
         <div style="padding: 30px; background: #ffffff;">
           <div style="white-space: pre-line; line-height: 1.6; color: #1f2937;">${message}</div>
+          
+          ${approveUrl ? `
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${approveUrl}" style="display: inline-block; background: #2563eb; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+              Approve Quotation
+            </a>
+            <p style="margin-top: 10px; color: #6b7280; font-size: 13px;">Click the button above to approve this quotation</p>
+          </div>
+          ` : ''}
           
           <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2563eb;">
             <h3 style="color: #1f2937; margin-top: 0; margin-bottom: 15px; font-size: 16px;">Job Details</h3>
@@ -136,6 +151,16 @@ const handler = async (req: Request): Promise<Response> => {
                 <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Total:</td>
                 <td style="padding: 8px 0; color: #1f2937; font-weight: 700;">$${jobData.grandTotal.toFixed(2)} (inc. GST)</td>
               </tr>
+              ${jobData.quotationAmount && jobData.quotationAmount > 0 ? `
+              <tr>
+                <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Quotation Fee (deducted):</td>
+                <td style="padding: 8px 0; color: #1f2937; font-weight: 700;">-$${jobData.quotationAmount.toFixed(2)}</td>
+              </tr>
+              <tr>
+                <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Amount Payable:</td>
+                <td style="padding: 8px 0; color: #16a34a; font-weight: 700;">$${(jobData.grandTotal - jobData.quotationAmount).toFixed(2)} (inc. GST)</td>
+              </tr>
+              ` : ''}
               ` : ''}
             </table>
           </div>

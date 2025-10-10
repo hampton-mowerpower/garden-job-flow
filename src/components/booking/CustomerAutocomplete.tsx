@@ -313,6 +313,12 @@ export const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({
               id="customer-address"
               value={customer.address || ''}
               onChange={(e) => onCustomerChange({ ...customer, address: e.target.value })}
+              onBlur={(e) => {
+                const formatted = toTitleCase(e.target.value);
+                if (formatted !== e.target.value) {
+                  onCustomerChange({ ...customer, address: formatted });
+                }
+              }}
             />
           </div>
 

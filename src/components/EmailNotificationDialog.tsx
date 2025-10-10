@@ -168,7 +168,7 @@ export function EmailNotificationDialog({ job, open, onOpenChange }: EmailNotifi
             status: job.status,
             grandTotal: job.grandTotal,
             serviceDeposit: job.serviceDeposit,
-            balanceDue: job.balanceDue,
+            quotationAmount: job.quotationAmount,
             parts: job.parts,
             labourHours: job.labourHours,
             labourRate: job.labourRate,

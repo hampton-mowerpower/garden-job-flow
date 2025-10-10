@@ -1023,6 +1023,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                     id="company-name"
                     value={jobCompanyName}
                     onChange={(e) => setJobCompanyName(e.target.value)}
+                    onBlur={(e) => setJobCompanyName(toTitleCase(e.target.value))}
                     placeholder="Company name..."
                   />
                 </div>
