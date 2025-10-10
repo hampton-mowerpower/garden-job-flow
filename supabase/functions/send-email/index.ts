@@ -191,7 +191,6 @@ const handler = async (req: Request): Promise<Response> => {
       to: [recipientEmail],
       subject: emailSubject,
       html: emailHtml,
-      reply_to: 'hamptonmowerpower@gmail.com',
     };
 
     if (cc) emailPayload.cc = [cc];
@@ -327,20 +326,21 @@ function getDefaultSubject(template: string, jobNumber: string): string {
 
 function getDefaultMessage(template: string, job: any): string {
   const customerName = job.customer?.name || 'Valued Customer';
+  const machineDesc = `${job.machine_brand} ${job.machine_model}${job.machine_serial ? ` (SN: ${job.machine_serial})` : ''}`;
   
   switch (template) {
     case 'quotation':
-      return `Dear ${customerName},\n\nPlease find attached the quotation for your ${job.machine_brand} ${job.machine_model}.\n\nYou can approve this quotation by clicking the button below.`;
+      return `Dear ${customerName},\n\nPlease find attached the quotation for your ${machineDesc}.\n\nYou can approve this quotation by clicking the button below.\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
     case 'service-reminder':
-      return `Dear ${customerName},\n\nThis is a reminder that your ${job.machine_brand} ${job.machine_model} is due for service.`;
+      return `Dear ${customerName},\n\nThis is a reminder that your ${machineDesc} is due for service.\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
     case 'completion-reminder':
-      return `Dear ${customerName},\n\nYour ${job.machine_brand} ${job.machine_model} has been serviced and is ready for collection.`;
+      return `Dear ${customerName},\n\nGreat news — we've completed the service/repair on your ${machineDesc}.\n\nPickup\nFrom: Hampton Mowerpower, 87 Ludstone Street, Hampton VIC 3188\nHours: Monday-Friday 8:00 AM - 5:00 PM, Saturday 8:00 AM - 12:00 PM\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
     case 'completion':
-      return `Dear ${customerName},\n\nYour ${job.machine_brand} ${job.machine_model} service has been completed. Please find the invoice attached.`;
+      return `Dear ${customerName},\n\nYour ${machineDesc} service has been completed. Please find the invoice attached.\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
     case 'notify-customer':
-      return `Dear ${customerName},\n\nThis is an update regarding your ${job.machine_brand} ${job.machine_model}.`;
+      return `Dear ${customerName},\n\nYour service job (#${job.job_number}) — ${machineDesc} — has been received and is pending review.\n\n${job.problem_description ? `Reported problems:\n${job.problem_description}\n\n` : ''}Please do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
     default:
-      return `Dear ${customerName},\n\nThank you for choosing Hampton Mowerpower.`;
+      return `Dear ${customerName},\n\nThank you for choosing Hampton Mowerpower.\n\nPlease do not reply to this email. If you have any questions, call us on 03-9598 6741.`;
   }
 }
 
@@ -428,15 +428,14 @@ function buildEmailHtml(job: any, message: string, approveUrl: string | null): s
         </div>
         
         <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-          <p style="color: #6b7280; margin: 10px 0; font-size: 14px;">If you have any questions, please contact us:</p>
+          <p style="color: #d97706; margin: 10px 0; font-size: 14px; font-weight: 600; background: #fef3c7; padding: 12px; border-radius: 6px; border-left: 4px solid #d97706;">
+            ⚠️ Please do not reply to this email. If you have any questions, call us on 03-9598 6741.
+          </p>
+          <p style="color: #6b7280; margin: 15px 0 10px 0; font-size: 14px;">Contact Information:</p>
           <table style="color: #1f2937; line-height: 1.8; font-size: 14px; margin-top: 10px;">
             <tr>
               <td style="padding: 4px 0; color: #6b7280;">📞</td>
-              <td style="padding: 4px 0; padding-left: 10px;"><strong>(03) 9598 6741</strong></td>
-            </tr>
-            <tr>
-              <td style="padding: 4px 0; color: #6b7280;">📧</td>
-              <td style="padding: 4px 0; padding-left: 10px;"><a href="mailto:hamptonmowerpower@gmail.com" style="color: #2563eb; text-decoration: none;"><strong>hamptonmowerpower@gmail.com</strong></a></td>
+              <td style="padding: 4px 0; padding-left: 10px;"><strong>03-9598 6741</strong></td>
             </tr>
             <tr>
               <td style="padding: 4px 0; color: #6b7280;">📍</td>

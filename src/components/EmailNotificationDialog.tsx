@@ -24,13 +24,14 @@ interface EmailNotificationDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-type EmailTemplate = 'quotation' | 'service-reminder' | 'completion-reminder' | 'completion';
+type EmailTemplate = 'quotation' | 'service-reminder' | 'completion-reminder' | 'completion' | 'notify-customer';
 
 const EMAIL_TEMPLATES: Record<EmailTemplate, { label: string; hasAttachment: boolean }> = {
   'quotation': { label: 'Quotation (with quote PDF)', hasAttachment: true },
   'service-reminder': { label: 'Service Reminder', hasAttachment: false },
   'completion-reminder': { label: 'Job Completion Reminder', hasAttachment: false },
-  'completion': { label: 'Job Completion (with invoice PDF)', hasAttachment: true }
+  'completion': { label: 'Job Completion (with invoice PDF)', hasAttachment: true },
+  'notify-customer': { label: 'Notify Customer (Generic Status)', hasAttachment: false }
 };
 
 export function EmailNotificationDialog({ job, open, onOpenChange }: EmailNotificationDialogProps) {
@@ -104,6 +105,17 @@ export function EmailNotificationDialog({ job, open, onOpenChange }: EmailNotifi
           `Best regards,\nHampton Mowerpower Team`
         );
         break;
+      case 'notify-customer':
+        setSubject(`Update on Your Service - Job #${job.jobNumber}`);
+        setMessage(
+          `Dear ${job.customer.name},\n\n` +
+          `This is an update regarding your ${job.machineBrand} ${job.machineModel} service (Job #${job.jobNumber}).\n\n` +
+          `Current Status: ${job.status.replace('-', ' ').toUpperCase()}\n\n` +
+          (job.problemDescription ? `Reported Issue:\n${job.problemDescription}\n\n` : '') +
+          `We will keep you updated on the progress.\n\n` +
+          `Best regards,\nHampton Mowerpower Team`
+        );
+        break;
     }
   };
 
@@ -147,7 +159,7 @@ export function EmailNotificationDialog({ job, open, onOpenChange }: EmailNotifi
       const { data, error } = await supabase.functions.invoke('send-email', {
         body: {
           job_id: job.id,
-          template: template === 'quotation' ? 'quotation' : template === 'service-reminder' ? 'service-reminder' : template === 'completion-reminder' ? 'completion-reminder' : 'completion',
+          template: template,
           to: recipient.trim(),
           cc: cc.trim() || undefined,
           bcc: bcc.trim() || undefined,
