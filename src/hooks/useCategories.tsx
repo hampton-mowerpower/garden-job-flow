@@ -57,7 +57,7 @@ export const useCategories = () => {
   }, []);
 
   const getCategoryByName = (name: string): Category | undefined => {
-    return categories.find(c => c.name === name);
+    return categories.find(c => c.name.toLowerCase() === name.toLowerCase());
   };
 
   const getLabourRate = (categoryName: string): number => {
@@ -70,8 +70,8 @@ export const useCategories = () => {
     labourRate?: number
   ): Promise<Category | null> => {
     try {
-      // Check if category exists
-      const existing = categories.find(c => c.name === categoryName);
+      // Check if category exists (case-insensitive)
+      const existing = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
       if (existing) return existing;
 
       // Create new category
@@ -127,10 +127,17 @@ export const useCategories = () => {
     newRate: number
   ): Promise<boolean> => {
     try {
+      // Find the category case-insensitively first
+      const category = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
+      if (!category) {
+        console.error('Category not found:', categoryName);
+        return false;
+      }
+
       const { error } = await supabase
         .from('categories')
         .update({ rate_default: newRate })
-        .eq('name', categoryName);
+        .eq('id', category.id);
 
       if (error) throw error;
 

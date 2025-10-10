@@ -6,7 +6,8 @@ import { InputCurrency } from '@/components/ui/input-currency';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Wrench } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Wrench, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/calculations';
 
 interface SmallRepairData {
@@ -54,12 +55,38 @@ export const SmallRepairSection: React.FC<SmallRepairSectionProps> = ({ data, on
     ? localData.overrideTotal
     : localData.calculatedTotal;
 
+  const handleClear = () => {
+    const clearedData = {
+      repairDetails: '',
+      minutes: 0,
+      rateType: 'per_hr' as 'per_min' | 'per_hr',
+      rate: 100,
+      calculatedTotal: 0,
+      overrideTotal: undefined,
+      includeInTotals: false
+    };
+    setLocalData(clearedData);
+    onChange(clearedData);
+  };
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Wrench className="h-5 w-5" />
-          Small Repair
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-lg">
+            <Wrench className="h-5 w-5" />
+            Small Repair
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleClear}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            Clear
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
