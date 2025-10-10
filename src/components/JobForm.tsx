@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { TextareaTranslated } from '@/components/ui/textarea-translated';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Save, Printer, Check, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Save, Printer, Check, Loader2, X } from 'lucide-react';
 import { Job, Customer, JobPart, ChecklistItem } from '@/types/job';
 import { HAMPTON_MACHINE_CATEGORIES } from '@/data/hamptonMachineData';
 import { DEFAULT_PARTS } from '@/data/defaultParts';
@@ -1445,8 +1445,26 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                     </div>
                   )}
                   {smallRepairData.includeInTotals && smallRepairData.calculatedTotal > 0 && (
-                    <div className="px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-full text-xs font-medium">
-                      Small Repair: {formatCurrency(smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)}
+                    <div className="px-3 py-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-full text-xs font-medium flex items-center gap-2">
+                      <span>Small Repair: {formatCurrency(smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)}</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSmallRepairData({
+                            repairDetails: '',
+                            minutes: 0,
+                            rateType: 'per_hr',
+                            rate: 100,
+                            calculatedTotal: 0,
+                            overrideTotal: undefined,
+                            includeInTotals: false
+                          });
+                        }}
+                        className="hover:bg-orange-200 dark:hover:bg-orange-800/50 rounded-full p-0.5 transition-colors"
+                        aria-label="Remove small repair charge"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </div>
                   )}
                 </div>
