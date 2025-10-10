@@ -314,6 +314,8 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
               onSelectJob={onSelectJob}
               onEditJob={onEditJob}
               onDeleteJob={handleDeleteJob}
+              onNotifyCustomer={(job) => setNotificationJob(job)}
+              onSendEmail={(job) => setEmailJob(job)}
             />
           )}
         </CardContent>

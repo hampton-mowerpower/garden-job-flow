@@ -864,6 +864,47 @@ export type Database = {
           },
         ]
       }
+      job_notes: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          edited_at: string | null
+          id: string
+          job_id: string
+          note_text: string
+          user_id: string
+          visibility: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          edited_at?: string | null
+          id?: string
+          job_id: string
+          note_text: string
+          user_id: string
+          visibility?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          edited_at?: string | null
+          id?: string
+          job_id?: string
+          note_text?: string
+          user_id?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_notes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_parts: {
         Row: {
           awaiting_stock: boolean | null

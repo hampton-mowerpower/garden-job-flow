@@ -7,6 +7,7 @@ import { FileText } from 'lucide-react';
 import hamptonLogo from '@/assets/hampton-logo-new.jpg';
 import { jobBookingDB } from '@/lib/storage';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface JobPrintInvoiceProps {
   job: Job;
@@ -1247,6 +1248,62 @@ export const JobPrintInvoice: React.FC<JobPrintInvoiceProps> = ({ job }) => {
       </div>
     </div>
   );
+};
+
+// Export print function for use in other components
+export const printInvoice = async (job: Job) => {
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    throw new Error('Failed to open print window. Please allow popups.');
+  }
+
+  // Fetch payments for this job
+  const { data: payments } = await supabase
+    .from('job_payments')
+    .select('*')
+    .eq('job_id', job.id)
+    .order('paid_at', { ascending: true });
+
+  const componentHTML = document.createElement('div');
+  const root = document.createElement('div');
+  componentHTML.appendChild(root);
+  
+  // Render the invoice content
+  const { render } = await import('react-dom');
+  render(<InvoiceContent job={job} payments={payments || []} />, root);
+
+  const fileName = `Hampton_Invoice_${job.jobNumber}_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>${fileName}</title>
+        <style>
+          ${Object.entries(styles)
+            .map(([key, value]) => {
+              return `.${key} { ${Object.entries(value as Record<string, any>)
+                .map(([cssKey, cssValue]) => {
+                  const kebabKey = cssKey.replace(/([A-Z])/g, '-$1').toLowerCase();
+                  return `${kebabKey}: ${cssValue};`;
+                })
+                .join(' ')} }`;
+            })
+            .join('\n')}
+        </style>
+      </head>
+      <body>
+        ${root.innerHTML}
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+  
+  setTimeout(() => {
+    printWindow.print();
+  }, 250);
 };
 
 export default JobPrintInvoice;

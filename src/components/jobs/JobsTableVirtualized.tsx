@@ -1,19 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Eye, Edit, Trash2, Package, FileText } from 'lucide-react';
 import { formatCurrency } from '@/lib/calculations';
 import { Job } from '@/types/job';
+import { JobRowActions } from './JobRowActions';
+import { JobInlineNotes } from './JobInlineNotes';
 
 interface JobsTableVirtualizedProps {
   jobs: Job[];
   onSelectJob: (job: Job) => void;
   onEditJob: (job: Job) => void;
   onDeleteJob: (job: Job) => void;
+  onNotifyCustomer: (job: Job) => void;
+  onSendEmail: (job: Job) => void;
 }
 
-export function JobsTableVirtualized({ jobs, onSelectJob, onEditJob, onDeleteJob }: JobsTableVirtualizedProps) {
+export function JobsTableVirtualized({ 
+  jobs, 
+  onSelectJob, 
+  onEditJob, 
+  onDeleteJob,
+  onNotifyCustomer,
+  onSendEmail 
+}: JobsTableVirtualizedProps) {
   const getStatusColor = (status: Job['status']) => {
     switch (status) {
       case 'pending': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
@@ -39,73 +50,90 @@ export function JobsTableVirtualized({ jobs, onSelectJob, onEditJob, onDeleteJob
       {jobs.map((job) => (
         <Card key={job.id} className="hover:shadow-md transition-shadow">
           <CardContent className="p-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="font-semibold text-lg">#{job.jobNumber}</h3>
-                  <Badge className={getStatusColor(job.status)}>
-                    {job.status.replace('_', ' ').charAt(0).toUpperCase() + job.status.slice(1).replace('_', ' ')}
-                  </Badge>
-                  {hasWaitingParts(job) && (
-                    <Badge className="bg-orange-100 text-orange-800">
-                      <Package className="h-3 w-3 mr-1" />
-                      Parts
+            <div className="space-y-3">
+              {/* Header with Job Info and Action Buttons */}
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-semibold text-lg">#{job.jobNumber}</h3>
+                    <Badge className={getStatusColor(job.status)}>
+                      {job.status.replace('_', ' ').charAt(0).toUpperCase() + job.status.slice(1).replace('_', ' ')}
                     </Badge>
-                  )}
-                  {hasQuotePending(job) && (
-                    <Badge className="bg-cyan-100 text-cyan-800">
-                      <FileText className="h-3 w-3 mr-1" />
-                      Quote
-                    </Badge>
-                  )}
+                    {hasWaitingParts(job) && (
+                      <Badge className="bg-orange-100 text-orange-800">
+                        <Package className="h-3 w-3 mr-1" />
+                        Parts
+                      </Badge>
+                    )}
+                    {hasQuotePending(job) && (
+                      <Badge className="bg-cyan-100 text-cyan-800">
+                        <FileText className="h-3 w-3 mr-1" />
+                        Quote
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
+                    <div>
+                      <p className="font-medium text-foreground">{job.customer.name}</p>
+                      <p>{job.customer.phone}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">
+                        {job.machineBrand} {job.machineModel}
+                      </p>
+                      <p>{job.machineCategory}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-primary">{formatCurrency(job.grandTotal)}</p>
+                      <p>{new Date(job.createdAt).toLocaleDateString('en-AU')}</p>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
-                  <div>
-                    <p className="font-medium text-foreground">{job.customer.name}</p>
-                    <p>{job.customer.phone}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-foreground">
-                      {job.machineBrand} {job.machineModel}
-                    </p>
-                    <p>{job.machineCategory}</p>
-                  </div>
-                  <div>
-                    <p className="font-medium text-primary">{formatCurrency(job.grandTotal)}</p>
-                    <p>{new Date(job.createdAt).toLocaleDateString('en-AU')}</p>
+                <div className="flex flex-col gap-2">
+                  {/* Row Actions */}
+                  <JobRowActions
+                    job={job}
+                    onNotifyCustomer={onNotifyCustomer}
+                    onSendEmail={onSendEmail}
+                  />
+
+                  {/* Main Action Buttons */}
+                  <div className="flex gap-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onSelectJob(job)}
+                      className="gap-1 flex-1"
+                    >
+                      <Eye className="h-4 w-4" />
+                      View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onEditJob(job)}
+                      className="gap-1 flex-1"
+                    >
+                      <Edit className="h-4 w-4" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onDeleteJob(job)}
+                      className="gap-1 text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </div>
 
-              <div className="flex flex-col gap-1">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onSelectJob(job)}
-                  className="gap-2"
-                >
-                  <Eye className="h-4 w-4" />
-                  View
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onEditJob(job)}
-                  className="gap-2"
-                >
-                  <Edit className="h-4 w-4" />
-                  Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onDeleteJob(job)}
-                  className="gap-2 text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </Button>
+              {/* Inline Staff Notes */}
+              <div className="border-t pt-3">
+                <JobInlineNotes jobId={job.id} />
               </div>
             </div>
           </CardContent>
