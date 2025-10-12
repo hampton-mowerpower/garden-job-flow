@@ -462,6 +462,8 @@ export type Database = {
           is_deleted: boolean | null
           merged_into_id: string | null
           name: string
+          normalized_email: string | null
+          normalized_phone: string | null
           notes: string | null
           phone: string
           postcode: string | null
@@ -482,6 +484,8 @@ export type Database = {
           is_deleted?: boolean | null
           merged_into_id?: string | null
           name: string
+          normalized_email?: string | null
+          normalized_phone?: string | null
           notes?: string | null
           phone: string
           postcode?: string | null
@@ -502,6 +506,8 @@ export type Database = {
           is_deleted?: boolean | null
           merged_into_id?: string | null
           name?: string
+          normalized_email?: string | null
+          normalized_phone?: string | null
           notes?: string | null
           phone?: string
           postcode?: string | null
