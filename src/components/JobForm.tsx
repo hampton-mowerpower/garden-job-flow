@@ -51,6 +51,7 @@ import { RequestedFinishDatePicker } from './booking/RequestedFinishDatePicker';
 import { PartsPicker } from './booking/PartsPicker';
 import { syncJobToAccountCustomer } from '@/utils/accountCustomerSync';
 import { scheduleServiceReminder, cancelMachineReminders } from '@/utils/reminderScheduler';
+import { useAutoSave } from '@/hooks/useAutoSave';
 
 // Simple unique ID generator for UI elements (not database records)
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -557,6 +558,72 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
 
     fillEmailFromAccount();
   }, [accountCustomerId]);
+
+  // Auto-save customer data to Supabase
+  const saveCustomerData = async (customerData: Partial<Customer>) => {
+    // Only save if we have essential data
+    if (!customerData.name || !customerData.phone) return;
+    
+    try {
+      const normalizedEmail = customerData.email ? customerData.email.toLowerCase().trim() : '';
+      const normalizedPhone = customerData.phone.replace(/[^0-9]/g, '');
+      
+      // Check for existing customer by normalized fields
+      const { data: existingCustomers } = await supabase
+        .from('customers_db')
+        .select('id')
+        .or(`normalized_email.eq.${normalizedEmail},normalized_phone.eq.${normalizedPhone}`)
+        .limit(1);
+      
+      if (existingCustomers && existingCustomers.length > 0 && !customerData.id) {
+        // Found existing customer, use that ID
+        setCustomer(prev => ({ ...prev, id: existingCustomers[0].id }));
+        return;
+      }
+      
+      // Upsert customer data
+      const customerPayload = {
+        id: customerData.id,
+        name: toTitleCase(customerData.name.trim()),
+        phone: customerData.phone,
+        email: customerData.email || null,
+        address: customerData.address || '',
+        suburb: null,
+        postcode: null,
+        notes: customerData.notes || null,
+        customer_type: customerType,
+        company_name: customerType === 'commercial' ? jobCompanyName : null,
+        billing_address: null,
+        is_deleted: false
+      };
+      
+      const { data, error } = await supabase
+        .from('customers_db')
+        .upsert(customerPayload, { onConflict: 'id' })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Update local state with the saved customer ID
+      if (data && !customerData.id) {
+        setCustomer(prev => ({ ...prev, id: data.id }));
+      }
+    } catch (error) {
+      console.error('Error auto-saving customer:', error);
+      // Don't throw - autosave failures shouldn't block the form
+    }
+  };
+  
+  // Use autosave hook for customer data
+  useAutoSave({
+    data: { ...customer, customerType, jobCompanyName },
+    onSave: async (data) => {
+      await saveCustomerData(data);
+    },
+    delay: 600,
+    enabled: !!customer.name && !!customer.phone // Only enable when we have minimum data
+  });
 
   const addPart = () => {
     const newPart: JobPart = {

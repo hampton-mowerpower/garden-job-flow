@@ -43,6 +43,8 @@ interface Customer {
   email?: string;
   address: string;
   notes?: string;
+  customerType?: 'commercial' | 'domestic';
+  companyName?: string;
 }
 
 interface CustomerAutocompleteProps {
@@ -128,17 +130,51 @@ export const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({
   };
 
   const handleCustomerSelect = (selectedCustomer: Customer) => {
-    onCustomerChange({
-      id: selectedCustomer.id,
-      name: selectedCustomer.name,
-      phone: selectedCustomer.phone,
-      email: selectedCustomer.email || '',
-      address: selectedCustomer.address,
-      notes: selectedCustomer.notes || ''
-    });
-    if (onCustomerSelect) {
-      onCustomerSelect(selectedCustomer);
-    }
+    // Fetch full customer data from Supabase to get customer_type and company_name
+    const fetchAndSetCustomer = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('customers_db')
+          .select('*')
+          .eq('id', selectedCustomer.id)
+          .single();
+        
+        if (error) throw error;
+        
+        if (data) {
+          onCustomerChange({
+            id: data.id,
+            name: data.name,
+            phone: data.phone,
+            email: data.email || '',
+            address: data.address,
+            notes: data.notes || '',
+            customerType: data.customer_type || 'domestic',
+            companyName: data.company_name || ''
+          });
+          
+          if (onCustomerSelect) {
+            onCustomerSelect(data as any);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching customer:', error);
+        // Fallback to basic data
+        onCustomerChange({
+          id: selectedCustomer.id,
+          name: selectedCustomer.name,
+          phone: selectedCustomer.phone,
+          email: selectedCustomer.email || '',
+          address: selectedCustomer.address,
+          notes: selectedCustomer.notes || ''
+        });
+        if (onCustomerSelect) {
+          onCustomerSelect(selectedCustomer);
+        }
+      }
+    };
+    
+    fetchAndSetCustomer();
     setOpen(false);
   };
 

@@ -1,12 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Eye, Edit, Trash2, Package, FileText } from 'lucide-react';
 import { formatCurrency } from '@/lib/calculations';
 import { Job } from '@/types/job';
 import { JobRowActions } from './JobRowActions';
 import { JobInlineNotes } from './JobInlineNotes';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { scheduleServiceReminder } from '@/utils/reminderScheduler';
 
 interface JobsTableVirtualizedProps {
   jobs: Job[];
@@ -25,6 +29,53 @@ export function JobsTableVirtualized({
   onNotifyCustomer,
   onSendEmail 
 }: JobsTableVirtualizedProps) {
+  const { toast } = useToast();
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  
+  const handleStatusChange = async (job: Job, newStatus: Job['status']) => {
+    setUpdatingStatus(job.id);
+    try {
+      const updates: any = {
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      };
+      
+      // If status is delivered, set delivered_at and schedule reminder
+      if (newStatus === 'delivered') {
+        updates.delivered_at = new Date().toISOString();
+        
+        // Schedule service reminder by calling with the updated job
+        const updatedJob = { ...job, status: newStatus, deliveredAt: new Date() };
+        await scheduleServiceReminder(updatedJob);
+      }
+      
+      // Update job status in Supabase
+      const { error } = await supabase
+        .from('jobs_db')
+        .update(updates)
+        .eq('id', job.id);
+      
+      if (error) throw error;
+      
+      toast({
+        title: 'Status Updated',
+        description: `Job ${job.jobNumber} marked as ${newStatus.replace('_', ' ')}`,
+      });
+      
+      // Reload the page to reflect changes
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Error updating status:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update job status',
+        variant: 'destructive',
+      });
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
+  
   const getStatusColor = (status: Job['status']) => {
     switch (status) {
       case 'pending': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
@@ -56,9 +107,26 @@ export function JobsTableVirtualized({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-2">
                     <h3 className="font-semibold text-lg">#{job.jobNumber}</h3>
-                    <Badge className={getStatusColor(job.status)}>
-                      {job.status.replace('_', ' ').charAt(0).toUpperCase() + job.status.slice(1).replace('_', ' ')}
-                    </Badge>
+                    
+                    {/* Inline Status Editor */}
+                    <Select
+                      value={job.status}
+                      onValueChange={(value) => handleStatusChange(job, value as Job['status'])}
+                      disabled={updatingStatus === job.id}
+                    >
+                      <SelectTrigger className={`w-[160px] h-7 ${getStatusColor(job.status)} border`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="awaiting_parts">Awaiting Parts</SelectItem>
+                        <SelectItem value="awaiting_quote">Awaiting Quote</SelectItem>
+                        <SelectItem value="in-progress">In Progress</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="delivered">Delivered</SelectItem>
+                        <SelectItem value="write_off">Write Off</SelectItem>
+                      </SelectContent>
+                    </Select>
                     {hasWaitingParts(job) && (
                       <Badge className="bg-orange-100 text-orange-800">
                         <Package className="h-3 w-3 mr-1" />

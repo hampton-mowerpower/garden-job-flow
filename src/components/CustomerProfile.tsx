@@ -62,29 +62,38 @@ export const CustomerProfile: React.FC<CustomerProfileProps> = ({
     
     setLoading(true);
     try {
-      // Load jobs
+      // Normalize customer contact info for matching
+      const normalizedEmail = customer.email ? customer.email.toLowerCase().trim() : '';
+      const normalizedPhone = customer.phone.replace(/[^0-9]/g, '');
+      
+      // Load jobs - match by customer_id OR by normalized email/phone for historic data
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs_db')
         .select('*')
-        .eq('customer_id', customer.id)
+        .or(`customer_id.eq.${customer.id}${normalizedEmail ? `,normalized_email.eq.${normalizedEmail}` : ''}${normalizedPhone ? `,normalized_phone.eq.${normalizedPhone}` : ''}`)
         .order('created_at', { ascending: false });
 
       if (jobsError) throw jobsError;
-      setJobs(jobsData || []);
+      
+      // Dedupe by job_id
+      const uniqueJobs = Array.from(
+        new Map((jobsData || []).map(job => [job.id, job])).values()
+      );
+      setJobs(uniqueJobs);
 
-      // Calculate stats
-      const totalSpent = jobsData?.reduce((sum, job) => sum + (job.grand_total || 0), 0) || 0;
-      const lastVisit = jobsData?.[0]?.created_at ? new Date(jobsData[0].created_at) : null;
+      // Calculate stats from unique jobs
+      const totalSpent = uniqueJobs.reduce((sum, job) => sum + (job.grand_total || 0), 0);
+      const lastVisit = uniqueJobs[0]?.created_at ? new Date(uniqueJobs[0].created_at) : null;
       
       setStats({
-        totalJobs: jobsData?.length || 0,
+        totalJobs: uniqueJobs.length,
         totalSpent,
         lastVisit
       });
 
-      // Extract unique machines from jobs
+      // Extract unique machines from unique jobs
       const uniqueMachines = new Map();
-      jobsData?.forEach(job => {
+      uniqueJobs.forEach(job => {
         const key = `${job.machine_brand}-${job.machine_model}-${job.machine_serial}`;
         if (!uniqueMachines.has(key)) {
           uniqueMachines.set(key, {
@@ -112,8 +121,8 @@ export const CustomerProfile: React.FC<CustomerProfileProps> = ({
         .order('created_at', { ascending: false });
       setInvoices(invoicesData || []);
 
-      // Load payments for this customer's jobs
-      const jobIds = jobsData?.map(j => j.id) || [];
+      // Load payments for this customer's unique jobs
+      const jobIds = uniqueJobs.map(j => j.id);
       if (jobIds.length > 0) {
         const { data: paymentsData } = await supabase
           .from('payments')
