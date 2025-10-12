@@ -62,11 +62,29 @@ export const CustomerProfile: React.FC<CustomerProfileProps> = ({
     
     setLoading(true);
     try {
-      // Load jobs by customer_id
+      // Step 1: Find ALL customer records with matching email or phone
+      const relatedCustomerIds = [customer.id]; // Always include current customer
+      
+      if (customer.email || customer.phone) {
+        const { data: relatedCustomers } = await supabase
+          .from('customers_db')
+          .select('id')
+          .or(`normalized_email.eq.${customer.email?.toLowerCase().trim() || ''},normalized_phone.eq.${customer.phone.replace(/[^0-9]/g, '')}`);
+        
+        if (relatedCustomers) {
+          relatedCustomers.forEach(c => {
+            if (!relatedCustomerIds.includes(c.id)) {
+              relatedCustomerIds.push(c.id);
+            }
+          });
+        }
+      }
+      
+      // Step 2: Load ALL jobs for any of these customer IDs
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs_db')
         .select('*')
-        .eq('customer_id', customer.id)
+        .in('customer_id', relatedCustomerIds)
         .order('created_at', { ascending: false });
 
       if (jobsError) throw jobsError;
