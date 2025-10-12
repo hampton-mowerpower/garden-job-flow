@@ -173,6 +173,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          normalized_name: string | null
           oem_export_format: string | null
           oem_export_required: boolean | null
           supplier: string | null
@@ -186,6 +187,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          normalized_name?: string | null
           oem_export_format?: string | null
           oem_export_required?: boolean | null
           supplier?: string | null
@@ -199,6 +201,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          normalized_name?: string | null
           oem_export_format?: string | null
           oem_export_required?: boolean | null
           supplier?: string | null
@@ -285,6 +288,7 @@ export type Database = {
           id: string
           is_transport_large: boolean | null
           name: string
+          normalized_name: string | null
           rate_default: number | null
           updated_at: string
         }
@@ -295,6 +299,7 @@ export type Database = {
           id?: string
           is_transport_large?: boolean | null
           name: string
+          normalized_name?: string | null
           rate_default?: number | null
           updated_at?: string
         }
@@ -305,6 +310,7 @@ export type Database = {
           id?: string
           is_transport_large?: boolean | null
           name?: string
+          normalized_name?: string | null
           rate_default?: number | null
           updated_at?: string
         }
@@ -1293,6 +1299,7 @@ export type Database = {
           description: string | null
           id: string
           name: string
+          normalized_name: string | null
           requires_engine_serial: boolean | null
           sku: string | null
           tax_code: string | null
@@ -1308,6 +1315,7 @@ export type Database = {
           description?: string | null
           id?: string
           name: string
+          normalized_name?: string | null
           requires_engine_serial?: boolean | null
           sku?: string | null
           tax_code?: string | null
@@ -1323,6 +1331,7 @@ export type Database = {
           description?: string | null
           id?: string
           name?: string
+          normalized_name?: string | null
           requires_engine_serial?: boolean | null
           sku?: string | null
           tax_code?: string | null
@@ -2004,6 +2013,27 @@ export type Database = {
           phone: string
         }[]
       }
+      find_duplicate_brands: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          brand_ids: string[]
+          brand_names: string[]
+          category_id: string
+          job_count: number
+          model_count: number
+          normalized_name: string
+        }[]
+      }
+      find_duplicate_categories: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          category_ids: string[]
+          category_names: string[]
+          job_count: number
+          normalized_name: string
+          part_count: number
+        }[]
+      }
       fn_search_customers: {
         Args: {
           limit_count?: number
@@ -2022,6 +2052,14 @@ export type Database = {
           suburb: string
           updated_at: string
         }[]
+      }
+      get_brand_reference_count: {
+        Args: { brand_id: string }
+        Returns: Json
+      }
+      get_category_reference_count: {
+        Args: { category_id: string }
+        Returns: Json
       }
       get_daily_takings: {
         Args: { end_date: string; start_date: string }
@@ -2063,6 +2101,18 @@ export type Database = {
       has_role: {
         Args: { _role: string; _user_id: string }
         Returns: boolean
+      }
+      merge_brands: {
+        Args: { duplicate_ids: string[]; primary_id: string }
+        Returns: Json
+      }
+      merge_categories: {
+        Args: { duplicate_ids: string[]; primary_id: string }
+        Returns: Json
+      }
+      normalize_name: {
+        Args: { input_name: string }
+        Returns: string
       }
       seed_super_admin: {
         Args: Record<PropertyKey, never>
