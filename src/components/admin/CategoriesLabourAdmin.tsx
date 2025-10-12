@@ -11,6 +11,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { preloadCommonParts } from '@/utils/csvImport';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DuplicatesManager } from '@/components/admin/DuplicatesManager';
 
 interface Category {
   id: string;
@@ -456,7 +458,14 @@ export const CategoriesLabourAdmin: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-12 gap-6 h-[calc(100vh-12rem)]">
+    <Tabs defaultValue="categories" className="w-full">
+      <TabsList className="mb-4">
+        <TabsTrigger value="categories">Categories & Brands</TabsTrigger>
+        <TabsTrigger value="duplicates">Manage Duplicates</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="categories">
+        <div className="grid grid-cols-12 gap-6 h-[calc(100vh-16rem)]">
       {/* Left Panel - Categories */}
       <div className="col-span-3">
         <Card className="h-full">
@@ -691,5 +700,11 @@ export const CategoriesLabourAdmin: React.FC = () => {
         </Card>
       </div>
     </div>
+      </TabsContent>
+
+      <TabsContent value="duplicates">
+        <DuplicatesManager />
+      </TabsContent>
+    </Tabs>
   );
 };
