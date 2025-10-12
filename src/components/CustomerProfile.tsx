@@ -62,15 +62,11 @@ export const CustomerProfile: React.FC<CustomerProfileProps> = ({
     
     setLoading(true);
     try {
-      // Normalize customer contact info for matching
-      const normalizedEmail = customer.email ? customer.email.toLowerCase().trim() : '';
-      const normalizedPhone = customer.phone.replace(/[^0-9]/g, '');
-      
-      // Load jobs - match by customer_id OR by normalized email/phone for historic data
+      // Load jobs by customer_id
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs_db')
         .select('*')
-        .or(`customer_id.eq.${customer.id}${normalizedEmail ? `,normalized_email.eq.${normalizedEmail}` : ''}${normalizedPhone ? `,normalized_phone.eq.${normalizedPhone}` : ''}`)
+        .eq('customer_id', customer.id)
         .order('created_at', { ascending: false });
 
       if (jobsError) throw jobsError;
