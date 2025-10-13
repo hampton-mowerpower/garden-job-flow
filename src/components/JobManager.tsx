@@ -12,26 +12,36 @@ export const JobManager = () => {
   const [activeView, setActiveView] = useState<'dashboard' | 'create' | 'search' | 'admin'>('dashboard');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [listState, setListState] = useState<any>(null);
 
   const handleJobSave = (job: Job) => {
     setSelectedJob(job);
     setEditingJob(null);
+    setListState(null); // Clear list state after save
     setActiveView('dashboard');
   };
 
   const handleSelectJob = (job: Job) => {
     setSelectedJob(job);
+    setListState(null); // Clear list state when viewing
     setActiveView('dashboard');
   };
 
-  const handleEditJob = (job: Job) => {
+  const handleEditJob = (job: Job, listState: any) => {
     setEditingJob(job);
+    setListState(listState);
     setActiveView('create');
+  };
+
+  const handleReturnToList = () => {
+    setActiveView('search');
+    // Don't clear listState, let it pass through to JobSearch
   };
 
   const handleCreateNew = () => {
     setEditingJob(null);
     setSelectedJob(null);
+    setListState(null); // Clear list state for new job
     setActiveView('create');
   };
 
@@ -57,6 +67,8 @@ export const JobManager = () => {
           job={editingJob || undefined} 
           onSave={handleJobSave}
           onPrint={handleSelectJob}
+          onReturnToList={editingJob ? handleReturnToList : undefined}
+          listState={listState}
         />
       </div>
     );
@@ -83,6 +95,7 @@ export const JobManager = () => {
         <JobSearch 
           onSelectJob={handleSelectJob}
           onEditJob={handleEditJob}
+          restoredState={activeView === 'search' ? listState : undefined}
         />
       </div>
     );
@@ -161,7 +174,7 @@ export const JobManager = () => {
             <CardTitle className="flex items-center justify-between">
               <span>Recently Selected Job</span>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={() => handleEditJob(selectedJob)}>
+                <Button variant="outline" onClick={() => handleEditJob(selectedJob, null)}>
                   Edit Job
                 </Button>
                 <Button variant="outline" onClick={() => setSelectedJob(null)}>

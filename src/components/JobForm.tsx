@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { TextareaTranslated } from '@/components/ui/textarea-translated';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Plus, Trash2, Save, Printer, Check, Loader2, X } from 'lucide-react';
+import { Plus, Trash2, Save, Printer, Check, Loader2, X, ArrowLeft } from 'lucide-react';
 import { Job, Customer, JobPart, ChecklistItem } from '@/types/job';
 import { HAMPTON_MACHINE_CATEGORIES } from '@/data/hamptonMachineData';
 import { DEFAULT_PARTS } from '@/data/defaultParts';
@@ -60,9 +60,17 @@ interface JobFormProps {
   job?: Job;
   onSave: (job: Job) => void;
   onPrint?: (job: Job) => void;
+  onReturnToList?: () => void;
+  listState?: {
+    from: 'jobs_list';
+    filters: any;
+    pagination: any;
+    scrollY: number;
+    jobId: string;
+  };
 }
 
-export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
+export default function JobForm({ job, onSave, onPrint, onReturnToList, listState }: JobFormProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
   const { categories, getLabourRate, ensureCategoryExists, updateCategoryRateByName } = useCategories();
@@ -1021,9 +1029,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       if (job && job.id) {
         setSavedJob(savedJob);
         setShowPrintPromptDialog(true);
+      } else {
+        // For new jobs, redirect after save
+        onSave(savedJob);
       }
       
-      onSave(savedJob);
+      // Don't call onSave for edits - stay on the page
       
     } catch (error) {
       console.error('Error saving job:', error);
@@ -1051,6 +1062,17 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
           </p>
         </div>
       <div className="flex flex-wrap gap-2">
+        {job && onReturnToList && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onReturnToList}
+            className="gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Return to Job List
+          </Button>
+        )}
         {job && (
           <>
             <Button

@@ -19,6 +19,7 @@ interface JobsTableVirtualizedProps {
   onDeleteJob: (job: Job) => void;
   onNotifyCustomer: (job: Job) => void;
   onSendEmail: (job: Job) => void;
+  highlightedJobId?: string | null;
 }
 
 export function JobsTableVirtualized({ 
@@ -27,7 +28,8 @@ export function JobsTableVirtualized({
   onEditJob, 
   onDeleteJob,
   onNotifyCustomer,
-  onSendEmail 
+  onSendEmail,
+  highlightedJobId 
 }: JobsTableVirtualizedProps) {
   const { toast } = useToast();
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
@@ -98,9 +100,19 @@ export function JobsTableVirtualized({
 
   return (
     <div className="space-y-3">
-      {jobs.map((job) => (
-        <Card key={job.id} className="hover:shadow-md transition-shadow">
-          <CardContent className="p-4">
+      {jobs.map((job) => {
+        const isHighlighted = highlightedJobId === job.id;
+        return (
+          <Card 
+            key={job.id} 
+            id={`job-row-${job.id}`}
+            className={`hover:shadow-md transition-all ${
+              isHighlighted 
+                ? 'ring-2 ring-primary shadow-lg animate-pulse' 
+                : ''
+            }`}
+          >
+            <CardContent className="p-4">
             <div className="space-y-3">
               {/* Header with Job Info and Action Buttons */}
               <div className="flex items-start justify-between gap-4">
@@ -209,7 +221,7 @@ export function JobsTableVirtualized({
             </div>
           </CardContent>
         </Card>
-      ))}
+      )})}
     </div>
   );
 }

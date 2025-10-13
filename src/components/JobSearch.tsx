@@ -17,7 +17,13 @@ import { jobBookingDB } from '@/lib/storage';
 
 interface JobSearchProps {
   onSelectJob: (job: Job) => void;
-  onEditJob: (job: Job) => void;
+  onEditJob: (job: Job, listState: any) => void;
+  restoredState?: {
+    filters: any;
+    pagination: any;
+    scrollY: number;
+    jobId: string;
+  };
 }
 
 interface SearchPrefs {
@@ -31,7 +37,7 @@ const API_TIMEOUT = 10000;
 
 // Customer data now included in RPC response
 
-export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
+export default function JobSearch({ onSelectJob, onEditJob, restoredState }: JobSearchProps) {
   const { toast } = useToast();
   const { stats, refresh: refreshStats } = useJobStats();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -45,10 +51,38 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
   const [notificationJob, setNotificationJob] = useState<Job | null>(null);
   const [emailJob, setEmailJob] = useState<Job | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
+  const [highlightedJobId, setHighlightedJobId] = useState<string | null>(null);
+
+  // Restore state if coming back from edit
+  useEffect(() => {
+    if (restoredState) {
+      console.log('Restoring list state:', restoredState);
+      setActiveFilter(restoredState.filters?.status || 'all');
+      setSearchQuery(restoredState.filters?.search || '');
+      setCursor(restoredState.pagination?.cursor || null);
+      setHighlightedJobId(restoredState.jobId);
+      
+      // Restore scroll position after render
+      setTimeout(() => {
+        if (restoredState.scrollY) {
+          window.scrollTo(0, restoredState.scrollY);
+        }
+        // Scroll to and highlight the edited job
+        const jobElement = document.getElementById(`job-row-${restoredState.jobId}`);
+        if (jobElement) {
+          jobElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          // Remove highlight after animation
+          setTimeout(() => setHighlightedJobId(null), 2000);
+        }
+      }, 100);
+    }
+  }, [restoredState]);
 
   // Initial load
   useEffect(() => {
-    loadJobsPage(true);
+    if (!restoredState) {
+      loadJobsPage(true);
+    }
   }, [activeFilter]);
 
   // Debounce search query
@@ -281,8 +315,23 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
         model: fullJob.machineModel
       });
       
-      // Pass complete job data to edit handler
-      onEditJob(fullJob);
+      // Capture current list state
+      const listState = {
+        from: 'jobs_list' as const,
+        filters: {
+          search: searchQuery,
+          status: activeFilter
+        },
+        pagination: {
+          cursor,
+          pageSize: PAGE_SIZE
+        },
+        scrollY: window.scrollY,
+        jobId: job.id
+      };
+      
+      // Pass complete job data and list state to edit handler
+      onEditJob(fullJob, listState);
       
     } catch (error: any) {
       console.error('Error loading job for edit:', error);
@@ -392,14 +441,15 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
             </div>
           ) : (
             <>
-              <JobsTableVirtualized 
-                jobs={jobs}
-                onSelectJob={onSelectJob}
-                onEditJob={handleEditClick}
-                onDeleteJob={handleDeleteJob}
-                onNotifyCustomer={(job) => setNotificationJob(job)}
-                onSendEmail={(job) => setEmailJob(job)}
-              />
+        <JobsTableVirtualized
+          jobs={jobs}
+          onSelectJob={onSelectJob}
+          onEditJob={handleEditClick}
+          onDeleteJob={handleDeleteJob}
+          onNotifyCustomer={(job) => setNotificationJob(job)}
+          onSendEmail={(job) => setEmailJob(job)}
+          highlightedJobId={highlightedJobId}
+        />
               
               {isLoadingMore && (
                 <div className="flex justify-center py-4">
