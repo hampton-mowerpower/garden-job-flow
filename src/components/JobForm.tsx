@@ -828,22 +828,59 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
   };
 
   const handleSave = async () => {
-    // Validate phone number format
-    const phoneDigitsOnly = customer.phone?.replace(/\D/g, '') || '';
-    if (!phoneDigitsOnly || !/^\d{10}$/.test(phoneDigitsOnly)) {
+    // Validate required fields first
+    if (!customer.name?.trim()) {
       toast({
-        title: 'Invalid Phone Number',
-        description: 'Phone number must be exactly 10 digits (e.g., 0430478778)',
+        title: 'Validation Error',
+        description: 'Customer name is required',
         variant: "destructive"
       });
       return;
     }
 
-    // Other validations
-    if (!customer.name || !customer.phone || !machineCategory || !problemDescription) {
+    if (!customer.phone?.trim()) {
       toast({
-        title: t('msg.validation.error'),
-        description: t('msg.validation.required'),
+        title: 'Validation Error',
+        description: 'Customer phone number is required',
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!machineCategory?.trim()) {
+      toast({
+        title: 'Validation Error',
+        description: 'Machine category is required',
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!problemDescription?.trim()) {
+      toast({
+        title: 'Validation Error',
+        description: 'Problem description is required',
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate phone number format - must be exactly 10 digits when stripped
+    const phoneDigitsOnly = customer.phone.replace(/\D/g, '');
+    if (phoneDigitsOnly.length !== 10) {
+      toast({
+        title: 'Invalid Phone Number',
+        description: 'Phone number must be exactly 10 digits (e.g., 0430 478 778 or 0430478778)',
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validate that it starts with 0 (Australian format)
+    if (!phoneDigitsOnly.startsWith('0')) {
+      toast({
+        title: 'Invalid Phone Number',
+        description: 'Australian phone numbers must start with 0',
         variant: "destructive"
       });
       return;
@@ -937,8 +974,11 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
       setAutoSaveStatus('saved');
       
       toast({
-        title: job ? t('msg.job.updated') : t('msg.job.created'),
-        description: job ? t('msg.job.updated') : t('msg.job.created')
+        title: job ? 'Job Updated' : 'Job Created Successfully',
+        description: job 
+          ? `Job ${savedJob.jobNumber} has been updated` 
+          : `Job ${savedJob.jobNumber} has been created and saved to the database`,
+        duration: 5000
       });
       
       // For NEW jobs ONLY, automatically print collection receipt
@@ -1030,7 +1070,8 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
         setSavedJob(savedJob);
         setShowPrintPromptDialog(true);
       } else {
-        // For new jobs, redirect after save
+        // For new jobs, delay redirect slightly so user can see success message
+        await new Promise(resolve => setTimeout(resolve, 2000));
         onSave(savedJob);
       }
       
