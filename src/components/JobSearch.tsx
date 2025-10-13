@@ -13,6 +13,7 @@ import { JobFilters } from './jobs/JobFilters';
 import { JobsTableVirtualized } from './jobs/JobsTableVirtualized';
 import { useJobStats } from '@/hooks/useJobStats';
 import { Skeleton } from '@/components/ui/skeleton';
+import { jobBookingDB } from '@/lib/storage';
 
 interface JobSearchProps {
   onSelectJob: (job: Job) => void;
@@ -256,6 +257,45 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
     });
   };
 
+  // Fetch full job data before editing
+  const handleEditClick = async (job: Job) => {
+    try {
+      setIsLoading(true);
+      console.log('Fetching full job data for editing:', job.id);
+      
+      // Fetch complete job data from database
+      const fullJob = await jobBookingDB.getJob(job.id);
+      
+      if (!fullJob) {
+        toast({
+          title: 'Error',
+          description: 'Job not found',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      console.log('Full job data loaded:', {
+        category: fullJob.machineCategory,
+        brand: fullJob.machineBrand,
+        model: fullJob.machineModel
+      });
+      
+      // Pass complete job data to edit handler
+      onEditJob(fullJob);
+      
+    } catch (error: any) {
+      console.error('Error loading job for edit:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load job details',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleDeleteJob = async (job: Job) => {
     if (!confirm(`Are you sure you want to delete job ${job.jobNumber}?`)) {
       return;
@@ -352,10 +392,10 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
             </div>
           ) : (
             <>
-              <JobsTableVirtualized
+              <JobsTableVirtualized 
                 jobs={jobs}
                 onSelectJob={onSelectJob}
-                onEditJob={onEditJob}
+                onEditJob={handleEditClick}
                 onDeleteJob={handleDeleteJob}
                 onNotifyCustomer={(job) => setNotificationJob(job)}
                 onSendEmail={(job) => setEmailJob(job)}
