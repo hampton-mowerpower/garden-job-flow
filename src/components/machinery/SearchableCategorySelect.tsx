@@ -61,9 +61,10 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
     try {
       console.log('[SearchableCategorySelect] Creating category:', name);
       
-      // Title case the name
+      // Normalize and title case the name
       const titleCaseName = name
-        .split(' ')
+        .trim()
+        .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
@@ -82,12 +83,23 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
       if (error) {
         console.error('[SearchableCategorySelect] Insert error:', error);
         if (error.code === '23505') {
-          toast({
-            title: 'Already exists',
-            description: `"${titleCaseName}" already exists`,
-            variant: 'destructive'
-          });
-          throw new Error('Duplicate');
+          // Category already exists - find and select it
+          const { data: existing } = await supabase
+            .from('categories')
+            .select('id, name')
+            .ilike('name', titleCaseName)
+            .eq('active', true)
+            .single();
+          
+          if (existing) {
+            onValueChange(existing.name);
+            await searchCategories('');
+            toast({
+              title: 'Category selected',
+              description: `"${existing.name}" already exists and has been selected`
+            });
+            return;
+          }
         }
         throw error;
       }
@@ -108,13 +120,11 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
       console.log('[SearchableCategorySelect] Options refreshed');
     } catch (error: any) {
       console.error('[SearchableCategorySelect] Error creating category:', error);
-      if (error.message !== 'Duplicate') {
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to create category',
-          variant: 'destructive'
-        });
-      }
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to create category',
+        variant: 'destructive'
+      });
       throw error;
     }
   };

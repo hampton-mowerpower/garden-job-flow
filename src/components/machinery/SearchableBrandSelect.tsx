@@ -88,9 +88,10 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
     try {
       console.log('[SearchableBrandSelect] Creating brand:', name);
       
-      // Title case the name
+      // Normalize and title case the name
       const titleCaseName = name
-        .split(' ')
+        .trim()
+        .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
@@ -109,12 +110,24 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
       if (error) {
         console.error('[SearchableBrandSelect] Insert error:', error);
         if (error.code === '23505') {
-          toast({
-            title: 'Already exists',
-            description: `"${titleCaseName}" already exists in this category`,
-            variant: 'destructive'
-          });
-          throw new Error('Duplicate');
+          // Brand already exists in this category - find and select it
+          const { data: existing } = await supabase
+            .from('brands')
+            .select('id, name')
+            .eq('category_id', categoryId)
+            .ilike('name', titleCaseName)
+            .eq('active', true)
+            .single();
+          
+          if (existing) {
+            onValueChange(existing.name);
+            await searchBrands('');
+            toast({
+              title: 'Brand selected',
+              description: `"${existing.name}" already exists and has been selected`
+            });
+            return;
+          }
         }
         throw error;
       }
@@ -135,13 +148,11 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
       console.log('[SearchableBrandSelect] Options refreshed');
     } catch (error: any) {
       console.error('[SearchableBrandSelect] Error creating brand:', error);
-      if (error.message !== 'Duplicate') {
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to create brand',
-          variant: 'destructive'
-        });
-      }
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to create brand',
+        variant: 'destructive'
+      });
       throw error;
     }
   };

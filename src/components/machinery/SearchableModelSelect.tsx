@@ -97,9 +97,10 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
     try {
       console.log('[SearchableModelSelect] Creating model:', name);
       
-      // Title case the name
+      // Normalize and title case the name
       const titleCaseName = name
-        .split(' ')
+        .trim()
+        .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
@@ -118,12 +119,24 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
       if (error) {
         console.error('[SearchableModelSelect] Insert error:', error);
         if (error.code === '23505') {
-          toast({
-            title: 'Already exists',
-            description: `"${titleCaseName}" already exists for this brand`,
-            variant: 'destructive'
-          });
-          throw new Error('Duplicate');
+          // Model already exists for this brand - find and select it
+          const { data: existing } = await supabase
+            .from('machinery_models')
+            .select('id, name')
+            .eq('brand_id', brandId)
+            .ilike('name', titleCaseName)
+            .eq('active', true)
+            .single();
+          
+          if (existing) {
+            onValueChange(existing.name);
+            await searchModels('');
+            toast({
+              title: 'Model selected',
+              description: `"${existing.name}" already exists and has been selected`
+            });
+            return;
+          }
         }
         throw error;
       }
@@ -144,7 +157,7 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
       console.log('[SearchableModelSelect] Options refreshed');
     } catch (error: any) {
       console.error('[SearchableModelSelect] Error creating model:', error);
-      if (error.message !== 'Duplicate' && error.message !== 'No brand selected') {
+      if (error.message !== 'No brand selected') {
         toast({
           title: 'Error',
           description: error.message || 'Failed to create model',
