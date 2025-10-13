@@ -238,18 +238,28 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
 
     try {
       await jobBookingDB.deleteJob(job.id);
-      await loadJobs();
+      
+      // Optimistic update - remove from list immediately
+      setJobs(prevJobs => prevJobs.filter(j => j.id !== job.id));
+      setFilteredJobs(prevFiltered => prevFiltered.filter(j => j.id !== job.id));
+      
       toast({
         title: 'Success',
         description: 'Job deleted successfully'
       });
+      
+      // Reload to ensure consistency
+      await loadJobs();
+      refreshStats();
     } catch (error) {
       console.error('Error deleting job:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete job',
+        description: 'Failed to delete job. Please try again.',
         variant: 'destructive'
       });
+      // Reload on error to restore state
+      await loadJobs();
     }
   };
 

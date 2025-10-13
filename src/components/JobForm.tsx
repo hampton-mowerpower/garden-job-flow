@@ -75,6 +75,38 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [showNotificationDialog, setShowNotificationDialog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   
+  // Delete handler
+  const handleDeleteJob = async () => {
+    if (!job || !job.id) return;
+    
+    if (!confirm(`Are you sure you want to delete job ${jobNumber}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      await jobBookingDB.deleteJob(job.id);
+      
+      toast({
+        title: 'Job Deleted',
+        description: `Job ${jobNumber} has been deleted successfully.`,
+      });
+      
+      // Navigate back to job list by calling onSave with a dummy job
+      // The parent component should handle navigation
+      window.history.back();
+    } catch (error) {
+      console.error('Error deleting job:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete job. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
   // Form state
   const [jobNumber, setJobNumber] = useState('');
   const [customer, setCustomer] = useState<Partial<Customer>>({
@@ -1019,6 +1051,16 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
             <JobPrintInvoice job={savedJob || job} />
             <ThermalPrintButton job={savedJob || job} type="service-label" label="Service Label" size="sm" width={79} />
             <ThermalPrintButton job={savedJob || job} type="collection-receipt" label="Collection Receipt" size="sm" width={79} />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDeleteJob}
+              disabled={isLoading}
+              className="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4" />
+              Delete Job
+            </Button>
           </>
         )}
         <Button onClick={handleSave} disabled={isLoading} className="flex-1 sm:flex-initial">

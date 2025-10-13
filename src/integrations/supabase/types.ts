@@ -1011,30 +1011,36 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          deleted_at: string | null
           edited_at: string | null
           id: string
           job_id: string
           note_text: string
+          tenant_id: string | null
           user_id: string
           visibility: string
         }
         Insert: {
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           edited_at?: string | null
           id?: string
           job_id: string
           note_text: string
+          tenant_id?: string | null
           user_id: string
           visibility?: string
         }
         Update: {
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           edited_at?: string | null
           id?: string
           job_id?: string
           note_text?: string
+          tenant_id?: string | null
           user_id?: string
           visibility?: string
         }
@@ -1211,6 +1217,8 @@ export type Database = {
           created_at: string
           customer_id: string
           customer_type: Database["public"]["Enums"]["customer_type"] | null
+          deleted_at: string | null
+          deleted_by: string | null
           delivered_at: string | null
           discount_type: string | null
           discount_value: number | null
@@ -1270,6 +1278,8 @@ export type Database = {
           created_at?: string
           customer_id: string
           customer_type?: Database["public"]["Enums"]["customer_type"] | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           delivered_at?: string | null
           discount_type?: string | null
           discount_value?: number | null
@@ -1329,6 +1339,8 @@ export type Database = {
           created_at?: string
           customer_id?: string
           customer_type?: Database["public"]["Enums"]["customer_type"] | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           delivered_at?: string | null
           discount_type?: string | null
           discount_value?: number | null

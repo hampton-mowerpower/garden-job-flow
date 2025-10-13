@@ -331,6 +331,7 @@ class JobBookingDB {
     const { data: jobsData, error } = await supabase
       .from('jobs_db')
       .select('*')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
     
     if (error) throw error;
@@ -382,17 +383,17 @@ class JobBookingDB {
   }
 
   async deleteJob(id: string): Promise<void> {
-    // Delete job parts first
-    await supabase
-      .from('job_parts')
-      .delete()
-      .eq('job_id', id);
+    // Soft delete - update deleted_at timestamp
+    const { data: { user } } = await supabase.auth.getUser();
     
-    // Then delete the job
     const { error } = await supabase
       .from('jobs_db')
-      .delete()
-      .eq('id', id);
+      .update({ 
+        deleted_at: new Date().toISOString(),
+        deleted_by: user?.id || null
+      })
+      .eq('id', id)
+      .is('deleted_at', null); // Only delete if not already deleted
     
     if (error) throw error;
   }

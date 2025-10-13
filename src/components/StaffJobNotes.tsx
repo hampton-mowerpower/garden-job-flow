@@ -13,9 +13,9 @@ interface StaffNote {
   job_id: string;
   user_id: string;
   note_text: string;
-  tags: string[];
+  visibility: string;
   created_at: string;
-  updated_at: string;
+  edited_at?: string;
   user_profiles?: {
     full_name: string;
   };
@@ -52,9 +52,10 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
   const loadNotes = async () => {
     try {
       const { data, error } = await supabase
-        .from('staff_job_notes')
+        .from('job_notes')
         .select('*')
         .eq('job_id', jobId)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -99,13 +100,22 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Get tenant_id from job
+      const { data: jobData } = await supabase
+        .from('jobs_db')
+        .select('tenant_id')
+        .eq('id', jobId)
+        .single();
+
       const { error } = await supabase
-        .from('staff_job_notes')
+        .from('job_notes')
         .insert({
           job_id: jobId,
           user_id: user.id,
-          note_text: newNoteText.trim(),
-          tags: selectedTags
+          note_text: newNoteText.trim() + (selectedTags.length > 0 ? '\n\nTags: ' + selectedTags.join(', ') : ''),
+          visibility: 'internal',
+          created_by: user.id,
+          tenant_id: jobData?.tenant_id || null
         });
 
       if (error) throw error;
@@ -118,11 +128,11 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
       setNewNoteText('');
       setSelectedTags([]);
       await loadNotes();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving staff note:', error);
       toast({
         title: 'Error',
-        description: 'Failed to save staff note',
+        description: error.message || 'Failed to save staff note',
         variant: 'destructive'
       });
     } finally {
@@ -205,16 +215,6 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
                 
                 {note.note_text && (
                   <p className="text-sm whitespace-pre-wrap">{note.note_text}</p>
-                )}
-                
-                {note.tags && note.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {note.tags.map((tag, idx) => (
-                      <Badge key={idx} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
                 )}
               </div>
             ))
