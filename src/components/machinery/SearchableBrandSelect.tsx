@@ -16,7 +16,6 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
   const [loading, setLoading] = useState(false);
   const [categoryId, setCategoryId] = useState<string | null>(null);
 
-  // Get category ID from name
   useEffect(() => {
     if (!categoryName) {
       setCategoryId(null);
@@ -27,9 +26,9 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
       const { data } = await supabase
         .from('categories')
         .select('id')
-        .eq('name', categoryName)
+        .ilike('name', categoryName)
         .eq('active', true)
-        .single();
+        .maybeSingle();
 
       setCategoryId(data?.id || null);
     };
@@ -47,7 +46,6 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
         .order('name')
         .limit(20);
 
-      // Filter by category if selected
       if (categoryId) {
         queryBuilder = queryBuilder.eq('category_id', categoryId);
       }
@@ -79,16 +77,12 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
     }
   };
 
-  // Refresh when category changes
   useEffect(() => {
     searchBrands('');
   }, [categoryId]);
 
   const handleQuickAdd = async (name: string) => {
     try {
-      // ALWAYS fetch fresh category ID to avoid timing issues
-      let currentCategoryId = categoryId;
-      
       if (!categoryName) {
         toast({
           title: 'Error',
@@ -106,7 +100,7 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
         .eq('active', true)
         .maybeSingle();
       
-      currentCategoryId = catData?.id || null;
+      const currentCategoryId = catData?.id;
       if (currentCategoryId) {
         setCategoryId(currentCategoryId);
       }
@@ -122,47 +116,53 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
 
       console.log('[SearchableBrandSelect] Upserting brand:', name, 'for category ID:', currentCategoryId);
       
-      // Normalize and title case the name
       const titleCaseName = name
         .trim()
         .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
-      // Use upsert - if brand exists with same normalized name + category, select it
-      const { data, error } = await supabase
+      // Check if brand exists for this category
+      const { data: existing } = await supabase
         .from('brands')
-        .upsert(
-          {
+        .select('id, name')
+        .eq('category_id', currentCategoryId)
+        .ilike('name', titleCaseName)
+        .eq('active', true)
+        .maybeSingle();
+
+      let result;
+      if (existing) {
+        // Already exists - use it
+        result = existing;
+        console.log('[SearchableBrandSelect] Brand exists:', result);
+      } else {
+        // Insert new
+        const { data: inserted, error } = await supabase
+          .from('brands')
+          .insert({
             name: titleCaseName,
             category_id: currentCategoryId,
             active: true
-          },
-          {
-            onConflict: 'category_id,normalized_name',
-            ignoreDuplicates: false
-          }
-        )
-        .select()
-        .single();
+          })
+          .select()
+          .single();
 
-      if (error) {
-        console.error('[SearchableBrandSelect] Upsert error:', error);
-        throw error;
-      }
+        if (error) {
+          console.error('[SearchableBrandSelect] Insert error:', error);
+          throw error;
+        }
 
-      console.log('[SearchableBrandSelect] Brand saved:', data);
-
-      // Only show toast for new items
-      const isNew = data.created_at === data.updated_at;
-      if (isNew) {
+        result = inserted;
+        console.log('[SearchableBrandSelect] Brand created:', result);
+        
         toast({
           title: 'Saved ✓',
           description: `Brand "${titleCaseName}" added`
         });
       }
 
-      onValueChange(data.name);
+      onValueChange(result.name);
       await searchBrands('');
     } catch (error: any) {
       console.error('[SearchableBrandSelect] Error saving brand:', error);

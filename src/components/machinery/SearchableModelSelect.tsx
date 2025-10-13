@@ -16,7 +16,6 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
   const [loading, setLoading] = useState(false);
   const [brandId, setBrandId] = useState<string | null>(null);
 
-  // Get brand ID from name
   useEffect(() => {
     if (!brandName) {
       setBrandId(null);
@@ -27,9 +26,9 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
       const { data } = await supabase
         .from('brands')
         .select('id')
-        .eq('name', brandName)
+        .ilike('name', brandName)
         .eq('active', true)
-        .single();
+        .maybeSingle();
 
       setBrandId(data?.id || null);
     };
@@ -47,7 +46,6 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
         .order('name')
         .limit(20);
 
-      // Filter by brand if selected
       if (brandId) {
         queryBuilder = queryBuilder.eq('brand_id', brandId);
       }
@@ -79,16 +77,12 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
     }
   };
 
-  // Refresh when brand changes
   useEffect(() => {
     searchModels('');
   }, [brandId]);
 
   const handleQuickAdd = async (name: string) => {
     try {
-      // ALWAYS fetch fresh brand ID to avoid timing issues
-      let currentBrandId = brandId;
-      
       if (!brandName) {
         toast({
           title: 'Error',
@@ -106,7 +100,7 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
         .eq('active', true)
         .maybeSingle();
       
-      currentBrandId = brandData?.id || null;
+      const currentBrandId = brandData?.id;
       if (currentBrandId) {
         setBrandId(currentBrandId);
       }
@@ -122,47 +116,53 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
 
       console.log('[SearchableModelSelect] Upserting model:', name, 'for brand ID:', currentBrandId);
       
-      // Normalize and title case the name
       const titleCaseName = name
         .trim()
         .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
-      // Use upsert - if model exists with same normalized name + brand, select it
-      const { data, error } = await supabase
+      // Check if model exists for this brand
+      const { data: existing } = await supabase
         .from('machinery_models')
-        .upsert(
-          {
+        .select('id, name')
+        .eq('brand_id', currentBrandId)
+        .ilike('name', titleCaseName)
+        .eq('active', true)
+        .maybeSingle();
+
+      let result;
+      if (existing) {
+        // Already exists - use it
+        result = existing;
+        console.log('[SearchableModelSelect] Model exists:', result);
+      } else {
+        // Insert new
+        const { data: inserted, error } = await supabase
+          .from('machinery_models')
+          .insert({
             name: titleCaseName,
             brand_id: currentBrandId,
             active: true
-          },
-          {
-            onConflict: 'brand_id,normalized_name',
-            ignoreDuplicates: false
-          }
-        )
-        .select()
-        .single();
+          })
+          .select()
+          .single();
 
-      if (error) {
-        console.error('[SearchableModelSelect] Upsert error:', error);
-        throw error;
-      }
+        if (error) {
+          console.error('[SearchableModelSelect] Insert error:', error);
+          throw error;
+        }
 
-      console.log('[SearchableModelSelect] Model saved:', data);
-
-      // Only show toast for new items
-      const isNew = data.created_at === data.updated_at;
-      if (isNew) {
+        result = inserted;
+        console.log('[SearchableModelSelect] Model created:', result);
+        
         toast({
           title: 'Saved ✓',
           description: `Model "${titleCaseName}" added`
         });
       }
 
-      onValueChange(data.name);
+      onValueChange(result.name);
       await searchModels('');
     } catch (error: any) {
       console.error('[SearchableModelSelect] Error saving model:', error);

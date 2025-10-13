@@ -25,7 +25,6 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
         .limit(20);
 
       if (query) {
-        // Fuzzy search on normalized name
         queryBuilder = queryBuilder.or(`name.ilike.%${query}%,normalized_name.ilike.%${query}%`);
       }
 
@@ -52,7 +51,6 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
     }
   };
 
-  // Load initial options
   useEffect(() => {
     searchCategories('');
   }, []);
@@ -61,47 +59,52 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
     try {
       console.log('[SearchableCategorySelect] Upserting category:', name);
       
-      // Normalize and title case the name
       const titleCaseName = name
         .trim()
         .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
-      // Use upsert with ON CONFLICT on normalized_name (handled by unique index)
-      const { data, error } = await supabase
+      // First check if exists by searching normalized name
+      const { data: existing } = await supabase
         .from('categories')
-        .upsert(
-          {
+        .select('id, name')
+        .eq('active', true)
+        .ilike('name', titleCaseName)
+        .maybeSingle();
+
+      let result;
+      if (existing) {
+        // Already exists - use it
+        result = existing;
+        console.log('[SearchableCategorySelect] Category exists:', result);
+      } else {
+        // Insert new
+        const { data: inserted, error } = await supabase
+          .from('categories')
+          .insert({
             name: titleCaseName,
             rate_default: 95,
             active: true
-          },
-          {
-            onConflict: 'normalized_name',
-            ignoreDuplicates: false
-          }
-        )
-        .select()
-        .single();
+          })
+          .select()
+          .single();
 
-      if (error) {
-        console.error('[SearchableCategorySelect] Upsert error:', error);
-        throw error;
-      }
+        if (error) {
+          console.error('[SearchableCategorySelect] Insert error:', error);
+          throw error;
+        }
 
-      console.log('[SearchableCategorySelect] Category saved:', data);
-
-      // Only show toast for new items
-      const isNew = data.created_at === data.updated_at;
-      if (isNew) {
+        result = inserted;
+        console.log('[SearchableCategorySelect] Category created:', result);
+        
         toast({
           title: 'Saved ✓',
           description: `Category "${titleCaseName}" added`
         });
       }
 
-      onValueChange(data.name);
+      onValueChange(result.name);
       await searchCategories('');
     } catch (error: any) {
       console.error('[SearchableCategorySelect] Error saving category:', error);
