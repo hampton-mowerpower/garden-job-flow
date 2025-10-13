@@ -85,7 +85,25 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
   }, [brandId]);
 
   const handleQuickAdd = async (name: string) => {
-    if (!brandId) {
+    // If brandId isn't loaded yet, fetch it directly
+    let currentBrandId = brandId;
+    
+    if (!currentBrandId && brandName) {
+      console.log('[SearchableModelSelect] Fetching brand ID for:', brandName);
+      const { data } = await supabase
+        .from('brands')
+        .select('id')
+        .eq('name', brandName)
+        .eq('active', true)
+        .maybeSingle();
+      
+      currentBrandId = data?.id || null;
+      if (currentBrandId) {
+        setBrandId(currentBrandId);
+      }
+    }
+    
+    if (!currentBrandId) {
       toast({
         title: 'Error',
         description: 'Please select a brand first',
@@ -104,13 +122,13 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
-      console.log('[SearchableModelSelect] Inserting:', { titleCaseName, brandId });
+      console.log('[SearchableModelSelect] Inserting:', { titleCaseName, brandId: currentBrandId });
 
       const { data, error } = await supabase
         .from('machinery_models')
         .insert({
           name: titleCaseName,
-          brand_id: brandId,
+          brand_id: currentBrandId,
           active: true
         })
         .select()
@@ -123,10 +141,10 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
           const { data: existing } = await supabase
             .from('machinery_models')
             .select('id, name')
-            .eq('brand_id', brandId)
+            .eq('brand_id', currentBrandId)
             .ilike('name', titleCaseName)
             .eq('active', true)
-            .single();
+            .maybeSingle();
           
           if (existing) {
             onValueChange(existing.name);

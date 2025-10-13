@@ -85,6 +85,33 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
   }, [categoryId]);
 
   const handleQuickAdd = async (name: string) => {
+    // If categoryId isn't loaded yet, fetch it directly
+    let currentCategoryId = categoryId;
+    
+    if (!currentCategoryId && categoryName) {
+      console.log('[SearchableBrandSelect] Fetching category ID for:', categoryName);
+      const { data } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('name', categoryName)
+        .eq('active', true)
+        .maybeSingle();
+      
+      currentCategoryId = data?.id || null;
+      if (currentCategoryId) {
+        setCategoryId(currentCategoryId);
+      }
+    }
+    
+    if (!currentCategoryId) {
+      toast({
+        title: 'Error',
+        description: 'Please select a category first',
+        variant: 'destructive'
+      });
+      throw new Error('No category selected');
+    }
+
     try {
       console.log('[SearchableBrandSelect] Creating brand:', name);
       
@@ -95,13 +122,13 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
-      console.log('[SearchableBrandSelect] Inserting:', { titleCaseName, categoryId });
+      console.log('[SearchableBrandSelect] Inserting:', { titleCaseName, categoryId: currentCategoryId });
 
       const { data, error } = await supabase
         .from('brands')
         .insert({
           name: titleCaseName,
-          category_id: categoryId,
+          category_id: currentCategoryId,
           active: true
         })
         .select()
@@ -114,10 +141,10 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
           const { data: existing } = await supabase
             .from('brands')
             .select('id, name')
-            .eq('category_id', categoryId)
+            .eq('category_id', currentCategoryId)
             .ilike('name', titleCaseName)
             .eq('active', true)
-            .single();
+            .maybeSingle();
           
           if (existing) {
             onValueChange(existing.name);
