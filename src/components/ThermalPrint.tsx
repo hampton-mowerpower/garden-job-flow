@@ -95,6 +95,11 @@ export const printThermal = async (props: ThermalPrintProps): Promise<void> => {
 };
 
 const generateServiceLabelHTML = async (job: Job, width: number): Promise<string> => {
+  // Parse job number and attachment name
+  const jobNumberParts = job.jobNumber.split(' • ');
+  const actualJobNumber = jobNumberParts[0];
+  const attachmentName = jobNumberParts.length > 1 ? jobNumberParts.slice(1).join(' • ') : null;
+  
   // Parse and deduplicate work requested items
   const workRequested = job.problemDescription
     .split(/[,;\n]+/) // Split by comma, semicolon, or newline
@@ -282,7 +287,7 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
   <div class="tagline">ONE STOP SHOP</div>
   
   <div class="job-number-label">JOB NUMBER</div>
-  <div class="job-id">${escapeHtml(job.jobNumber)}</div>
+  <div class="job-id">${escapeHtml(actualJobNumber)}</div>
   
   <div class="section">
     <div class="inline-row">
@@ -292,6 +297,16 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
     <div class="inline-row">
       <div class="inline-label">PHONE:</div>
       <div class="inline-value">${escapeHtml(job.customer.phone)}</div>
+    </div>
+    ${job.jobCompanyName ? `
+    <div class="inline-row">
+      <div class="inline-label">COMPANY:</div>
+      <div class="inline-value">${escapeHtml(job.jobCompanyName)}</div>
+    </div>
+    ` : ''}
+    <div class="inline-row">
+      <div class="inline-label">TYPE:</div>
+      <div class="inline-value">${job.customerType === 'commercial' ? 'COMMERCIAL' : 'DOMESTIC'}</div>
     </div>
   </div>
   
@@ -310,6 +325,12 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
       <div class="inline-value">${escapeHtml(job.machineModel)}</div>
     </div>
     ${job.machineSerial ? `<div class="inline-row"><div class="inline-label">SERIAL:</div><div class="inline-value">${escapeHtml(job.machineSerial)}</div></div>` : ''}
+    ${attachmentName ? `
+    <div class="inline-row">
+      <div class="inline-label">ATTACHMENT:</div>
+      <div class="inline-value">${escapeHtml(attachmentName)}</div>
+    </div>
+    ` : ''}
   </div>
   
   ${job.requestedFinishDate ? `
@@ -656,8 +677,14 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   <div class="section">
     <div class="inline-row">
       <div class="inline-label">CUSTOMER:</div>
-      <div class="inline-value">${escapeHtml(job.customer.name)}${job.jobCompanyName ? ` | COMPANY: ${escapeHtml(job.jobCompanyName)}` : ''}</div>
+      <div class="inline-value">${escapeHtml(job.customer.name)}</div>
     </div>
+    ${job.jobCompanyName ? `
+    <div class="inline-row">
+      <div class="inline-label">COMPANY:</div>
+      <div class="inline-value">${escapeHtml(job.jobCompanyName)}</div>
+    </div>
+    ` : ''}
     <div class="inline-row">
       <div class="inline-label">MODEL:</div>
       <div class="inline-value">${escapeHtml(job.machineBrand)} ${escapeHtml(job.machineModel)}</div>
