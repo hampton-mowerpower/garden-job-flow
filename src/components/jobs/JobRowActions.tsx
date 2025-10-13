@@ -54,10 +54,51 @@ export function JobRowActions({ job, onNotifyCustomer, onSendEmail }: JobRowActi
         throw new Error('Job not found');
       }
 
+      // For Multi-Tool service labels with attachments, print separate labels
+      if (
+        (latestJob.machineCategory === 'Multi-Tool' || latestJob.machineCategory === 'Battery Multi-Tool')
+      ) {
+        const attachmentsWithProblems = (latestJob.attachments || []).filter(
+          att => att.problemDescription && att.problemDescription.trim() !== ''
+        );
+
+        if (attachmentsWithProblems.length > 0) {
+          // Print one label per attachment
+          for (const attachment of attachmentsWithProblems) {
+            const attachmentJob = {
+              ...latestJob,
+              jobNumber: `${latestJob.jobNumber} • ${attachment.name.toUpperCase()}`,
+              problemDescription: attachment.problemDescription,
+            };
+            
+            await printThermal({ 
+              job: attachmentJob, 
+              type: 'service-label', 
+              width: 79 
+            });
+            
+            // Small delay between prints
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+          
+          toast({
+            title: 'Multi-tool labels sent',
+            description: `${attachmentsWithProblems.length} labels sent to printer`,
+          });
+          return;
+        }
+      }
+
+      // Standard single label print
       await printThermal({
         job: latestJob,
         type: 'service-label',
         width: 79,
+      });
+
+      toast({
+        title: 'Label sent to printer',
+        description: 'Service label sent successfully',
       });
 
     } catch (error: any) {
