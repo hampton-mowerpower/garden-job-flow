@@ -45,6 +45,8 @@ interface Customer {
   notes?: string;
   customerType?: 'commercial' | 'domestic';
   companyName?: string;
+  customer_type?: 'commercial' | 'domestic'; // DB field name
+  company_name?: string; // DB field name
 }
 
 interface CustomerAutocompleteProps {
@@ -130,51 +132,22 @@ export const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({
   };
 
   const handleCustomerSelect = (selectedCustomer: Customer) => {
-    // Fetch full customer data from Supabase to get customer_type and company_name
-    const fetchAndSetCustomer = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('customers_db')
-          .select('*')
-          .eq('id', selectedCustomer.id)
-          .single();
-        
-        if (error) throw error;
-        
-        if (data) {
-          onCustomerChange({
-            id: data.id,
-            name: data.name,
-            phone: data.phone,
-            email: data.email || '',
-            address: data.address,
-            notes: data.notes || '',
-            customerType: data.customer_type || 'domestic',
-            companyName: data.company_name || ''
-          });
-          
-          if (onCustomerSelect) {
-            onCustomerSelect(data as any);
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching customer:', error);
-        // Fallback to basic data
-        onCustomerChange({
-          id: selectedCustomer.id,
-          name: selectedCustomer.name,
-          phone: selectedCustomer.phone,
-          email: selectedCustomer.email || '',
-          address: selectedCustomer.address,
-          notes: selectedCustomer.notes || ''
-        });
-        if (onCustomerSelect) {
-          onCustomerSelect(selectedCustomer);
-        }
-      }
-    };
+    // Use data directly from search results which now includes customer_type and company_name
+    onCustomerChange({
+      id: selectedCustomer.id,
+      name: selectedCustomer.name,
+      phone: selectedCustomer.phone,
+      email: selectedCustomer.email || '',
+      address: selectedCustomer.address,
+      notes: selectedCustomer.notes || '',
+      customerType: selectedCustomer.customer_type || selectedCustomer.customerType || 'domestic',
+      companyName: selectedCustomer.company_name || selectedCustomer.companyName || ''
+    });
     
-    fetchAndSetCustomer();
+    if (onCustomerSelect) {
+      onCustomerSelect(selectedCustomer);
+    }
+    
     setOpen(false);
   };
 
@@ -278,8 +251,16 @@ export const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({
                           )}
                         />
                         <div className="flex flex-col">
-                          <span className="font-medium">{c.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{c.name}</span>
+                            {(c.customer_type === 'commercial' || c.customerType === 'commercial') && (
+                              <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">🏢</span>
+                            )}
+                          </div>
                           <span className="text-xs text-muted-foreground">{c.phone}</span>
+                          {(c.company_name || c.companyName) && (
+                            <span className="text-xs text-muted-foreground italic">{c.company_name || c.companyName}</span>
+                          )}
                         </div>
                       </CommandItem>
                     ))}

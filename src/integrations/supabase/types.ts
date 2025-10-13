@@ -2038,11 +2038,13 @@ export type Database = {
         Args: {
           limit_count?: number
           offset_count?: number
-          search_query: string
+          search_query?: string
         }
         Returns: {
           address: string
+          company_name: string
           created_at: string
+          customer_type: Database["public"]["Enums"]["customer_type"]
           email: string
           id: string
           name: string
