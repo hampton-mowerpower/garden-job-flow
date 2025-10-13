@@ -990,7 +990,7 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
         duration: 5000
       });
       
-      // For NEW jobs ONLY, automatically print collection receipt
+      // For NEW jobs ONLY, automatically print BOTH service label AND collection receipt
       // IMPORTANT: Only trigger auto-print for brand new jobs, not edits
       if (!job || !job.id) {
         setAutoSaveStatus('printing');
@@ -998,8 +998,41 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
         // Small delay to ensure job is fully saved
         await new Promise(resolve => setTimeout(resolve, 200));
         
+        const isMultiTool = savedJob.machineCategory === 'Multi-Tool' || savedJob.machineCategory === 'Battery Multi-Tool';
+        const hasMultiToolAttachments = isMultiTool && (savedJob.attachments || []).some(att => 
+          att.problemDescription && att.problemDescription.trim() !== ''
+        );
+        
         try {
-          // Retry logic for printing
+          // 1. Print Service Label(s) first
+          if (hasMultiToolAttachments) {
+            // For Multi-Tool with attachments, print one label per attachment
+            const { printMultiToolLabels } = await import('./booking/MultiToolLabelPrinter');
+            await printMultiToolLabels(savedJob);
+            
+            const labelCount = (savedJob.attachments || []).filter(att => att.problemDescription).length;
+            toast({
+              title: 'Service Labels Sent',
+              description: `${labelCount} service label${labelCount > 1 ? 's' : ''} sent to printer`
+            });
+          } else {
+            // Standard single service label
+            await printThermal({ 
+              job: savedJob, 
+              type: 'service-label', 
+              width: 79 
+            });
+            
+            toast({
+              title: 'Service Label Sent',
+              description: 'Service label sent to printer'
+            });
+          }
+          
+          // Small delay between prints
+          await new Promise(resolve => setTimeout(resolve, 300));
+          
+          // 2. Print Collection Receipt
           let printSuccess = false;
           let retries = 0;
           const maxRetries = 3;
@@ -1014,8 +1047,8 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
               printSuccess = true;
               
               toast({
-                title: 'Collection receipt sent',
-                description: 'Label sent to printer successfully'
+                title: 'Collection Receipt Sent',
+                description: 'Collection receipt sent to printer'
               });
             } catch (printError) {
               retries++;
@@ -1028,10 +1061,10 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
             }
           }
         } catch (printError) {
-          console.error('Print failed after retries:', printError);
+          console.error('Auto-print failed:', printError);
           toast({
-            title: 'Print failed',
-            description: 'Could not print collection receipt. Please print manually.',
+            title: 'Print Failed',
+            description: 'Could not auto-print labels. Please print manually from job details.',
             variant: 'destructive'
           });
         } finally {
