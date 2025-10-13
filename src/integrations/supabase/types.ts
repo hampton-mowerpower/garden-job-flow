@@ -147,6 +147,7 @@ export type Database = {
           name_norm: string | null
           notes: string | null
           phone: string | null
+          tenant_id: string | null
           updated_at: string
         }
         Insert: {
@@ -160,6 +161,7 @@ export type Database = {
           name_norm?: string | null
           notes?: string | null
           phone?: string | null
+          tenant_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -173,6 +175,7 @@ export type Database = {
           name_norm?: string | null
           notes?: string | null
           phone?: string | null
+          tenant_id?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -419,6 +422,7 @@ export type Database = {
           phone_e164: string | null
           postcode: string | null
           suburb: string | null
+          tenant_id: string | null
           updated_at: string
         }
         Insert: {
@@ -439,6 +443,7 @@ export type Database = {
           phone_e164?: string | null
           postcode?: string | null
           suburb?: string | null
+          tenant_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -459,6 +464,7 @@ export type Database = {
           phone_e164?: string | null
           postcode?: string | null
           suburb?: string | null
+          tenant_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1228,6 +1234,7 @@ export type Database = {
           small_repair_total: number | null
           status: string
           subtotal: number
+          tenant_id: string | null
           transport_breakdown: string | null
           transport_delivery_distance_km: number | null
           transport_delivery_required: boolean | null
@@ -1286,6 +1293,7 @@ export type Database = {
           small_repair_total?: number | null
           status?: string
           subtotal?: number
+          tenant_id?: string | null
           transport_breakdown?: string | null
           transport_delivery_distance_km?: number | null
           transport_delivery_required?: boolean | null
@@ -1344,6 +1352,7 @@ export type Database = {
           small_repair_total?: number | null
           status?: string
           subtotal?: number
+          tenant_id?: string | null
           transport_breakdown?: string | null
           transport_delivery_distance_km?: number | null
           transport_delivery_required?: boolean | null
@@ -2230,6 +2239,10 @@ export type Database = {
         Args: { _role: string; _user_id: string }
         Returns: boolean
       }
+      link_jobs_to_contacts: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       merge_brands: {
         Args: { duplicate_ids: string[]; primary_id: string }
         Returns: Json
@@ -2241,6 +2254,10 @@ export type Database = {
       normalize_name: {
         Args: { input_text: string }
         Returns: string
+      }
+      recover_citywide_contacts: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       seed_super_admin: {
         Args: Record<PropertyKey, never>
