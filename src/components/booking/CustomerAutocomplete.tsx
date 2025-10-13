@@ -68,6 +68,7 @@ export const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({
   const [pendingCustomer, setPendingCustomer] = useState<Partial<Customer> | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [phoneError, setPhoneError] = useState<string>('');
   const debouncedSearch = useDebounce(searchQuery, 250);
 
   // Search customers using the database function
@@ -303,15 +304,46 @@ export const CustomerAutocomplete: React.FC<CustomerAutocompleteProps> = ({
           </div>
 
           <div>
-            <Label htmlFor="customer-phone">Phone *</Label>
+            <Label htmlFor="customer-phone">Phone * (10 digits)</Label>
             <Input
               id="customer-phone"
               type="tel"
+              maxLength={10}
               value={customer.phone || ''}
-              onChange={(e) => onCustomerChange({ ...customer, phone: e.target.value })}
-              onBlur={handleSaveWithDuplicateCheck}
+              onChange={(e) => {
+                // Only allow digits
+                const digitsOnly = e.target.value.replace(/\D/g, '');
+                onCustomerChange({ ...customer, phone: digitsOnly });
+                
+                // Clear error when typing
+                if (phoneError) setPhoneError('');
+              }}
+              onBlur={() => {
+                const phone = customer.phone || '';
+                
+                // Validate: must be exactly 10 digits
+                if (phone && !/^\d{10}$/.test(phone)) {
+                  setPhoneError('Phone number must be exactly 10 digits');
+                  toast({
+                    title: 'Invalid Phone Number',
+                    description: 'Phone number must be exactly 10 digits (e.g., 0430478778)',
+                    variant: 'destructive'
+                  });
+                } else {
+                  setPhoneError('');
+                  handleSaveWithDuplicateCheck();
+                }
+              }}
+              className={phoneError ? 'border-red-500' : ''}
+              placeholder="e.g., 0430478778"
               required
             />
+            {phoneError && (
+              <p className="text-xs text-red-600 mt-1">{phoneError}</p>
+            )}
+            {customer.phone && customer.phone.length === 10 && !phoneError && (
+              <p className="text-xs text-green-600 mt-1">✓ Valid phone number</p>
+            )}
           </div>
 
           <div>

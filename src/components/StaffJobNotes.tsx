@@ -107,14 +107,14 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
         .eq('id', jobId)
         .single();
 
+      // Note: created_by will be set automatically by DB trigger, but we still pass user_id
       const { error } = await supabase
         .from('job_notes')
         .insert({
           job_id: jobId,
-          user_id: user.id,
+          user_id: user.id, // Keep this for TypeScript compatibility
           note_text: newNoteText.trim() + (selectedTags.length > 0 ? '\n\nTags: ' + selectedTags.join(', ') : ''),
           visibility: 'internal',
-          created_by: user.id,
           tenant_id: jobData?.tenant_id || null
         });
 

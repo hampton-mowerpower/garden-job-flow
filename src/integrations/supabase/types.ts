@@ -430,6 +430,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           phone_e164: string | null
+          phone_local: string | null
           postcode: string | null
           suburb: string | null
           tenant_id: string | null
@@ -452,6 +453,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           phone_e164?: string | null
+          phone_local?: string | null
           postcode?: string | null
           suburb?: string | null
           tenant_id?: string | null
@@ -474,6 +476,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           phone_e164?: string | null
+          phone_local?: string | null
           postcode?: string | null
           suburb?: string | null
           tenant_id?: string | null
@@ -603,6 +606,8 @@ export type Database = {
           normalized_phone: string | null
           notes: string | null
           phone: string
+          phone_e164: string | null
+          phone_local: string | null
           postcode: string | null
           suburb: string | null
           updated_at: string
@@ -625,6 +630,8 @@ export type Database = {
           normalized_phone?: string | null
           notes?: string | null
           phone: string
+          phone_e164?: string | null
+          phone_local?: string | null
           postcode?: string | null
           suburb?: string | null
           updated_at?: string
@@ -647,6 +654,8 @@ export type Database = {
           normalized_phone?: string | null
           notes?: string | null
           phone?: string
+          phone_e164?: string | null
+          phone_local?: string | null
           postcode?: string | null
           suburb?: string | null
           updated_at?: string
@@ -1045,13 +1054,6 @@ export type Database = {
           visibility?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "job_notes_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "job_notes_job_id_fkey"
             columns: ["job_id"]
@@ -2285,6 +2287,10 @@ export type Database = {
       }
       normalize_phone: {
         Args: { phone_input: string }
+        Returns: string
+      }
+      normalize_phone_e164: {
+        Args: { phone_local: string }
         Returns: string
       }
       recover_citywide_contacts: {

@@ -808,7 +808,18 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   };
 
   const handleSave = async () => {
-    // Validation
+    // Validate phone number format
+    const phoneDigitsOnly = customer.phone?.replace(/\D/g, '') || '';
+    if (!phoneDigitsOnly || !/^\d{10}$/.test(phoneDigitsOnly)) {
+      toast({
+        title: 'Invalid Phone Number',
+        description: 'Phone number must be exactly 10 digits (e.g., 0430478778)',
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Other validations
     if (!customer.name || !customer.phone || !machineCategory || !problemDescription) {
       toast({
         title: t('msg.validation.error'),
