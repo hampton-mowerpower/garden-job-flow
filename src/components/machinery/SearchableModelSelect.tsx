@@ -120,7 +120,7 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
         throw new Error('Brand not found');
       }
 
-      console.log('[SearchableModelSelect] Creating model:', name, 'for brand ID:', currentBrandId);
+      console.log('[SearchableModelSelect] Upserting model:', name, 'for brand ID:', currentBrandId);
       
       // Normalize and title case the name
       const titleCaseName = name
@@ -129,53 +129,47 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
+      // Use upsert - if model exists with same normalized name + brand, select it
       const { data, error } = await supabase
         .from('machinery_models')
-        .insert({
-          name: titleCaseName,
-          brand_id: currentBrandId,
-          active: true
-        })
+        .upsert(
+          {
+            name: titleCaseName,
+            brand_id: currentBrandId,
+            active: true
+          },
+          {
+            onConflict: 'brand_id,normalized_name',
+            ignoreDuplicates: false
+          }
+        )
         .select()
         .single();
 
       if (error) {
-        console.error('[SearchableModelSelect] Insert error:', error);
-        // Unique constraint violation - model already exists
-        if (error.code === '23505') {
-          const { data: existing } = await supabase
-            .from('machinery_models')
-            .select('id, name')
-            .eq('brand_id', currentBrandId)
-            .ilike('name', titleCaseName)
-            .eq('active', true)
-            .maybeSingle();
-          
-          if (existing) {
-            onValueChange(existing.name);
-            await searchModels('');
-            // Silent selection - no toast for existing items
-            return;
-          }
-        }
+        console.error('[SearchableModelSelect] Upsert error:', error);
         throw error;
       }
 
-      console.log('[SearchableModelSelect] Model created:', data);
+      console.log('[SearchableModelSelect] Model saved:', data);
 
-      toast({
-        title: 'Saved ✓',
-        description: `Model "${titleCaseName}" added`
-      });
+      // Only show toast for new items
+      const isNew = data.created_at === data.updated_at;
+      if (isNew) {
+        toast({
+          title: 'Saved ✓',
+          description: `Model "${titleCaseName}" added`
+        });
+      }
 
       onValueChange(data.name);
       await searchModels('');
     } catch (error: any) {
-      console.error('[SearchableModelSelect] Error creating model:', error);
+      console.error('[SearchableModelSelect] Error saving model:', error);
       if (!error.message.includes('No brand') && !error.message.includes('Brand not found')) {
         toast({
           title: 'Error',
-          description: error.message || 'Failed to create model',
+          description: error.message || 'Failed to save model',
           variant: 'destructive'
         });
       }

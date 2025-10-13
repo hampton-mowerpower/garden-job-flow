@@ -120,7 +120,7 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
         throw new Error('Category not found');
       }
 
-      console.log('[SearchableBrandSelect] Creating brand:', name, 'for category ID:', currentCategoryId);
+      console.log('[SearchableBrandSelect] Upserting brand:', name, 'for category ID:', currentCategoryId);
       
       // Normalize and title case the name
       const titleCaseName = name
@@ -129,53 +129,47 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
+      // Use upsert - if brand exists with same normalized name + category, select it
       const { data, error } = await supabase
         .from('brands')
-        .insert({
-          name: titleCaseName,
-          category_id: currentCategoryId,
-          active: true
-        })
+        .upsert(
+          {
+            name: titleCaseName,
+            category_id: currentCategoryId,
+            active: true
+          },
+          {
+            onConflict: 'category_id,normalized_name',
+            ignoreDuplicates: false
+          }
+        )
         .select()
         .single();
 
       if (error) {
-        console.error('[SearchableBrandSelect] Insert error:', error);
-        // Unique constraint violation - brand already exists
-        if (error.code === '23505') {
-          const { data: existing } = await supabase
-            .from('brands')
-            .select('id, name')
-            .eq('category_id', currentCategoryId)
-            .ilike('name', titleCaseName)
-            .eq('active', true)
-            .maybeSingle();
-          
-          if (existing) {
-            onValueChange(existing.name);
-            await searchBrands('');
-            // Silent selection - no toast for existing items
-            return;
-          }
-        }
+        console.error('[SearchableBrandSelect] Upsert error:', error);
         throw error;
       }
 
-      console.log('[SearchableBrandSelect] Brand created:', data);
+      console.log('[SearchableBrandSelect] Brand saved:', data);
 
-      toast({
-        title: 'Saved ✓',
-        description: `Brand "${titleCaseName}" added`
-      });
+      // Only show toast for new items
+      const isNew = data.created_at === data.updated_at;
+      if (isNew) {
+        toast({
+          title: 'Saved ✓',
+          description: `Brand "${titleCaseName}" added`
+        });
+      }
 
       onValueChange(data.name);
       await searchBrands('');
     } catch (error: any) {
-      console.error('[SearchableBrandSelect] Error creating brand:', error);
+      console.error('[SearchableBrandSelect] Error saving brand:', error);
       if (!error.message.includes('No category') && !error.message.includes('Category not found')) {
         toast({
           title: 'Error',
-          description: error.message || 'Failed to create brand',
+          description: error.message || 'Failed to save brand',
           variant: 'destructive'
         });
       }

@@ -59,7 +59,7 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
 
   const handleQuickAdd = async (name: string) => {
     try {
-      console.log('[SearchableCategorySelect] Creating category:', name);
+      console.log('[SearchableCategorySelect] Upserting category:', name);
       
       // Normalize and title case the name
       const titleCaseName = name
@@ -68,51 +68,46 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
+      // Use upsert with ON CONFLICT on normalized_name (handled by unique index)
       const { data, error } = await supabase
         .from('categories')
-        .insert({
-          name: titleCaseName,
-          rate_default: 95,
-          active: true
-        })
+        .upsert(
+          {
+            name: titleCaseName,
+            rate_default: 95,
+            active: true
+          },
+          {
+            onConflict: 'normalized_name',
+            ignoreDuplicates: false
+          }
+        )
         .select()
         .single();
 
       if (error) {
-        console.error('[SearchableCategorySelect] Insert error:', error);
-        // Unique constraint violation - category already exists
-        if (error.code === '23505') {
-          const { data: existing } = await supabase
-            .from('categories')
-            .select('id, name')
-            .ilike('name', titleCaseName)
-            .eq('active', true)
-            .maybeSingle();
-          
-          if (existing) {
-            onValueChange(existing.name);
-            await searchCategories('');
-            // Silent selection - no toast for existing items
-            return;
-          }
-        }
+        console.error('[SearchableCategorySelect] Upsert error:', error);
         throw error;
       }
 
-      console.log('[SearchableCategorySelect] Category created:', data);
+      console.log('[SearchableCategorySelect] Category saved:', data);
 
-      toast({
-        title: 'Saved ✓',
-        description: `Category "${titleCaseName}" added`
-      });
+      // Only show toast for new items
+      const isNew = data.created_at === data.updated_at;
+      if (isNew) {
+        toast({
+          title: 'Saved ✓',
+          description: `Category "${titleCaseName}" added`
+        });
+      }
 
       onValueChange(data.name);
       await searchCategories('');
     } catch (error: any) {
-      console.error('[SearchableCategorySelect] Error creating category:', error);
+      console.error('[SearchableCategorySelect] Error saving category:', error);
       toast({
         title: 'Error',
-        description: error.message || 'Failed to create category',
+        description: error.message || 'Failed to save category',
         variant: 'destructive'
       });
       throw error;
