@@ -59,11 +59,15 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
 
   const handleQuickAdd = async (name: string) => {
     try {
+      console.log('[SearchableCategorySelect] Creating category:', name);
+      
       // Title case the name
       const titleCaseName = name
         .split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
+
+      console.log('[SearchableCategorySelect] Inserting:', titleCaseName);
 
       const { data, error } = await supabase
         .from('categories')
@@ -76,6 +80,7 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
         .single();
 
       if (error) {
+        console.error('[SearchableCategorySelect] Insert error:', error);
         if (error.code === '23505') {
           toast({
             title: 'Already exists',
@@ -87,16 +92,22 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
         throw error;
       }
 
+      console.log('[SearchableCategorySelect] Category created:', data);
+
       toast({
         title: 'Saved ✓',
         description: `Category "${titleCaseName}" created`
       });
 
-      // Refresh options first, then auto-select
-      await searchCategories('');
+      // Set value first so the UI shows it immediately
       onValueChange(data.name);
+      console.log('[SearchableCategorySelect] Value set to:', data.name);
+      
+      // Then refresh options in background
+      await searchCategories('');
+      console.log('[SearchableCategorySelect] Options refreshed');
     } catch (error: any) {
-      console.error('Error creating category:', error);
+      console.error('[SearchableCategorySelect] Error creating category:', error);
       if (error.message !== 'Duplicate') {
         toast({
           title: 'Error',

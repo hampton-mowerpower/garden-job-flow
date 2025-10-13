@@ -86,11 +86,15 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
 
   const handleQuickAdd = async (name: string) => {
     try {
+      console.log('[SearchableBrandSelect] Creating brand:', name);
+      
       // Title case the name
       const titleCaseName = name
         .split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
+
+      console.log('[SearchableBrandSelect] Inserting:', { titleCaseName, categoryId });
 
       const { data, error } = await supabase
         .from('brands')
@@ -103,6 +107,7 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
         .single();
 
       if (error) {
+        console.error('[SearchableBrandSelect] Insert error:', error);
         if (error.code === '23505') {
           toast({
             title: 'Already exists',
@@ -114,16 +119,22 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
         throw error;
       }
 
+      console.log('[SearchableBrandSelect] Brand created:', data);
+
       toast({
         title: 'Saved ✓',
         description: `Brand "${titleCaseName}" created`
       });
 
-      // Refresh options first, then auto-select
-      await searchBrands('');
+      // Set value first so the UI shows it immediately
       onValueChange(data.name);
+      console.log('[SearchableBrandSelect] Value set to:', data.name);
+      
+      // Then refresh options in background
+      await searchBrands('');
+      console.log('[SearchableBrandSelect] Options refreshed');
     } catch (error: any) {
-      console.error('Error creating brand:', error);
+      console.error('[SearchableBrandSelect] Error creating brand:', error);
       if (error.message !== 'Duplicate') {
         toast({
           title: 'Error',

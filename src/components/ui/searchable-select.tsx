@@ -74,13 +74,19 @@ export function SearchableSelect({
   const handleQuickAdd = async () => {
     if (!onQuickAdd || !searchQuery.trim()) return;
     
+    console.log('[SearchableSelect] Quick add:', searchQuery);
     setIsAdding(true);
     try {
       await onQuickAdd(searchQuery.trim());
+      console.log('[SearchableSelect] Quick add successful');
       setSearchQuery('');
-      // Don't close immediately - let the parent component refresh first
-      setTimeout(() => setOpen(false), 100);
+      // Close after a delay to allow parent to update
+      setTimeout(() => {
+        console.log('[SearchableSelect] Closing dropdown');
+        setOpen(false);
+      }, 200);
     } catch (error) {
+      console.error('[SearchableSelect] Quick add error:', error);
       // Keep the dropdown open on error so user can try again
     } finally {
       setIsAdding(false);

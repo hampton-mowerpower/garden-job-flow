@@ -95,11 +95,15 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
     }
 
     try {
+      console.log('[SearchableModelSelect] Creating model:', name);
+      
       // Title case the name
       const titleCaseName = name
         .split(' ')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
+
+      console.log('[SearchableModelSelect] Inserting:', { titleCaseName, brandId });
 
       const { data, error } = await supabase
         .from('machinery_models')
@@ -112,6 +116,7 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
         .single();
 
       if (error) {
+        console.error('[SearchableModelSelect] Insert error:', error);
         if (error.code === '23505') {
           toast({
             title: 'Already exists',
@@ -123,16 +128,22 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
         throw error;
       }
 
+      console.log('[SearchableModelSelect] Model created:', data);
+
       toast({
         title: 'Saved ✓',
         description: `Model "${titleCaseName}" created`
       });
 
-      // Refresh options first, then auto-select
-      await searchModels('');
+      // Set value first so the UI shows it immediately
       onValueChange(data.name);
+      console.log('[SearchableModelSelect] Value set to:', data.name);
+      
+      // Then refresh options in background
+      await searchModels('');
+      console.log('[SearchableModelSelect] Options refreshed');
     } catch (error: any) {
-      console.error('Error creating model:', error);
+      console.error('[SearchableModelSelect] Error creating model:', error);
       if (error.message !== 'Duplicate' && error.message !== 'No brand selected') {
         toast({
           title: 'Error',
