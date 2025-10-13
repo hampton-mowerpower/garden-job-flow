@@ -7,10 +7,12 @@ interface SearchableModelSelectProps {
   value: string;
   onValueChange: (value: string) => void;
   brandName?: string;
+  categoryName?: string;
+  onBrandCreated?: (brandName: string) => void;
   disabled?: boolean;
 }
 
-export function SearchableModelSelect({ value, onValueChange, brandName, disabled }: SearchableModelSelectProps) {
+export function SearchableModelSelect({ value, onValueChange, brandName, categoryName, onBrandCreated, disabled }: SearchableModelSelectProps) {
   const { toast } = useToast();
   const [options, setOptions] = useState<SearchableSelectOption[]>([]);
   const [loading, setLoading] = useState(false);
@@ -86,62 +88,135 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
       if (!brandName) {
         toast({
           title: 'Error',
-          description: 'Please select a brand first',
+          description: 'Please enter a brand first',
           variant: 'destructive'
         });
         throw new Error('No brand selected');
       }
       
-      console.log('[SearchableModelSelect] Fetching brand ID for:', brandName);
+      console.log('[SearchableModelSelect] Fetching/creating brand:', brandName);
+      
+      // Step 1: Try to find existing brand
       const { data: brandData } = await supabase
         .from('brands')
-        .select('id')
+        .select('id, name')
         .ilike('name', brandName)
         .eq('active', true)
         .maybeSingle();
       
-      const currentBrandId = brandData?.id;
+      let currentBrandId = brandData?.id;
+      let finalBrandName = brandData?.name || brandName;
+      
+      // Step 2: If brand doesn't exist, auto-create it
+      if (!currentBrandId) {
+        if (!categoryName) {
+          toast({
+            title: 'Error',
+            description: 'Please select a category first',
+            variant: 'destructive'
+          });
+          throw new Error('No category selected');
+        }
+        
+        console.log('[SearchableModelSelect] Brand not found, auto-creating:', brandName, 'for category:', categoryName);
+        
+        // Get category ID
+        const { data: categoryData } = await supabase
+          .from('categories')
+          .select('id')
+          .ilike('name', categoryName)
+          .eq('active', true)
+          .maybeSingle();
+        
+        if (!categoryData?.id) {
+          toast({
+            title: 'Error',
+            description: 'Category not found. Please reselect category.',
+            variant: 'destructive'
+          });
+          throw new Error('Category not found');
+        }
+        
+        const titleCaseBrand = brandName
+          .trim()
+          .split(/\s+/)
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' ');
+        
+        // Check if brand exists with normalized name
+        const { data: existingBrand } = await supabase
+          .from('brands')
+          .select('id, name')
+          .eq('category_id', categoryData.id)
+          .ilike('name', titleCaseBrand)
+          .eq('active', true)
+          .maybeSingle();
+        
+        if (existingBrand) {
+          currentBrandId = existingBrand.id;
+          finalBrandName = existingBrand.name;
+          console.log('[SearchableModelSelect] Brand exists:', existingBrand);
+        } else {
+          // Create new brand
+          const { data: newBrand, error: brandError } = await supabase
+            .from('brands')
+            .insert({
+              name: titleCaseBrand,
+              category_id: categoryData.id,
+              active: true
+            })
+            .select()
+            .single();
+          
+          if (brandError) {
+            console.error('[SearchableModelSelect] Brand creation error:', brandError);
+            throw brandError;
+          }
+          
+          currentBrandId = newBrand.id;
+          finalBrandName = newBrand.name;
+          console.log('[SearchableModelSelect] Brand auto-created:', newBrand);
+          
+          // Notify parent to update brand selection
+          if (onBrandCreated) {
+            onBrandCreated(finalBrandName);
+          }
+        }
+      }
+      
       if (currentBrandId) {
         setBrandId(currentBrandId);
       }
-    
-      if (!currentBrandId) {
-        toast({
-          title: 'Error',
-          description: 'Brand not found. Please reselect brand.',
-          variant: 'destructive'
-        });
-        throw new Error('Brand not found');
-      }
 
+      // Step 3: Create/select model under the brand
       console.log('[SearchableModelSelect] Upserting model:', name, 'for brand ID:', currentBrandId);
       
-      const titleCaseName = name
+      const titleCaseModel = name
         .trim()
         .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
       // Check if model exists for this brand
-      const { data: existing } = await supabase
+      const { data: existingModel } = await supabase
         .from('machinery_models')
         .select('id, name')
         .eq('brand_id', currentBrandId)
-        .ilike('name', titleCaseName)
+        .ilike('name', titleCaseModel)
         .eq('active', true)
         .maybeSingle();
 
       let result;
-      if (existing) {
+      if (existingModel) {
         // Already exists - use it
-        result = existing;
+        result = existingModel;
         console.log('[SearchableModelSelect] Model exists:', result);
       } else {
-        // Insert new
+        // Insert new model
         const { data: inserted, error } = await supabase
           .from('machinery_models')
           .insert({
-            name: titleCaseName,
+            name: titleCaseModel,
             brand_id: currentBrandId,
             active: true
           })
@@ -158,7 +233,7 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
         
         toast({
           title: 'Saved ✓',
-          description: `Model "${titleCaseName}" added`
+          description: `Model "${titleCaseModel}" added`
         });
       }
 
@@ -166,7 +241,7 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
       await searchModels('');
     } catch (error: any) {
       console.error('[SearchableModelSelect] Error saving model:', error);
-      if (!error.message.includes('No brand') && !error.message.includes('Brand not found')) {
+      if (!error.message.includes('No brand') && !error.message.includes('No category') && !error.message.includes('Category not found')) {
         toast({
           title: 'Error',
           description: error.message || 'Failed to save model',
@@ -188,7 +263,7 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
       searchPlaceholder="Search models..."
       disabled={disabled || !brandName}
       loading={loading}
-      emptyMessage={brandName ? 'No models found' : 'Select a brand first'}
+      emptyMessage={brandName ? 'No models found' : 'Enter a brand first'}
       allowQuickAdd={true}
     />
   );

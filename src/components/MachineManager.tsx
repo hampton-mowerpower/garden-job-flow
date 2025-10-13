@@ -95,6 +95,8 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
           value={machineModel}
           onValueChange={handleModelChange}
           brandName={machineBrand}
+          categoryName={machineCategory}
+          onBrandCreated={handleBrandChange}
         />
       </div>
 
