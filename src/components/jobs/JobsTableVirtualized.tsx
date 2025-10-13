@@ -37,7 +37,14 @@ export function JobsTableVirtualized({
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   
   const handleStatusChange = async (job: Job, newStatus: Job['status']) => {
+    const previousStatus = job.status;
     setUpdatingStatus(job.id);
+    
+    // Optimistic update
+    if (onUpdateJob) {
+      onUpdateJob(job.id, { status: newStatus });
+    }
+    
     try {
       const updates: any = {
         status: newStatus,
@@ -65,11 +72,14 @@ export function JobsTableVirtualized({
         title: 'Status Updated',
         description: `Job ${job.jobNumber} marked as ${newStatus.replace('_', ' ')}`,
       });
-      
-      // Reload the page to reflect changes
-      window.location.reload();
     } catch (error: any) {
       console.error('Error updating status:', error);
+      
+      // Revert optimistic update on error
+      if (onUpdateJob) {
+        onUpdateJob(job.id, { status: previousStatus });
+      }
+      
       toast({
         title: 'Error',
         description: 'Failed to update job status',
