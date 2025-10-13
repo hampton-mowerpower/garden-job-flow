@@ -400,6 +400,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const initializeForm = async () => {
     if (job) {
       // Edit existing job
+      console.log('[JobForm] Initializing with job data:', {
+        category: job.machineCategory,
+        brand: job.machineBrand,
+        model: job.machineModel
+      });
+      
       setJobNumber(job.jobNumber);
       setCustomer(job.customer);
       setCustomerType(job.customerType || job.customer.customerType || 'domestic');
@@ -408,6 +414,12 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
       setMachineBrand(job.machineBrand);
       setMachineModel(job.machineModel);
       setMachineSerial(job.machineSerial || '');
+      
+      console.log('[JobForm] Machine state set:', {
+        category: job.machineCategory,
+        brand: job.machineBrand,
+        model: job.machineModel
+      });
       setProblemDescription(job.problemDescription);
       setNotes(job.notes || '');
       setAdditionalNotes(job.additionalNotes || '');

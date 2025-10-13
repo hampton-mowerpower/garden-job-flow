@@ -52,8 +52,9 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
   };
 
   useEffect(() => {
+    // Load options on mount and whenever value changes (to ensure current value is in options)
     searchCategories('');
-  }, []);
+  }, [value]);
 
   const handleQuickAdd = async (name: string) => {
     try {

@@ -46,7 +46,9 @@ export function SearchableSelect({
   const debounceRef = useRef<NodeJS.Timeout>();
 
   // Find current selected option
+  // If value exists but option not found, show the value itself
   const selectedOption = options.find(opt => opt.value === value);
+  const displayValue = selectedOption ? selectedOption.label : (value || placeholder);
 
   // Debounced search
   const handleSearchChange = useCallback((query: string) => {
@@ -118,7 +120,7 @@ export function SearchableSelect({
           className={cn('w-full justify-between', className)}
         >
           <span className="truncate">
-            {selectedOption ? selectedOption.label : placeholder}
+            {displayValue}
           </span>
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
