@@ -9,24 +9,91 @@ class JobBookingDB {
 
   // Customer operations
   async saveCustomer(customer: Customer): Promise<Customer> {
-    const customerData: any = {
-      name: customer.name,
-      phone: customer.phone,
-      email: customer.email || null,
-      address: customer.address,
-      notes: customer.notes || null,
-      customer_type: customer.customerType || 'domestic',
-      company_name: customer.companyName || null
-    };
-    
-    // Only include ID if it exists and is a valid UUID
+    // If customer has a valid ID, update that specific customer
     if (customer.id && this.isValidUUID(customer.id)) {
-      customerData.id = customer.id;
+      const { data, error } = await supabase
+        .from('customers_db')
+        .update({
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email || null,
+          address: customer.address,
+          notes: customer.notes || null,
+          customer_type: customer.customerType || 'domestic',
+          company_name: customer.companyName || null
+        })
+        .eq('id', customer.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      return {
+        id: data.id,
+        name: data.name,
+        phone: data.phone,
+        email: data.email || '',
+        address: data.address,
+        notes: data.notes || '',
+        customerType: data.customer_type || 'domestic',
+        companyName: data.company_name || undefined,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
     }
     
+    // For new customers, check if phone already exists
+    const { data: existing } = await supabase
+      .from('customers_db')
+      .select('*')
+      .eq('phone', customer.phone)
+      .eq('is_deleted', false)
+      .maybeSingle();
+    
+    if (existing) {
+      // Update existing customer
+      const { data, error } = await supabase
+        .from('customers_db')
+        .update({
+          name: customer.name,
+          email: customer.email || null,
+          address: customer.address,
+          notes: customer.notes || null,
+          customer_type: customer.customerType || 'domestic',
+          company_name: customer.companyName || null
+        })
+        .eq('id', existing.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      return {
+        id: data.id,
+        name: data.name,
+        phone: data.phone,
+        email: data.email || '',
+        address: data.address,
+        notes: data.notes || '',
+        customerType: data.customer_type || 'domestic',
+        companyName: data.company_name || undefined,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
+    }
+    
+    // Insert new customer
     const { data, error } = await supabase
       .from('customers_db')
-      .upsert(customerData)
+      .insert({
+        name: customer.name,
+        phone: customer.phone,
+        email: customer.email || null,
+        address: customer.address,
+        notes: customer.notes || null,
+        customer_type: customer.customerType || 'domestic',
+        company_name: customer.companyName || null
+      })
       .select()
       .single();
     
