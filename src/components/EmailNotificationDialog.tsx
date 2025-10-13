@@ -44,14 +44,72 @@ export function EmailNotificationDialog({ job, open, onOpenChange }: EmailNotifi
   const [message, setMessage] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [accountEmailRouting, setAccountEmailRouting] = useState<{
+    quotes_to?: string[];
+    invoices_to?: string[];
+    payments_to?: string[];
+  } | null>(null);
+
+  // Load account email routing if job has account
+  useEffect(() => {
+    if (open && job.accountId) {
+      loadAccountEmailRouting();
+    }
+  }, [open, job.accountId]);
 
   // Initialize form when dialog opens
   useEffect(() => {
     if (open) {
-      setRecipient(job.customer.email || '');
+      // Set recipient based on template and account routing
+      const routing = getRoutingForTemplate(template);
+      if (routing && routing.length > 0) {
+        setRecipient(routing.join(', '));
+      } else {
+        setRecipient(job.customer.email || '');
+      }
       updateTemplateContent(template);
     }
-  }, [open, template, job]);
+  }, [open, template, job, accountEmailRouting]);
+
+  const loadAccountEmailRouting = async () => {
+    if (!job.accountId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('accounts')
+        .select('quotes_to, invoices_to, payments_to')
+        .eq('id', job.accountId)
+        .single();
+
+      if (error) throw error;
+      setAccountEmailRouting(data);
+    } catch (error: any) {
+      console.error('Error loading account email routing:', error);
+      // Continue without routing
+    }
+  };
+
+  const getRoutingForTemplate = (templateType: EmailTemplate): string[] => {
+    if (!accountEmailRouting) return [];
+
+    switch (templateType) {
+      case 'quotation':
+        // Quotes go to quotes_to, fallback to invoices_to
+        return accountEmailRouting.quotes_to && accountEmailRouting.quotes_to.length > 0
+          ? accountEmailRouting.quotes_to
+          : accountEmailRouting.invoices_to || [];
+      case 'completion':
+        // Invoices go to invoices_to
+        return accountEmailRouting.invoices_to || [];
+      case 'service-reminder':
+      case 'completion-reminder':
+      case 'notify-customer':
+        // General notifications go to quotes_to/invoices_to
+        return accountEmailRouting.invoices_to || accountEmailRouting.quotes_to || [];
+      default:
+        return [];
+    }
+  };
 
   const updateTemplateContent = (templateType: EmailTemplate) => {
     const hasCosting = job.grandTotal > 0;
@@ -241,6 +299,11 @@ export function EmailNotificationDialog({ job, open, onOpenChange }: EmailNotifi
 
           <div className="space-y-2">
             <Label htmlFor="recipient">Recipient *</Label>
+            {accountEmailRouting && getRoutingForTemplate(template).length > 0 && (
+              <p className="text-xs text-muted-foreground mb-1">
+                ✓ Using email routing from account preferences (editable)
+              </p>
+            )}
             <Input
               id="recipient"
               type="email"

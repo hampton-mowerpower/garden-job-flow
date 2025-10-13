@@ -8,10 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Plus, User, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { AccountEmailRouting } from './AccountEmailRouting';
 
 interface Account {
   id: string;
   name: string;
+  quotes_to?: string[];
+  invoices_to?: string[];
+  payments_to?: string[];
 }
 
 interface Contact {
@@ -54,7 +58,7 @@ export function AccountContactManager() {
     try {
       const { data, error } = await supabase
         .from('accounts')
-        .select('id, name')
+        .select('id, name, quotes_to, invoices_to, payments_to')
         .eq('active', true)
         .order('name');
 
@@ -217,6 +221,17 @@ export function AccountContactManager() {
           )}
         </CardContent>
       </Card>
+
+      {/* Email Routing */}
+      {selectedAccountId && accounts.find(a => a.id === selectedAccountId) && (
+        <AccountEmailRouting
+          accountId={selectedAccountId}
+          quotesTo={accounts.find(a => a.id === selectedAccountId)?.quotes_to || []}
+          invoicesTo={accounts.find(a => a.id === selectedAccountId)?.invoices_to || []}
+          paymentsTo={accounts.find(a => a.id === selectedAccountId)?.payments_to || []}
+          onUpdated={loadAccounts}
+        />
+      )}
 
       {/* Add Contact Dialog */}
       <Dialog open={showAddContactDialog} onOpenChange={setShowAddContactDialog}>
