@@ -102,7 +102,7 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
       const { data: brandData } = await supabase
         .from('brands')
         .select('id')
-        .eq('name', brandName)
+        .ilike('name', brandName)
         .eq('active', true)
         .maybeSingle();
       

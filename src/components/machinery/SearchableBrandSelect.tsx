@@ -102,7 +102,7 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
       const { data: catData } = await supabase
         .from('categories')
         .select('id')
-        .eq('name', categoryName)
+        .ilike('name', categoryName)
         .eq('active', true)
         .maybeSingle();
       
