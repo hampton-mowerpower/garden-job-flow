@@ -2309,7 +2309,10 @@ export type Database = {
         Returns: {
           balance_due: number
           created_at: string
+          customer_email: string
           customer_id: string
+          customer_name: string
+          customer_phone: string
           grand_total: number
           id: string
           job_number: string
@@ -2354,7 +2357,10 @@ export type Database = {
         Returns: {
           balance_due: number
           created_at: string
+          customer_email: string
           customer_id: string
+          customer_name: string
+          customer_phone: string
           grand_total: number
           id: string
           job_number: string
@@ -2371,6 +2377,7 @@ export type Database = {
         Returns: {
           balance_due: number
           created_at: string
+          customer_email: string
           customer_id: string
           customer_name: string
           customer_phone: string
@@ -2380,6 +2387,7 @@ export type Database = {
           machine_brand: string
           machine_category: string
           machine_model: string
+          machine_serial: string
           problem_description: string
           status: string
         }[]

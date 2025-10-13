@@ -28,13 +28,7 @@ interface SearchPrefs {
 const PAGE_SIZE = 25;
 const API_TIMEOUT = 10000;
 
-interface Customer {
-  id: string;
-  name: string;
-  phone: string;
-  email?: string;
-  address?: string;
-}
+// Customer data now included in RPC response
 
 export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
   const { toast } = useToast();
@@ -47,7 +41,6 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
-  const [customers, setCustomers] = useState<Map<string, Customer>>(new Map());
   const [notificationJob, setNotificationJob] = useState<Job | null>(null);
   const [emailJob, setEmailJob] = useState<Job | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
@@ -75,23 +68,21 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
     }
   }, [debouncedSearch]);
 
-  // Convert DB row to Job type
-  const convertToJob = useCallback((row: any, customerData?: Customer): Job => {
-    const customer = customerData || customers.get(row.customer_id) || {
-      id: row.customer_id,
-      name: row.customer_name || 'Unknown',
-      phone: row.customer_phone || '',
-      email: '',
-      address: ''
-    };
-
+  // Convert DB row to Job type - customer data now included in RPC
+  const convertToJob = useCallback((row: any): Job => {
     return {
       id: row.id,
       jobNumber: row.job_number,
       status: row.status,
       createdAt: row.created_at,
       grandTotal: parseFloat(row.grand_total || 0),
-      customer,
+      customer: {
+        id: row.customer_id,
+        name: row.customer_name || 'Unknown',
+        phone: row.customer_phone || '',
+        email: row.customer_email || '',
+        address: ''
+      },
       machineCategory: row.machine_category || '',
       machineBrand: row.machine_brand || '',
       machineModel: row.machine_model || '',
@@ -107,42 +98,9 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
       gst: 0,
       notes: ''
     } as Job;
-  }, [customers]);
-
-  // Load customer data batch
-  const loadCustomerData = useCallback(async (jobsList: any[]) => {
-    const customerIds = [...new Set(
-      jobsList.map(j => j.customer_id).filter(Boolean)
-    )];
-
-    if (customerIds.length === 0) return;
-
-    try {
-      const { data, error } = await supabase.rpc('get_customers_by_ids', {
-        p_customer_ids: customerIds
-      });
-
-      if (error) throw error;
-
-      const customerMap = new Map<string, Customer>(
-        (data || []).map((c: any) => [c.id, {
-          id: c.id,
-          name: c.name,
-          phone: c.phone,
-          email: c.email || '',
-          address: c.address || ''
-        }])
-      );
-
-      setCustomers(prev => {
-        const merged = new Map(prev);
-        customerMap.forEach((value, key) => merged.set(key, value));
-        return merged;
-      });
-    } catch (error) {
-      console.error('Error loading customers:', error);
-    }
   }, []);
+
+  // Customer data now included in RPC - no need to load separately
 
   // Main load function with pagination
   const loadJobsPage = useCallback(async (isInitial = false) => {
@@ -187,10 +145,7 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
         return;
       }
 
-      // Load customer data for these jobs
-      await loadCustomerData(data);
-
-      // Convert to Job objects
+      // Convert to Job objects - customer data already included
       const newJobs = data.map((row: any) => convertToJob(row));
 
       setJobs(prev => isInitial ? newJobs : [...prev, ...newJobs]);
@@ -219,7 +174,7 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
     } finally {
       setLoadingState(false);
     }
-  }, [isLoading, isLoadingMore, cursor, activeFilter, isSearchMode, loadCustomerData, convertToJob, refreshStats, toast]);
+  }, [isLoading, isLoadingMore, cursor, activeFilter, isSearchMode, convertToJob, refreshStats, toast]);
 
   // Fast search function
   const handleSearch = useCallback(async (term: string) => {
