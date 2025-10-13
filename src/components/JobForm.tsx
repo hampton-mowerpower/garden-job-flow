@@ -139,6 +139,7 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   const [accountCustomerId, setAccountCustomerId] = useState<string | undefined>(undefined);
   const [showLabelDialog, setShowLabelDialog] = useState(false);
   const [newJobData, setNewJobData] = useState<Job | null>(null);
+  const [updateCustomerProfile, setUpdateCustomerProfile] = useState(true); // Toggle for updating customer profile
   
   // Phase 2: New state for requested finish date, attachments, small repair, additional notes
   const [requestedFinishDate, setRequestedFinishDate] = useState<Date | undefined>(undefined);
@@ -575,15 +576,19 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
         .or(`normalized_email.eq.${normalizedEmail},normalized_phone.eq.${normalizedPhone}`)
         .limit(1);
       
-      if (existingCustomers && existingCustomers.length > 0 && !customerData.id) {
-        // Found existing customer, use that ID
-        setCustomer(prev => ({ ...prev, id: existingCustomers[0].id }));
-        return;
+      // Use existing customer ID if found
+      const customerId = existingCustomers && existingCustomers.length > 0 
+        ? existingCustomers[0].id 
+        : customerData.id;
+      
+      // Update local state with existing ID if found and not already set
+      if (customerId && customerId !== customerData.id) {
+        setCustomer(prev => ({ ...prev, id: customerId }));
       }
       
       // Upsert customer data
       const customerPayload = {
-        id: customerData.id,
+        id: customerId,
         name: toTitleCase(customerData.name.trim()),
         phone: customerData.phone,
         email: customerData.email || null,
@@ -619,7 +624,10 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
   useAutoSave({
     data: { ...customer, customerType, jobCompanyName },
     onSave: async (data) => {
-      await saveCustomerData(data);
+      // Always save new customers, only respect toggle for existing customers
+      if (!customer.id || updateCustomerProfile) {
+        await saveCustomerData(data);
+      }
     },
     delay: 600,
     enabled: !!customer.name && !!customer.phone // Only enable when we have minimum data
@@ -1106,6 +1114,20 @@ export default function JobForm({ job, onSave, onPrint }: JobFormProps) {
                   Account Customer (30-day payment terms)
                 </Label>
               </div>
+              
+              {/* Update customer profile toggle - only show for existing customers */}
+              {customer.id && (
+                <div className="flex items-center gap-2 pt-2 border-t">
+                  <Checkbox
+                    id="update-customer-profile"
+                    checked={updateCustomerProfile}
+                    onCheckedChange={(checked) => setUpdateCustomerProfile(checked as boolean)}
+                  />
+                  <Label htmlFor="update-customer-profile" className="cursor-pointer text-sm">
+                    Update customer profile with changes
+                  </Label>
+                </div>
+              )}
             </CardContent>
           </Card>
 
