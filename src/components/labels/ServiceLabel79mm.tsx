@@ -47,9 +47,13 @@ export const ServiceLabel79mm: React.FC<ServiceLabel79mmProps> = ({
       className="bg-white text-black p-4"
       style={{
         width: '79mm',
+        maxWidth: '79mm',
         fontFamily: 'monospace',
         fontSize: '12px',
-        lineHeight: '1.4'
+        lineHeight: '1.4',
+        wordBreak: 'break-word',
+        overflowWrap: 'anywhere',
+        whiteSpace: 'pre-wrap'
       }}
     >
       {/* Company Header - centered */}
@@ -74,15 +78,18 @@ export const ServiceLabel79mm: React.FC<ServiceLabel79mmProps> = ({
       {/* Customer Info */}
       <div className="mb-3 border-b border-gray-400 pb-2">
         <div className="font-bold">{truncate(job.customer.name, 35)}</div>
+        <div className="text-sm mt-1">{job.customer.phone}</div>
         
         {/* Customer Type - Always show */}
         <div className="text-xs font-bold uppercase mt-1">
-          {job.customerType === 'commercial' ? '🏢 COMMERCIAL' : '🏠 DOMESTIC'}
+          TYPE: {job.customerType === 'commercial' ? 'COMMERCIAL' : 'DOMESTIC'}
         </div>
         
         {/* Company Name */}
         {job.jobCompanyName && (
-          <div className="text-sm font-semibold mt-1">{truncate(job.jobCompanyName, 35)}</div>
+          <div className="text-xs font-bold uppercase mt-1">
+            COMPANY: {truncate(job.jobCompanyName, 30)}
+          </div>
         )}
         
         {/* Account Customer Badge */}
@@ -91,18 +98,26 @@ export const ServiceLabel79mm: React.FC<ServiceLabel79mmProps> = ({
             ACCOUNT CUSTOMER
           </div>
         )}
-        
-        <div className="text-sm mt-1">{job.customer.phone}</div>
       </div>
 
       {/* Machine Info */}
       <div className="mb-3 border-b border-gray-400 pb-2">
-        <div className="font-bold">{job.machineCategory.toUpperCase()}</div>
-        <div className="text-sm">
-          {truncate(`${job.machineBrand} ${job.machineModel}`, 35)}
-        </div>
+        <div className="font-bold text-xs mb-1">MACHINE DETAILS:</div>
+        <div className="text-xs">TYPE: {job.machineCategory.toUpperCase()}</div>
+        <div className="text-xs">BRAND: {job.machineBrand.toUpperCase()}</div>
+        <div className="text-xs">MODEL: {truncate(job.machineModel.toUpperCase(), 30)}</div>
         {job.machineSerial && (
           <div className="text-xs">S/N: {truncate(job.machineSerial, 30)}</div>
+        )}
+        
+        {/* Show attachments if Multi-Tool */}
+        {(job.machineCategory === 'Multi-Tool' || job.machineCategory === 'Battery Multi-Tool') && job.attachments && job.attachments.length > 0 && (
+          <div className="mt-2">
+            <div className="text-xs font-bold">ATTACHMENTS:</div>
+            {job.attachments.map((att, idx) => (
+              <div key={idx} className="text-xs">- {att.name}</div>
+            ))}
+          </div>
         )}
       </div>
 

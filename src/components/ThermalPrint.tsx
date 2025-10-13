@@ -436,7 +436,8 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   const paymentGST = paymentAmount ? paymentAmount * 0.1 / 1.1 : 0;
   
   const balanceDue = job.balanceDue !== undefined ? job.balanceDue : Math.max(0, job.grandTotal - paymentAmount);
-  const isPaid = balanceDue === 0;
+  // Only show PAID IN FULL if there's actual payment AND balance is 0
+  const isPaid = paymentAmount > 0 && balanceDue === 0;
 
   return `
 <!DOCTYPE html>
@@ -655,7 +656,7 @@ const generateCollectionReceiptHTML = async (job: Job, width: number, qrCodeBase
   <div class="section">
     <div class="inline-row">
       <div class="inline-label">CUSTOMER:</div>
-      <div class="inline-value">${escapeHtml(job.customer.name)}</div>
+      <div class="inline-value">${escapeHtml(job.customer.name)}${job.jobCompanyName ? ` | COMPANY: ${escapeHtml(job.jobCompanyName)}` : ''}</div>
     </div>
     <div class="inline-row">
       <div class="inline-label">MODEL:</div>
