@@ -78,7 +78,10 @@ export function SearchableSelect({
     try {
       await onQuickAdd(searchQuery.trim());
       setSearchQuery('');
-      setOpen(false);
+      // Don't close immediately - let the parent component refresh first
+      setTimeout(() => setOpen(false), 100);
+    } catch (error) {
+      // Keep the dropdown open on error so user can try again
     } finally {
       setIsAdding(false);
     }

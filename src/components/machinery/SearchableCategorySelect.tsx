@@ -82,7 +82,7 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
             description: `"${titleCaseName}" already exists`,
             variant: 'destructive'
           });
-          return;
+          throw new Error('Duplicate');
         }
         throw error;
       }
@@ -92,18 +92,18 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
         description: `Category "${titleCaseName}" created`
       });
 
-      // Auto-select the new category
-      onValueChange(data.name);
-      
-      // Refresh options
+      // Refresh options first, then auto-select
       await searchCategories('');
+      onValueChange(data.name);
     } catch (error: any) {
       console.error('Error creating category:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create category',
-        variant: 'destructive'
-      });
+      if (error.message !== 'Duplicate') {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to create category',
+          variant: 'destructive'
+        });
+      }
       throw error;
     }
   };

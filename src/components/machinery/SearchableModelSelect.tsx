@@ -91,7 +91,7 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
         description: 'Please select a brand first',
         variant: 'destructive'
       });
-      return;
+      throw new Error('No brand selected');
     }
 
     try {
@@ -118,7 +118,7 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
             description: `"${titleCaseName}" already exists for this brand`,
             variant: 'destructive'
           });
-          return;
+          throw new Error('Duplicate');
         }
         throw error;
       }
@@ -128,18 +128,18 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
         description: `Model "${titleCaseName}" created`
       });
 
-      // Auto-select the new model
-      onValueChange(data.name);
-      
-      // Refresh options
+      // Refresh options first, then auto-select
       await searchModels('');
+      onValueChange(data.name);
     } catch (error: any) {
       console.error('Error creating model:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create model',
-        variant: 'destructive'
-      });
+      if (error.message !== 'Duplicate' && error.message !== 'No brand selected') {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to create model',
+          variant: 'destructive'
+        });
+      }
       throw error;
     }
   };

@@ -109,7 +109,7 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
             description: `"${titleCaseName}" already exists in this category`,
             variant: 'destructive'
           });
-          return;
+          throw new Error('Duplicate');
         }
         throw error;
       }
@@ -119,18 +119,18 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
         description: `Brand "${titleCaseName}" created`
       });
 
-      // Auto-select the new brand
-      onValueChange(data.name);
-      
-      // Refresh options
+      // Refresh options first, then auto-select
       await searchBrands('');
+      onValueChange(data.name);
     } catch (error: any) {
       console.error('Error creating brand:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create brand',
-        variant: 'destructive'
-      });
+      if (error.message !== 'Duplicate') {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to create brand',
+          variant: 'destructive'
+        });
+      }
       throw error;
     }
   };
