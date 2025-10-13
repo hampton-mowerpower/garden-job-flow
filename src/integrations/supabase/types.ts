@@ -922,13 +922,6 @@ export type Database = {
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "job_notes_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       job_parts: {
