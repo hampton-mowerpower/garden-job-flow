@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Download, RotateCcw } from 'lucide-react';
+import { Search, Download, RotateCcw, Loader2 } from 'lucide-react';
 import { Job } from '@/types/job';
-import { jobBookingDB } from '@/lib/storage';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { CustomerNotificationDialog } from './CustomerNotificationDialog';
@@ -13,7 +12,7 @@ import { JobStatsCards } from './jobs/JobStatsCards';
 import { JobFilters } from './jobs/JobFilters';
 import { JobsTableVirtualized } from './jobs/JobsTableVirtualized';
 import { useJobStats } from '@/hooks/useJobStats';
-import { startOfDay, startOfWeek, startOfMonth, startOfYear } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface JobSearchProps {
   onSelectJob: (job: Job) => void;
@@ -26,191 +25,262 @@ interface SearchPrefs {
   filterStatus: string;
 }
 
+const PAGE_SIZE = 25;
+const API_TIMEOUT = 10000;
+
+interface Customer {
+  id: string;
+  name: string;
+  phone: string;
+  email?: string;
+  address?: string;
+}
+
 export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
   const { toast } = useToast();
   const { stats, refresh: refreshStats } = useJobStats();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
-  const [isLoading, setIsLoading] = useState(true);
-  const [prefsLoaded, setPrefsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [cursor, setCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [customers, setCustomers] = useState<Map<string, Customer>>(new Map());
   const [notificationJob, setNotificationJob] = useState<Job | null>(null);
   const [emailJob, setEmailJob] = useState<Job | null>(null);
+  const [isSearchMode, setIsSearchMode] = useState(false);
 
-  // Load search preferences from database
+  // Initial load
   useEffect(() => {
-    loadSearchPreferences();
-  }, []);
+    loadJobsPage(true);
+  }, [activeFilter]);
 
-  // Save search preferences to database (debounced)
+  // Debounce search query
   useEffect(() => {
-    if (!prefsLoaded) return; // Don't save until initial load is complete
-    
     const timer = setTimeout(() => {
-      saveSearchPreferences();
-    }, 1000);
-
+      setDebouncedSearch(searchQuery);
+    }, 300);
     return () => clearTimeout(timer);
-  }, [searchQuery, prefsLoaded]);
+  }, [searchQuery]);
 
+  // Execute search when debounced value changes
   useEffect(() => {
-    loadJobs();
-  }, []);
+    if (debouncedSearch.trim()) {
+      handleSearch(debouncedSearch);
+    } else {
+      setIsSearchMode(false);
+      loadJobsPage(true);
+    }
+  }, [debouncedSearch]);
 
-  useEffect(() => {
-    filterJobs();
-  }, [searchQuery, jobs, activeFilter]);
+  // Convert DB row to Job type
+  const convertToJob = useCallback((row: any, customerData?: Customer): Job => {
+    const customer = customerData || customers.get(row.customer_id) || {
+      id: row.customer_id,
+      name: row.customer_name || 'Unknown',
+      phone: row.customer_phone || '',
+      email: '',
+      address: ''
+    };
 
-  const loadSearchPreferences = async () => {
+    return {
+      id: row.id,
+      jobNumber: row.job_number,
+      status: row.status,
+      createdAt: row.created_at,
+      grandTotal: parseFloat(row.grand_total || 0),
+      customer,
+      machineCategory: row.machine_category || '',
+      machineBrand: row.machine_brand || '',
+      machineModel: row.machine_model || '',
+      machineSerial: row.machine_serial || '',
+      problemDescription: row.problem_description || '',
+      balanceDue: parseFloat(row.balance_due || 0),
+      parts: [],
+      labourHours: 0,
+      labourRate: 0,
+      labourTotal: 0,
+      partsSubtotal: 0,
+      subtotal: 0,
+      gst: 0,
+      notes: ''
+    } as Job;
+  }, [customers]);
+
+  // Load customer data batch
+  const loadCustomerData = useCallback(async (jobsList: any[]) => {
+    const customerIds = [...new Set(
+      jobsList.map(j => j.customer_id).filter(Boolean)
+    )];
+
+    if (customerIds.length === 0) return;
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setPrefsLoaded(true);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from('job_search_prefs')
-        .select('prefs')
-        .eq('user_id', user.id)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('get_customers_by_ids', {
+        p_customer_ids: customerIds
+      });
 
       if (error) throw error;
 
-      if (data?.prefs) {
-        const prefs = data.prefs as unknown as SearchPrefs;
-        setSearchQuery(prefs.searchQuery || '');
-      }
-    } catch (error) {
-      console.error('Error loading search preferences:', error);
-    } finally {
-      setPrefsLoaded(true);
-    }
-  };
+      const customerMap = new Map<string, Customer>(
+        (data || []).map((c: any) => [c.id, {
+          id: c.id,
+          name: c.name,
+          phone: c.phone,
+          email: c.email || '',
+          address: c.address || ''
+        }])
+      );
 
-  const saveSearchPreferences = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const prefs: SearchPrefs = {
-        searchQuery,
-        sortBy: 'date',
-        filterStatus: 'all'
-      };
-
-      const { error } = await supabase
-        .from('job_search_prefs')
-        .upsert({
-          user_id: user.id,
-          prefs: prefs as any
-        }, {
-          onConflict: 'user_id'
-        });
-
-      if (error) throw error;
-    } catch (error) {
-      console.error('Error saving search preferences:', error);
-    }
-  };
-
-  const resetPreferences = async () => {
-    setSearchQuery('');
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      await supabase
-        .from('job_search_prefs')
-        .delete()
-        .eq('user_id', user.id);
-
-      toast({
-        title: 'Reset complete',
-        description: 'Search preferences have been reset'
+      setCustomers(prev => {
+        const merged = new Map(prev);
+        customerMap.forEach((value, key) => merged.set(key, value));
+        return merged;
       });
     } catch (error) {
-      console.error('Error resetting preferences:', error);
+      console.error('Error loading customers:', error);
     }
-  };
+  }, []);
 
-  const loadJobs = async () => {
+  // Main load function with pagination
+  const loadJobsPage = useCallback(async (isInitial = false) => {
+    if ((isInitial ? isLoading : isLoadingMore) || isSearchMode) return;
+
+    const setLoadingState = isInitial ? setIsLoading : setIsLoadingMore;
+    setLoadingState(true);
+    const startTime = performance.now();
+
     try {
-      setIsLoading(true);
-      
-      // Check if user is authenticated first
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        setJobs([]);
-        setIsLoading(false);
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), API_TIMEOUT)
+      );
+
+      const statusFilter = activeFilter !== 'all' && 
+                          !['today', 'week', 'month', 'year', 'open', 'parts', 'quote'].includes(activeFilter)
+        ? activeFilter
+        : null;
+
+      const fetchPromise = supabase.rpc('list_jobs_page', {
+        p_limit: PAGE_SIZE,
+        p_before: isInitial ? null : cursor,
+        p_status: statusFilter
+      });
+
+      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+      const loadTime = performance.now() - startTime;
+      console.log(`Jobs loaded in ${loadTime.toFixed(0)}ms`);
+
+      if (error) throw error;
+
+      if (!data || data.length === 0) {
+        setHasMore(false);
+        if (isInitial) {
+          setJobs([]);
+          toast({
+            title: 'No jobs found',
+            description: 'There are no jobs in the system yet.'
+          });
+        }
         return;
       }
-      
-      const allJobs = await jobBookingDB.getAllJobs();
-      setJobs((allJobs || []).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-      refreshStats();
-    } catch (error) {
-      console.error('Error loading jobs:', error);
-      setJobs([]);
+
+      // Load customer data for these jobs
+      await loadCustomerData(data);
+
+      // Convert to Job objects
+      const newJobs = data.map((row: any) => convertToJob(row));
+
+      setJobs(prev => isInitial ? newJobs : [...prev, ...newJobs]);
+
+      if (data.length === PAGE_SIZE) {
+        setCursor(data[data.length - 1].created_at);
+        setHasMore(true);
+      } else {
+        setHasMore(false);
+      }
+
+      if (isInitial) refreshStats();
+
+    } catch (err: any) {
+      console.error('Load jobs error:', err);
       toast({
-        title: 'Error',
-        description: 'Failed to load jobs. Please check your connection and try refreshing.',
-        variant: 'destructive'
+        variant: 'destructive',
+        title: 'Failed to load jobs',
+        description: err.message || 'Please try again',
+        action: (
+          <Button variant="outline" size="sm" onClick={() => loadJobsPage(isInitial)}>
+            Retry
+          </Button>
+        )
+      });
+    } finally {
+      setLoadingState(false);
+    }
+  }, [isLoading, isLoadingMore, cursor, activeFilter, isSearchMode, loadCustomerData, convertToJob, refreshStats, toast]);
+
+  // Fast search function
+  const handleSearch = useCallback(async (term: string) => {
+    if (!term.trim()) {
+      setIsSearchMode(false);
+      loadJobsPage(true);
+      return;
+    }
+
+    setIsLoading(true);
+    setIsSearchMode(true);
+    const startTime = performance.now();
+
+    try {
+      let result;
+
+      // Check if it's a phone number (digits only)
+      if (/^\d+$/.test(term)) {
+        result = await supabase.rpc('search_jobs_by_phone', {
+          p_phone: term,
+          p_limit: 50
+        });
+      } else if (term.toUpperCase().startsWith('JB')) {
+        // Job number search
+        result = await supabase.rpc('search_job_by_number', {
+          p_job_number: term.toUpperCase()
+        });
+      } else {
+        // Customer name search
+        result = await supabase.rpc('search_jobs_by_customer_name', {
+          p_name: term,
+          p_limit: 50
+        });
+      }
+
+      const searchTime = performance.now() - startTime;
+      console.log(`Search completed in ${searchTime.toFixed(0)}ms`);
+
+      if (result.error) throw result.error;
+
+      const searchResults = (result.data || []).map((row: any) => convertToJob(row));
+      setJobs(searchResults);
+      setHasMore(false);
+
+    } catch (err: any) {
+      console.error('Search error:', err);
+      toast({
+        variant: 'destructive',
+        title: 'Search failed',
+        description: err.message
       });
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [convertToJob, loadJobsPage, toast]);
 
-  const filterJobs = async () => {
-    let filtered = jobs;
-
-    // Apply time-based filter
-    const now = new Date();
-    if (activeFilter === 'today') {
-      const todayStart = startOfDay(now);
-      filtered = filtered.filter(j => new Date(j.createdAt) >= todayStart);
-    } else if (activeFilter === 'week') {
-      const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-      filtered = filtered.filter(j => new Date(j.createdAt) >= weekStart);
-    } else if (activeFilter === 'month') {
-      const monthStart = startOfMonth(now);
-      filtered = filtered.filter(j => new Date(j.createdAt) >= monthStart);
-    } else if (activeFilter === 'year') {
-      const yearStart = startOfYear(now);
-      filtered = filtered.filter(j => new Date(j.createdAt) >= yearStart);
-    } else if (activeFilter === 'open') {
-      filtered = filtered.filter(j => j.status === 'pending' || j.status === 'in-progress');
-    } else if (activeFilter === 'parts') {
-      // Get jobs with awaiting parts
-      const { data: partsData } = await supabase
-        .from('job_parts')
-        .select('job_id')
-        .eq('awaiting_stock', true);
-      const partsJobIds = new Set(partsData?.map(p => p.job_id) || []);
-      filtered = filtered.filter(j => partsJobIds.has(j.id));
-    } else if (activeFilter === 'quote') {
-      filtered = filtered.filter(j => (j as any).quotation_status === 'pending');
-    } else if (activeFilter !== 'all') {
-      filtered = filtered.filter(j => j.status === activeFilter);
-    }
-
-    // Apply search query
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(job => 
-        job.jobNumber.toLowerCase().includes(query) ||
-        job.customer.name.toLowerCase().includes(query) ||
-        job.customer.phone.includes(query) ||
-        job.machineCategory.toLowerCase().includes(query) ||
-        job.machineBrand.toLowerCase().includes(query) ||
-        job.machineModel.toLowerCase().includes(query) ||
-        job.problemDescription.toLowerCase().includes(query)
-      );
-    }
-    
-    setFilteredJobs(filtered);
+  const resetSearch = () => {
+    setSearchQuery('');
+    setDebouncedSearch('');
+    setIsSearchMode(false);
+    loadJobsPage(true);
   };
 
   const handleExportJobs = () => {
@@ -237,19 +307,20 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
     }
 
     try {
-      await jobBookingDB.deleteJob(job.id);
-      
-      // Optimistic update - remove from list immediately
-      setJobs(prevJobs => prevJobs.filter(j => j.id !== job.id));
-      setFilteredJobs(prevFiltered => prevFiltered.filter(j => j.id !== job.id));
-      
+      const { error } = await supabase
+        .from('jobs_db')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', job.id);
+
+      if (error) throw error;
+
+      setJobs(prev => prev.filter(j => j.id !== job.id));
+
       toast({
         title: 'Success',
         description: 'Job deleted successfully'
       });
-      
-      // Reload to ensure consistency
-      await loadJobs();
+
       refreshStats();
     } catch (error) {
       console.error('Error deleting job:', error);
@@ -258,24 +329,14 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
         description: 'Failed to delete job. Please try again.',
         variant: 'destructive'
       });
-      // Reload on error to restore state
-      await loadJobs();
     }
   };
 
   const handleFilterClick = (filter: string) => {
     setActiveFilter(filter);
+    setSearchQuery('');
+    setIsSearchMode(false);
   };
-
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="text-center text-muted-foreground">Loading jobs...</div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -288,7 +349,7 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
           <CardTitle className="flex items-center justify-between">
             <span>Job Search & Management</span>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={resetPreferences} className="gap-2">
+              <Button variant="outline" size="sm" onClick={resetSearch} className="gap-2">
                 <RotateCcw className="h-4 w-4" />
                 Reset
               </Button>
@@ -304,29 +365,64 @@ export default function JobSearch({ onSelectJob, onEditJob }: JobSearchProps) {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by job number, customer name, phone, or machine..."
+                placeholder="Search by job number, customer name, or phone..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
+              {searchQuery && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-2 top-2"
+                  onClick={resetSearch}
+                >
+                  ✕
+                </Button>
+              )}
             </div>
           </div>
 
           <JobFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
-          {filteredJobs.length === 0 ? (
+          {isLoading && jobs.length === 0 ? (
+            <div className="space-y-2">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
+            </div>
+          ) : jobs.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              {searchQuery || activeFilter !== 'all' ? 'No jobs found matching your criteria.' : 'No jobs created yet.'}
+              {searchQuery ? 'No jobs found matching your search.' : 'No jobs created yet.'}
             </div>
           ) : (
-            <JobsTableVirtualized
-              jobs={filteredJobs}
-              onSelectJob={onSelectJob}
-              onEditJob={onEditJob}
-              onDeleteJob={handleDeleteJob}
-              onNotifyCustomer={(job) => setNotificationJob(job)}
-              onSendEmail={(job) => setEmailJob(job)}
-            />
+            <>
+              <JobsTableVirtualized
+                jobs={jobs}
+                onSelectJob={onSelectJob}
+                onEditJob={onEditJob}
+                onDeleteJob={handleDeleteJob}
+                onNotifyCustomer={(job) => setNotificationJob(job)}
+                onSendEmail={(job) => setEmailJob(job)}
+              />
+              
+              {isLoadingMore && (
+                <div className="flex justify-center py-4">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              )}
+              
+              {!isSearchMode && hasMore && !isLoadingMore && (
+                <div className="flex justify-center pt-4">
+                  <Button 
+                    onClick={() => loadJobsPage(false)}
+                    variant="outline"
+                  >
+                    Load More Jobs
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </CardContent>
       </Card>

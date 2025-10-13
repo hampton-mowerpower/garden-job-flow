@@ -602,6 +602,7 @@ export type Database = {
           is_deleted: boolean | null
           merged_into_id: string | null
           name: string
+          name_lower: string | null
           normalized_email: string | null
           normalized_phone: string | null
           notes: string | null
@@ -626,6 +627,7 @@ export type Database = {
           is_deleted?: boolean | null
           merged_into_id?: string | null
           name: string
+          name_lower?: string | null
           normalized_email?: string | null
           normalized_phone?: string | null
           notes?: string | null
@@ -650,6 +652,7 @@ export type Database = {
           is_deleted?: boolean | null
           merged_into_id?: string | null
           name?: string
+          name_lower?: string | null
           normalized_email?: string | null
           normalized_phone?: string | null
           notes?: string | null
@@ -2224,6 +2227,18 @@ export type Database = {
         Args: { category_id: string }
         Returns: Json
       }
+      get_customers_by_ids: {
+        Args: { p_customer_ids: string[] }
+        Returns: {
+          address: string
+          email: string
+          id: string
+          name: string
+          phone: string
+          postcode: string
+          suburb: string
+        }[]
+      }
       get_daily_takings: {
         Args: { end_date: string; start_date: string }
         Returns: {
@@ -2257,6 +2272,26 @@ export type Database = {
           total_revenue: number
         }[]
       }
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       has_any_role: {
         Args: { _roles: string[]; _user_id: string }
         Returns: boolean
@@ -2268,6 +2303,23 @@ export type Database = {
       link_jobs_to_contacts: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      list_jobs_page: {
+        Args: { p_before?: string; p_limit?: number; p_status?: string }
+        Returns: {
+          balance_due: number
+          created_at: string
+          customer_id: string
+          grand_total: number
+          id: string
+          job_number: string
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial: string
+          problem_description: string
+          status: string
+        }[]
       }
       merge_brands: {
         Args: { duplicate_ids: string[]; primary_id: string }
@@ -2297,9 +2349,74 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      search_job_by_number: {
+        Args: { p_job_number: string }
+        Returns: {
+          balance_due: number
+          created_at: string
+          customer_id: string
+          grand_total: number
+          id: string
+          job_number: string
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial: string
+          problem_description: string
+          status: string
+        }[]
+      }
+      search_jobs_by_customer_name: {
+        Args: { p_limit?: number; p_name: string }
+        Returns: {
+          balance_due: number
+          created_at: string
+          customer_id: string
+          customer_name: string
+          customer_phone: string
+          grand_total: number
+          id: string
+          job_number: string
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          problem_description: string
+          status: string
+        }[]
+      }
+      search_jobs_by_phone: {
+        Args: { p_limit?: number; p_phone: string }
+        Returns: {
+          balance_due: number
+          created_at: string
+          customer_id: string
+          customer_name: string
+          customer_phone: string
+          grand_total: number
+          id: string
+          job_number: string
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          problem_description: string
+          status: string
+        }[]
+      }
       seed_super_admin: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
       }
       upsert_contact: {
         Args: {
