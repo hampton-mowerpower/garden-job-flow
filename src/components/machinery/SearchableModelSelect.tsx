@@ -85,35 +85,42 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
   }, [brandId]);
 
   const handleQuickAdd = async (name: string) => {
-    // If brandId isn't loaded yet, fetch it directly
-    let currentBrandId = brandId;
-    
-    if (!currentBrandId && brandName) {
+    try {
+      // ALWAYS fetch fresh brand ID to avoid timing issues
+      let currentBrandId = brandId;
+      
+      if (!brandName) {
+        toast({
+          title: 'Error',
+          description: 'Please select a brand first',
+          variant: 'destructive'
+        });
+        throw new Error('No brand selected');
+      }
+      
       console.log('[SearchableModelSelect] Fetching brand ID for:', brandName);
-      const { data } = await supabase
+      const { data: brandData } = await supabase
         .from('brands')
         .select('id')
         .eq('name', brandName)
         .eq('active', true)
         .maybeSingle();
       
-      currentBrandId = data?.id || null;
+      currentBrandId = brandData?.id || null;
       if (currentBrandId) {
         setBrandId(currentBrandId);
       }
-    }
     
-    if (!currentBrandId) {
-      toast({
-        title: 'Error',
-        description: 'Please select a brand first',
-        variant: 'destructive'
-      });
-      throw new Error('No brand selected');
-    }
+      if (!currentBrandId) {
+        toast({
+          title: 'Error',
+          description: 'Brand not found. Please reselect brand.',
+          variant: 'destructive'
+        });
+        throw new Error('Brand not found');
+      }
 
-    try {
-      console.log('[SearchableModelSelect] Creating model:', name);
+      console.log('[SearchableModelSelect] Creating model:', name, 'for brand ID:', currentBrandId);
       
       // Normalize and title case the name
       const titleCaseName = name
@@ -121,8 +128,6 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
         .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
-
-      console.log('[SearchableModelSelect] Inserting:', { titleCaseName, brandId: currentBrandId });
 
       const { data, error } = await supabase
         .from('machinery_models')
@@ -136,8 +141,8 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
 
       if (error) {
         console.error('[SearchableModelSelect] Insert error:', error);
+        // Unique constraint violation - model already exists
         if (error.code === '23505') {
-          // Model already exists for this brand - find and select it
           const { data: existing } = await supabase
             .from('machinery_models')
             .select('id, name')
@@ -149,10 +154,7 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
           if (existing) {
             onValueChange(existing.name);
             await searchModels('');
-            toast({
-              title: 'Model selected',
-              description: `"${existing.name}" already exists and has been selected`
-            });
+            // Silent selection - no toast for existing items
             return;
           }
         }
@@ -163,19 +165,14 @@ export function SearchableModelSelect({ value, onValueChange, brandName, disable
 
       toast({
         title: 'Saved ✓',
-        description: `Model "${titleCaseName}" created`
+        description: `Model "${titleCaseName}" added`
       });
 
-      // Set value first so the UI shows it immediately
       onValueChange(data.name);
-      console.log('[SearchableModelSelect] Value set to:', data.name);
-      
-      // Then refresh options in background
       await searchModels('');
-      console.log('[SearchableModelSelect] Options refreshed');
     } catch (error: any) {
       console.error('[SearchableModelSelect] Error creating model:', error);
-      if (error.message !== 'No brand selected') {
+      if (!error.message.includes('No brand') && !error.message.includes('Brand not found')) {
         toast({
           title: 'Error',
           description: error.message || 'Failed to create model',

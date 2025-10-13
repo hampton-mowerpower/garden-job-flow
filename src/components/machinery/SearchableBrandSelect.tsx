@@ -85,35 +85,42 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
   }, [categoryId]);
 
   const handleQuickAdd = async (name: string) => {
-    // If categoryId isn't loaded yet, fetch it directly
-    let currentCategoryId = categoryId;
-    
-    if (!currentCategoryId && categoryName) {
+    try {
+      // ALWAYS fetch fresh category ID to avoid timing issues
+      let currentCategoryId = categoryId;
+      
+      if (!categoryName) {
+        toast({
+          title: 'Error',
+          description: 'Please select a category first',
+          variant: 'destructive'
+        });
+        throw new Error('No category selected');
+      }
+      
       console.log('[SearchableBrandSelect] Fetching category ID for:', categoryName);
-      const { data } = await supabase
+      const { data: catData } = await supabase
         .from('categories')
         .select('id')
         .eq('name', categoryName)
         .eq('active', true)
         .maybeSingle();
       
-      currentCategoryId = data?.id || null;
+      currentCategoryId = catData?.id || null;
       if (currentCategoryId) {
         setCategoryId(currentCategoryId);
       }
-    }
     
-    if (!currentCategoryId) {
-      toast({
-        title: 'Error',
-        description: 'Please select a category first',
-        variant: 'destructive'
-      });
-      throw new Error('No category selected');
-    }
+      if (!currentCategoryId) {
+        toast({
+          title: 'Error',
+          description: 'Category not found. Please reselect category.',
+          variant: 'destructive'
+        });
+        throw new Error('Category not found');
+      }
 
-    try {
-      console.log('[SearchableBrandSelect] Creating brand:', name);
+      console.log('[SearchableBrandSelect] Creating brand:', name, 'for category ID:', currentCategoryId);
       
       // Normalize and title case the name
       const titleCaseName = name
@@ -121,8 +128,6 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
         .split(/\s+/)
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
-
-      console.log('[SearchableBrandSelect] Inserting:', { titleCaseName, categoryId: currentCategoryId });
 
       const { data, error } = await supabase
         .from('brands')
@@ -136,8 +141,8 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
 
       if (error) {
         console.error('[SearchableBrandSelect] Insert error:', error);
+        // Unique constraint violation - brand already exists
         if (error.code === '23505') {
-          // Brand already exists in this category - find and select it
           const { data: existing } = await supabase
             .from('brands')
             .select('id, name')
@@ -149,10 +154,7 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
           if (existing) {
             onValueChange(existing.name);
             await searchBrands('');
-            toast({
-              title: 'Brand selected',
-              description: `"${existing.name}" already exists and has been selected`
-            });
+            // Silent selection - no toast for existing items
             return;
           }
         }
@@ -163,23 +165,20 @@ export function SearchableBrandSelect({ value, onValueChange, categoryName, disa
 
       toast({
         title: 'Saved ✓',
-        description: `Brand "${titleCaseName}" created`
+        description: `Brand "${titleCaseName}" added`
       });
 
-      // Set value first so the UI shows it immediately
       onValueChange(data.name);
-      console.log('[SearchableBrandSelect] Value set to:', data.name);
-      
-      // Then refresh options in background
       await searchBrands('');
-      console.log('[SearchableBrandSelect] Options refreshed');
     } catch (error: any) {
       console.error('[SearchableBrandSelect] Error creating brand:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create brand',
-        variant: 'destructive'
-      });
+      if (!error.message.includes('No category') && !error.message.includes('Category not found')) {
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to create brand',
+          variant: 'destructive'
+        });
+      }
       throw error;
     }
   };

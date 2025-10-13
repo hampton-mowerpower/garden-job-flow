@@ -68,8 +68,6 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
         .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 
-      console.log('[SearchableCategorySelect] Inserting:', titleCaseName);
-
       const { data, error } = await supabase
         .from('categories')
         .insert({
@@ -82,22 +80,19 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
 
       if (error) {
         console.error('[SearchableCategorySelect] Insert error:', error);
+        // Unique constraint violation - category already exists
         if (error.code === '23505') {
-          // Category already exists - find and select it
           const { data: existing } = await supabase
             .from('categories')
             .select('id, name')
             .ilike('name', titleCaseName)
             .eq('active', true)
-            .single();
+            .maybeSingle();
           
           if (existing) {
             onValueChange(existing.name);
             await searchCategories('');
-            toast({
-              title: 'Category selected',
-              description: `"${existing.name}" already exists and has been selected`
-            });
+            // Silent selection - no toast for existing items
             return;
           }
         }
@@ -108,16 +103,11 @@ export function SearchableCategorySelect({ value, onValueChange, disabled }: Sea
 
       toast({
         title: 'Saved ✓',
-        description: `Category "${titleCaseName}" created`
+        description: `Category "${titleCaseName}" added`
       });
 
-      // Set value first so the UI shows it immediately
       onValueChange(data.name);
-      console.log('[SearchableCategorySelect] Value set to:', data.name);
-      
-      // Then refresh options in background
       await searchCategories('');
-      console.log('[SearchableCategorySelect] Options refreshed');
     } catch (error: any) {
       console.error('[SearchableCategorySelect] Error creating category:', error);
       toast({
