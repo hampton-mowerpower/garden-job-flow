@@ -135,6 +135,48 @@ export type Database = {
         }
         Relationships: []
       }
+      accounts: {
+        Row: {
+          abn: string | null
+          active: boolean
+          billing_address: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          name_norm: string | null
+          notes: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          abn?: string | null
+          active?: boolean
+          billing_address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          name_norm?: string | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          abn?: string | null
+          active?: boolean
+          billing_address?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          name_norm?: string | null
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -354,6 +396,77 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contacts: {
+        Row: {
+          account_id: string | null
+          active: boolean
+          address: string | null
+          created_at: string
+          customer_type: string | null
+          email: string | null
+          email_lower: string | null
+          first_name: string
+          full_name: string | null
+          id: string
+          last_name: string | null
+          name_norm: string | null
+          notes: string | null
+          phone: string | null
+          phone_e164: string | null
+          postcode: string | null
+          suburb: string | null
+          updated_at: string
+        }
+        Insert: {
+          account_id?: string | null
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          customer_type?: string | null
+          email?: string | null
+          email_lower?: string | null
+          first_name: string
+          full_name?: string | null
+          id?: string
+          last_name?: string | null
+          name_norm?: string | null
+          notes?: string | null
+          phone?: string | null
+          phone_e164?: string | null
+          postcode?: string | null
+          suburb?: string | null
+          updated_at?: string
+        }
+        Update: {
+          account_id?: string | null
+          active?: boolean
+          address?: string | null
+          created_at?: string
+          customer_type?: string | null
+          email?: string | null
+          email_lower?: string | null
+          first_name?: string
+          full_name?: string | null
+          id?: string
+          last_name?: string | null
+          name_norm?: string | null
+          notes?: string | null
+          phone?: string | null
+          phone_e164?: string | null
+          postcode?: string | null
+          suburb?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -1070,11 +1183,13 @@ export type Database = {
       jobs_db: {
         Row: {
           account_customer_id: string | null
+          account_id: string | null
           additional_notes: string | null
           assigned_technician: string | null
           attachments: Json | null
           balance_due: number
           completed_at: string | null
+          contact_id: string | null
           created_at: string
           customer_id: string
           customer_type: Database["public"]["Enums"]["customer_type"] | null
@@ -1126,11 +1241,13 @@ export type Database = {
         }
         Insert: {
           account_customer_id?: string | null
+          account_id?: string | null
           additional_notes?: string | null
           assigned_technician?: string | null
           attachments?: Json | null
           balance_due?: number
           completed_at?: string | null
+          contact_id?: string | null
           created_at?: string
           customer_id: string
           customer_type?: Database["public"]["Enums"]["customer_type"] | null
@@ -1182,11 +1299,13 @@ export type Database = {
         }
         Update: {
           account_customer_id?: string | null
+          account_id?: string | null
           additional_notes?: string | null
           assigned_technician?: string | null
           attachments?: Json | null
           balance_due?: number
           completed_at?: string | null
+          contact_id?: string | null
           created_at?: string
           customer_id?: string
           customer_type?: Database["public"]["Enums"]["customer_type"] | null
@@ -1245,10 +1364,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "jobs_db_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "jobs_db_assigned_technician_fkey"
             columns: ["assigned_technician"]
             isOneToOne: false
             referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "jobs_db_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
             referencedColumns: ["id"]
           },
           {
