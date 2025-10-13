@@ -20,6 +20,7 @@ interface JobsTableVirtualizedProps {
   onNotifyCustomer: (job: Job) => void;
   onSendEmail: (job: Job) => void;
   highlightedJobId?: string | null;
+  onUpdateJob?: (jobId: string, updates: Partial<Job>) => void;
 }
 
 export function JobsTableVirtualized({ 
@@ -29,7 +30,8 @@ export function JobsTableVirtualized({
   onDeleteJob,
   onNotifyCustomer,
   onSendEmail,
-  highlightedJobId 
+  highlightedJobId,
+  onUpdateJob 
 }: JobsTableVirtualizedProps) {
   const { toast } = useToast();
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
@@ -121,24 +123,31 @@ export function JobsTableVirtualized({
                     <h3 className="font-semibold text-lg">#{job.jobNumber}</h3>
                     
                     {/* Inline Status Editor */}
-                    <Select
-                      value={job.status}
-                      onValueChange={(value) => handleStatusChange(job, value as Job['status'])}
-                      disabled={updatingStatus === job.id}
-                    >
-                      <SelectTrigger className={`w-[160px] h-7 ${getStatusColor(job.status)} border`}>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="awaiting_parts">Awaiting Parts</SelectItem>
-                        <SelectItem value="awaiting_quote">Awaiting Quote</SelectItem>
-                        <SelectItem value="in-progress">In Progress</SelectItem>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="delivered">Delivered</SelectItem>
-                        <SelectItem value="write_off">Write Off</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <div className="flex items-center gap-2">
+                      <Select
+                        value={job.status}
+                        onValueChange={(value) => handleStatusChange(job, value as Job['status'])}
+                        disabled={updatingStatus === job.id}
+                      >
+                        <SelectTrigger className={`w-[160px] h-7 ${getStatusColor(job.status)} border`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="awaiting_parts">Awaiting Parts</SelectItem>
+                          <SelectItem value="awaiting_quote">Awaiting Quote</SelectItem>
+                          <SelectItem value="in-progress">In Progress</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="delivered">Delivered</SelectItem>
+                          <SelectItem value="write_off">Write Off</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {updatingStatus === job.id && (
+                        <span className="text-xs text-muted-foreground animate-pulse">
+                          Saving...
+                        </span>
+                      )}
+                    </div>
                     {hasWaitingParts(job) && (
                       <Badge className="bg-orange-100 text-orange-800">
                         <Package className="h-3 w-3 mr-1" />

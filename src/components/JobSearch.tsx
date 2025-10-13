@@ -53,6 +53,17 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [highlightedJobId, setHighlightedJobId] = useState<string | null>(null);
 
+  // Handler to update a specific job in the list without refetching
+  const handleUpdateJob = useCallback((jobId: string, updates: Partial<Job>) => {
+    setJobs(prevJobs => 
+      prevJobs.map(job => 
+        job.id === jobId 
+          ? { ...job, ...updates }
+          : job
+      )
+    );
+  }, []);
+
   // Restore state if coming back from edit
   useEffect(() => {
     if (restoredState) {
@@ -449,6 +460,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
           onNotifyCustomer={(job) => setNotificationJob(job)}
           onSendEmail={(job) => setEmailJob(job)}
           highlightedJobId={highlightedJobId}
+          onUpdateJob={handleUpdateJob}
         />
               
               {isLoadingMore && (
