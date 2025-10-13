@@ -15,9 +15,10 @@ interface DuplicateGroup {
   normalized_name: string;
   ids: string[];
   names: string[];
-  job_count: number;
+  brand_count?: number;
   part_count?: number;
   model_count?: number;
+  category_name?: string;
 }
 
 export function DuplicatesManager() {
@@ -41,7 +42,7 @@ export function DuplicatesManager() {
           normalized_name: dup.normalized_name,
           ids: dup.category_ids,
           names: dup.category_names,
-          job_count: parseInt(dup.job_count),
+          brand_count: parseInt(dup.brand_count),
           part_count: parseInt(dup.part_count)
         }))
       );
@@ -57,7 +58,7 @@ export function DuplicatesManager() {
           normalized_name: dup.normalized_name,
           ids: dup.brand_ids,
           names: dup.brand_names,
-          job_count: parseInt(dup.job_count),
+          category_name: dup.category_name,
           model_count: parseInt(dup.model_count)
         }))
       );
@@ -177,7 +178,7 @@ function CategoryDuplicateGroup({ group, onMerged }: { group: DuplicateGroup; on
       return;
     }
 
-    if (!confirm(`Merge ${duplicateIds.length} duplicate(s) into the primary category? This will update ${group.job_count} jobs and ${group.part_count} parts.`)) {
+    if (!confirm(`Merge ${duplicateIds.length} duplicate(s) into the primary category? This will affect ${group.brand_count} brands and ${group.part_count} parts.`)) {
       return;
     }
 
@@ -194,7 +195,7 @@ function CategoryDuplicateGroup({ group, onMerged }: { group: DuplicateGroup; on
       const result = data as any;
       toast({
         title: 'Success',
-        description: `Merged ${result.merged_count} duplicate(s). Updated ${result.affected_jobs} jobs and ${result.affected_parts} parts.`
+        description: `Merged ${result.merged_count} duplicate(s). Updated ${result.affected_brands} brands and ${result.affected_parts} parts.`
       });
 
       onMerged();
@@ -216,7 +217,7 @@ function CategoryDuplicateGroup({ group, onMerged }: { group: DuplicateGroup; on
         <div>
           <h4 className="font-semibold">"{group.normalized_name}"</h4>
           <p className="text-sm text-muted-foreground">
-            {group.job_count} jobs • {group.part_count} parts
+            {group.brand_count} brands • {group.part_count} parts
           </p>
         </div>
         <Badge variant="destructive">{group.ids.length} duplicates</Badge>
@@ -264,7 +265,8 @@ function BrandDuplicateGroup({ group, onMerged }: { group: DuplicateGroup; onMer
       return;
     }
 
-    if (!confirm(`Merge ${duplicateIds.length} duplicate(s) into the primary brand? This will update ${group.job_count} jobs and ${group.model_count} models.`)) {
+    const categoryInfo = group.category_name ? ` in "${group.category_name}"` : '';
+    if (!confirm(`Merge ${duplicateIds.length} duplicate(s) into the primary brand${categoryInfo}? This will affect ${group.model_count} models.`)) {
       return;
     }
 
@@ -281,7 +283,7 @@ function BrandDuplicateGroup({ group, onMerged }: { group: DuplicateGroup; onMer
       const result = data as any;
       toast({
         title: 'Success',
-        description: `Merged ${result.merged_count} duplicate(s). Updated ${result.affected_jobs} jobs and ${result.affected_models} models.`
+        description: `Merged ${result.merged_count} duplicate(s). Updated ${result.affected_models} models and ${result.affected_jobs} jobs.`
       });
 
       onMerged();
@@ -303,7 +305,8 @@ function BrandDuplicateGroup({ group, onMerged }: { group: DuplicateGroup; onMer
         <div>
           <h4 className="font-semibold">"{group.normalized_name}"</h4>
           <p className="text-sm text-muted-foreground">
-            {group.job_count} jobs • {group.model_count} models
+            {group.category_name && <span className="font-medium">{group.category_name} • </span>}
+            {group.model_count} models
           </p>
         </div>
         <Badge variant="destructive">{group.ids.length} duplicates</Badge>

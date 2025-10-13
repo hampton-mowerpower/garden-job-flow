@@ -2019,7 +2019,7 @@ export type Database = {
           brand_ids: string[]
           brand_names: string[]
           category_id: string
-          job_count: number
+          category_name: string
           model_count: number
           normalized_name: string
         }[]
@@ -2027,9 +2027,9 @@ export type Database = {
       find_duplicate_categories: {
         Args: Record<PropertyKey, never>
         Returns: {
+          brand_count: number
           category_ids: string[]
           category_names: string[]
-          job_count: number
           normalized_name: string
           part_count: number
         }[]
@@ -2111,7 +2111,7 @@ export type Database = {
         Returns: Json
       }
       normalize_name: {
-        Args: { input_name: string }
+        Args: { input_text: string }
         Returns: string
       }
       seed_super_admin: {
