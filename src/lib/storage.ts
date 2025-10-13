@@ -671,14 +671,34 @@ class JobBookingDB {
 
   // Utility function to generate next job number
   async getNextJobNumber(): Promise<string> {
-    const jobs = await this.getAllJobs();
     const currentYear = new Date().getFullYear();
-    const yearJobs = jobs.filter(job => 
-      new Date(job.createdAt).getFullYear() === currentYear
-    );
+    const yearPrefix = `JB${currentYear}-`;
     
-    const nextNumber = yearJobs.length + 1;
-    return `JB${currentYear}-${nextNumber.toString().padStart(4, '0')}`;
+    // Query jobs for the current year and get the maximum job number
+    const { data: jobs, error } = await supabase
+      .from('jobs_db')
+      .select('job_number')
+      .like('job_number', `${yearPrefix}%`)
+      .order('job_number', { ascending: false })
+      .limit(1);
+    
+    if (error) {
+      console.error('Error fetching job numbers:', error);
+      throw error;
+    }
+    
+    let nextNumber = 1;
+    
+    if (jobs && jobs.length > 0) {
+      // Extract the number from the last job number (e.g., "JB2025-0003" -> 3)
+      const lastJobNumber = jobs[0].job_number;
+      const match = lastJobNumber.match(/JB\d{4}-(\d{4})/);
+      if (match) {
+        nextNumber = parseInt(match[1], 10) + 1;
+      }
+    }
+    
+    return `${yearPrefix}${nextNumber.toString().padStart(4, '0')}`;
   }
 
   // Export/Import functions

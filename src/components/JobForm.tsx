@@ -83,6 +83,9 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
   const [showNotificationDialog, setShowNotificationDialog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   
+  // Track if form has been initialized to prevent duplicate job numbers
+  const initializedRef = React.useRef(false);
+  
   // Delete handler
   const handleDeleteJob = async () => {
     if (!job || !job.id) return;
@@ -337,7 +340,13 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
     .join(', ');
 
   useEffect(() => {
+    // Prevent re-initialization for new jobs
+    if (!job && initializedRef.current) {
+      return;
+    }
+    
     initializeForm();
+    initializedRef.current = true;
   }, [job]);
 
   useEffect(() => {
@@ -1077,14 +1086,36 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
       
       // Don't call onSave for edits - stay on the page
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving job:', error);
       setAutoSaveStatus('idle');
-      toast({
-        title: t('msg.error'),
-        description: t('msg.job.failed'),
-        variant: "destructive"
-      });
+      
+      // Handle specific error cases
+      if (error?.code === '23505' && error?.message?.includes('job_number_key')) {
+        // Duplicate job number - try to regenerate and retry
+        try {
+          const newJobNumber = await jobBookingDB.getNextJobNumber();
+          setJobNumber(newJobNumber);
+          toast({
+            title: 'Duplicate Job Number Detected',
+            description: 'Generated new job number. Please click Save again.',
+            variant: "destructive"
+          });
+        } catch (regenerateError) {
+          console.error('Failed to regenerate job number:', regenerateError);
+          toast({
+            title: 'Error Generating Job Number',
+            description: 'Please refresh the page and try again.',
+            variant: "destructive"
+          });
+        }
+      } else {
+        toast({
+          title: 'Error Saving Job',
+          description: error?.message || 'An unexpected error occurred. Please try again.',
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsLoading(false);
     }
