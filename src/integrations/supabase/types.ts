@@ -2248,6 +2248,76 @@ export type Database = {
           total_revenue: number
         }[]
       }
+      get_job_details: {
+        Args: { p_job_id: string }
+        Returns: {
+          additional_notes: string
+          assigned_technician: string
+          balance_due: number
+          completed_at: string
+          created_at: string
+          customer_address: string
+          customer_email: string
+          customer_id: string
+          customer_name: string
+          customer_phone: string
+          customer_postcode: string
+          customer_suburb: string
+          grand_total: number
+          gst: number
+          id: string
+          job_number: string
+          labour_hours: number
+          labour_rate: number
+          labour_total: number
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial: string
+          notes: string
+          parts_subtotal: number
+          problem_description: string
+          quotation_amount: number
+          quotation_status: string
+          recommendations: string
+          requested_finish_date: string
+          service_deposit: number
+          service_performed: string
+          sharpen_total_charge: number
+          small_repair_total: number
+          status: string
+          subtotal: number
+          transport_delivery_required: boolean
+          transport_pickup_required: boolean
+          transport_total_charge: number
+          updated_at: string
+        }[]
+      }
+      get_machine_brands: {
+        Args: { p_category_id?: string }
+        Returns: {
+          category_id: string
+          id: string
+          name: string
+        }[]
+      }
+      get_machine_categories: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          display_order: number
+          id: string
+          name: string
+          rate_default: number
+        }[]
+      }
+      get_machine_models: {
+        Args: { p_brand_id?: string }
+        Returns: {
+          brand_id: string
+          id: string
+          name: string
+        }[]
+      }
       get_parts_usage_report: {
         Args: { end_date: string; start_date: string }
         Returns: {
