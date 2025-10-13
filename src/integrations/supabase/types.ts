@@ -410,6 +410,7 @@ export type Database = {
           address: string | null
           created_at: string
           customer_type: string | null
+          display_name: string | null
           email: string | null
           email_lower: string | null
           first_name: string
@@ -431,6 +432,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           customer_type?: string | null
+          display_name?: string | null
           email?: string | null
           email_lower?: string | null
           first_name: string
@@ -452,6 +454,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           customer_type?: string | null
+          display_name?: string | null
           email?: string | null
           email_lower?: string | null
           first_name?: string
@@ -2251,8 +2254,16 @@ export type Database = {
         Args: { duplicate_ids: string[]; primary_id: string }
         Returns: Json
       }
+      normalize_contact_name: {
+        Args: { txt: string }
+        Returns: string
+      }
       normalize_name: {
         Args: { input_text: string }
+        Returns: string
+      }
+      normalize_phone: {
+        Args: { phone_input: string }
         Returns: string
       }
       recover_citywide_contacts: {
@@ -2262,6 +2273,17 @@ export type Database = {
       seed_super_admin: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      upsert_contact: {
+        Args: {
+          p_account_id: string
+          p_email?: string
+          p_first_name: string
+          p_last_name?: string
+          p_phone?: string
+          p_tenant_id?: string
+        }
+        Returns: string
       }
     }
     Enums: {

@@ -123,6 +123,36 @@ class JobBookingDB {
     // First save customer and get the returned customer with UUID
     const savedCustomer = await this.saveCustomer(job.customer);
     
+    // If job has an account, upsert a contact and link to it
+    let contactId = null;
+    if (job.accountCustomerId) {
+      try {
+        // Parse customer name into first and last
+        const nameParts = savedCustomer.name.trim().split(' ');
+        const firstName = nameParts[0];
+        const lastName = nameParts.slice(1).join(' ');
+
+        // Use the upsert_contact function
+        const { data: contactIdData, error: contactError } = await supabase
+          .rpc('upsert_contact', {
+            p_account_id: job.accountCustomerId,
+            p_first_name: firstName,
+            p_last_name: lastName || null,
+            p_phone: savedCustomer.phone || null,
+            p_email: savedCustomer.email || null,
+          });
+
+        if (contactError) {
+          console.error('Contact upsert error:', contactError);
+        } else {
+          contactId = contactIdData;
+        }
+      } catch (error) {
+        console.error('Failed to upsert contact:', error);
+        // Don't block the job save if contact creation fails
+      }
+    }
+    
     const jobData: any = {
       job_number: job.jobNumber,
       customer_id: savedCustomer.id,
@@ -179,8 +209,9 @@ class JobBookingDB {
       small_repair_minutes: job.smallRepairMinutes || 0,
       small_repair_rate: job.smallRepairRate || 0,
       small_repair_total: job.smallRepairTotal || 0,
-      // Account Customer link
+      // Account Customer and Contact links
       account_customer_id: job.accountCustomerId || null,
+      contact_id: contactId,
       updated_at: new Date().toISOString()
     };
     

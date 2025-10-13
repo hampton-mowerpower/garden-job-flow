@@ -106,25 +106,22 @@ export function AccountContactManager() {
 
     try {
       setLoading(true);
-      const fullName = `${newContact.firstName} ${newContact.lastName}`.trim();
       
-      const { error } = await supabase
-        .from('contacts')
-        .insert({
-          account_id: selectedAccountId,
-          first_name: newContact.firstName,
-          last_name: newContact.lastName,
-          full_name: fullName,
-          phone: newContact.phone || null,
-          email: newContact.email || null,
-          active: true,
-        });
+      // Use the upsert_contact function to handle normalization and deduplication
+      const { data, error } = await supabase.rpc('upsert_contact', {
+        p_account_id: selectedAccountId,
+        p_first_name: newContact.firstName,
+        p_last_name: newContact.lastName || null,
+        p_phone: newContact.phone || null,
+        p_email: newContact.email || null,
+      });
 
       if (error) throw error;
 
+      const fullName = `${newContact.firstName} ${newContact.lastName}`.trim();
       toast({
         title: 'Success',
-        description: `Contact ${fullName} added successfully`,
+        description: `Contact ${fullName} saved successfully`,
       });
 
       // Reset form and reload
@@ -135,7 +132,7 @@ export function AccountContactManager() {
       console.error('Error adding contact:', error);
       toast({
         title: 'Error',
-        description: 'Failed to add contact',
+        description: error.message || 'Failed to add contact',
         variant: 'destructive',
       });
     } finally {

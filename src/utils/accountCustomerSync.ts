@@ -35,7 +35,7 @@ export async function syncJobToAccountCustomer(job: Job): Promise<void> {
       .from('account_customer_history')
       .insert({
         account_customer_id: job.accountCustomerId,
-        kind: 'job_cost',
+        kind: 'service',
         ref_id: job.id,
         summary: summary,
         amount: job.grandTotal,

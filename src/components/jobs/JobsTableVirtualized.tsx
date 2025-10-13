@@ -144,6 +144,9 @@ export function JobsTableVirtualized({
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-muted-foreground">
                     <div>
                       <p className="font-medium text-foreground">{job.customer.name}</p>
+                      {job.jobCompanyName && (
+                        <p className="text-xs">({job.jobCompanyName})</p>
+                      )}
                       <p>{job.customer.phone}</p>
                     </div>
                     <div>
