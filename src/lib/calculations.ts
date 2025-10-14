@@ -25,14 +25,15 @@ export function calculateJobTotals(
   discountValue?: number,
   transportTotal: number = 0,
   sharpenTotal: number = 0,
-  smallRepairTotal: number = 0
+  smallRepairTotal: number = 0,
+  salesTotal: number = 0 // NEW: Unpaid sales total
 ): JobCalculations {
   // All input prices are GST-inclusive
   const partsSubtotal = parts.reduce((sum, part) => sum + part.totalPrice, 0);
   const labourTotal = labourHours * labourRate;
   
   // Subtotal is sum of all GST-inclusive amounts
-  const subtotal = partsSubtotal + labourTotal + transportTotal + sharpenTotal + smallRepairTotal;
+  const subtotal = partsSubtotal + labourTotal + transportTotal + sharpenTotal + smallRepairTotal + salesTotal;
   
   // Calculate discount on the GST-inclusive subtotal
   let discountAmount = 0;

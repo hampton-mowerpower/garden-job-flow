@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, BarChart3, Settings } from 'lucide-react';
+import { Plus, Search, BarChart3, Settings, Wrench } from 'lucide-react';
 import { Job } from '@/types/job';
 import { formatCurrency } from '@/lib/calculations';
 import JobForm from '@/components/JobForm';
@@ -9,10 +9,11 @@ import JobSearch from '@/components/JobSearch';
 import { AdminSettings } from '@/components/AdminSettings';
 
 export const JobManager = () => {
-  const [activeView, setActiveView] = useState<'dashboard' | 'create' | 'search' | 'admin'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'create' | 'create-small-repair' | 'search' | 'admin'>('dashboard');
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [editingJob, setEditingJob] = useState<Job | null>(null);
   const [listState, setListState] = useState<any>(null);
+  const [jobType, setJobType] = useState<'service' | 'small_repair'>('service');
 
   const handleJobSave = (job: Job) => {
     setSelectedJob(job);
@@ -42,10 +43,19 @@ export const JobManager = () => {
     setEditingJob(null);
     setSelectedJob(null);
     setListState(null); // Clear list state for new job
+    setJobType('service');
     setActiveView('create');
   };
 
-  if (activeView === 'create') {
+  const handleCreateSmallRepair = () => {
+    setEditingJob(null);
+    setSelectedJob(null);
+    setListState(null);
+    setJobType('small_repair');
+    setActiveView('create-small-repair');
+  };
+
+  if (activeView === 'create' || activeView === 'create-small-repair') {
     return (
       <div className="space-y-6">
         <div>
@@ -57,14 +67,15 @@ export const JobManager = () => {
             ← Back to Dashboard
           </Button>
           <h1 className="text-3xl font-bold text-primary mb-2">
-            {editingJob ? 'Edit Job' : 'Create New Job'}
+            {editingJob ? 'Edit Job' : activeView === 'create-small-repair' ? 'Small Repair & Sharpening' : 'Service Job Booking'}
           </h1>
           <p className="text-muted-foreground">
-            {editingJob ? 'Update job details and pricing' : 'Enter customer and machine details to create a new service job'}
+            {editingJob ? 'Update job details and pricing' : activeView === 'create-small-repair' ? 'Quick jobs for sharpening and small repairs' : 'Create a new service booking'}
           </p>
         </div>
         <JobForm 
           job={editingJob || undefined} 
+          jobType={activeView === 'create-small-repair' ? 'small_repair' : 'service'}
           onSave={handleJobSave}
           onPrint={handleSelectJob}
           onReturnToList={editingJob ? handleReturnToList : undefined}
@@ -124,17 +135,31 @@ export const JobManager = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleCreateNew}>
           <CardHeader className="text-center">
             <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
               <Plus className="h-6 w-6 text-primary" />
             </div>
-            <CardTitle>Create New Job</CardTitle>
+            <CardTitle>Service Job Booking</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground text-center">
-              Start a new service job with customer details, machine info, and pricing
+              Create a new service booking
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow" onClick={handleCreateSmallRepair}>
+          <CardHeader className="text-center">
+            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+              <Wrench className="h-6 w-6 text-primary" />
+            </div>
+            <CardTitle>Small Repair & Sharpening</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground text-center">
+              Quick jobs for sharpening and small repairs
             </p>
           </CardContent>
         </Card>

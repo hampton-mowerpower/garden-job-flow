@@ -62,11 +62,28 @@ export interface ServiceChecklist {
   categoryName?: string;
 }
 
+// Unpaid sales item interface
+export interface JobSalesItem {
+  id?: string; // optional for new items not yet saved
+  job_id?: string;
+  customer_id?: string;
+  description: string;
+  category: 'new_mower' | 'parts' | 'accessories' | 'other';
+  amount: number;
+  notes?: string;
+  collect_with_job: boolean;
+  paid_status?: 'unpaid' | 'paid';
+  paid_date?: Date;
+}
+
 export interface Job {
   id: string;
   jobNumber: string;
   customerId: string;
   customer: Customer;
+  
+  // Job type
+  jobType?: 'service' | 'small_repair'; // NEW: Type of job
   
   // Machine details
   machineCategory: string;
@@ -154,6 +171,10 @@ export interface Job {
   // Quotation tracking
   quotationStatus?: 'pending' | 'approved' | 'rejected';
   quotationApprovedAt?: Date;
+  
+  // NEW: Unpaid Sales
+  salesItems?: JobSalesItem[]; // Items sold but not yet paid
+  salesTotal?: number; // Total of unpaid sales (when collect_with_job is true)
 }
 
 export interface JobBookingStats {

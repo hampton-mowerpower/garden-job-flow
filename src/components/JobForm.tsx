@@ -43,12 +43,14 @@ import { SharpenSection } from './booking/SharpenSection';
 import { DraggableQuickProblems } from './booking/DraggableQuickProblems';
 import { SharpenItem } from '@/utils/sharpenCalculator';
 import { MachineSizeTier } from '@/utils/transportCalculator';
+import { JobSalesItem } from '@/types/job';
 // Phase 2 imports
 import { CustomerAutocomplete } from './booking/CustomerAutocomplete';
 import { SmallRepairSection } from './booking/SmallRepairSection';
 import { MultiToolAttachments } from './booking/MultiToolAttachments';
 import { RequestedFinishDatePicker } from './booking/RequestedFinishDatePicker';
 import { PartsPicker } from './booking/PartsPicker';
+import { UnpaidSalesSection } from './booking/UnpaidSalesSection';
 import { syncJobToAccountCustomer } from '@/utils/accountCustomerSync';
 import { scheduleServiceReminder, cancelMachineReminders } from '@/utils/reminderScheduler';
 import { useAutoSave } from '@/hooks/useAutoSave';
@@ -58,6 +60,7 @@ const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9
 
 interface JobFormProps {
   job?: Job;
+  jobType?: 'service' | 'small_repair'; // NEW: Type of job to determine which sections to show
   onSave: (job: Job) => void;
   onPrint?: (job: Job) => void;
   onReturnToList?: () => void;
@@ -70,7 +73,7 @@ interface JobFormProps {
   };
 }
 
-export default function JobForm({ job, onSave, onPrint, onReturnToList, listState }: JobFormProps) {
+export default function JobForm({ job, jobType = 'service', onSave, onPrint, onReturnToList, listState }: JobFormProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
   const { categories, getLabourRate, ensureCategoryExists, updateCategoryRateByName } = useCategories();
@@ -225,6 +228,10 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
     breakdown: ''
   });
   
+  // Unpaid Sales state - NEW
+  const [salesItems, setSalesItems] = useState<JobSalesItem[]>([]);
+  const [collectSalesWithJob, setCollectSalesWithJob] = useState(false);
+  
   // Calculations - use Supabase categories for labour rate
   const labourRate = getLabourRate(machineCategory) || 95;
   
@@ -267,6 +274,10 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
   };
   
   // Debug logging for charge calculations
+  const salesTotal = collectSalesWithJob 
+    ? salesItems.reduce((sum, item) => sum + (item.amount || 0), 0)
+    : 0;
+  
   console.log('Calculation inputs:', {
     partsCount: parts.length,
     labourHours,
@@ -275,7 +286,8 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
     sharpenCharge: sharpenData.totalCharge,
     smallRepairCharge: smallRepairData.includeInTotals 
       ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
-      : 0
+      : 0,
+    salesCharge: salesTotal
   });
 
   // Reconcile categories on mount
@@ -318,7 +330,8 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
     sharpenData.totalCharge,
     smallRepairData.includeInTotals 
       ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
-      : 0
+      : 0,
+    salesTotal // Add sales total to calculations
   );
   
   console.log('Base calculations result:', baseCalculations);
@@ -499,6 +512,15 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
         overrideTotal: job.smallRepairTotal > 0 ? job.smallRepairTotal : undefined,
         includeInTotals: (job.smallRepairTotal || 0) > 0
       });
+      
+      // Load unpaid sales data - NEW
+      if (job.salesItems && job.salesItems.length > 0) {
+        setSalesItems(job.salesItems);
+        setCollectSalesWithJob(job.salesItems[0]?.collect_with_job || false);
+      } else {
+        setSalesItems([]);
+        setCollectSalesWithJob(false);
+      }
     } else {
       // New job
       try {
@@ -966,6 +988,10 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
         // Phase 2 fields
         requestedFinishDate,
         attachments,
+        // NEW: Job type and unpaid sales
+        jobType,
+        salesItems,
+        salesTotal: collectSalesWithJob ? salesTotal : 0,
         ...calculations,
         status,
         createdAt: job?.createdAt || new Date(),
@@ -977,6 +1003,44 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
       };
 
       const savedJob = await jobBookingDB.saveJob(jobData);
+      
+      // Save unpaid sales items to Supabase - NEW
+      if (salesItems.length > 0 && savedJob.id) {
+        try {
+          // Delete existing sales items for this job
+          await supabase
+            .from('job_sales_items')
+            .delete()
+            .eq('job_id', savedJob.id);
+          
+          // Insert new sales items
+          const salesItemsToInsert = salesItems.map(item => ({
+            job_id: savedJob.id,
+            customer_id: savedJob.customerId,
+            description: item.description,
+            category: item.category,
+            amount: item.amount,
+            notes: item.notes || null,
+            collect_with_job: collectSalesWithJob,
+            paid_status: 'unpaid' as const
+          }));
+          
+          const { error: salesError } = await supabase
+            .from('job_sales_items')
+            .insert(salesItemsToInsert);
+          
+          if (salesError) {
+            console.error('Error saving sales items:', salesError);
+            toast({
+              title: 'Warning',
+              description: 'Job saved but sales items may not have been saved correctly',
+              variant: 'destructive'
+            });
+          }
+        } catch (error) {
+          console.error('Error managing sales items:', error);
+        }
+      }
       
       // Update local savedJob state immediately so invoice uses fresh data
       setSavedJob(savedJob);
@@ -1381,6 +1445,16 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
             />
           )}
 
+          {/* Unpaid Sales Section - NEW */}
+          <UnpaidSalesSection
+            salesItems={salesItems}
+            collectWithJob={collectSalesWithJob}
+            onChange={(items, collect) => {
+              setSalesItems(items);
+              setCollectSalesWithJob(collect);
+            }}
+          />
+
           {/* Problem Description */}
           <Card className="form-section">
             <CardHeader>
@@ -1422,19 +1496,23 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
             </CardContent>
           </Card>
 
-          {/* Sharpen Section */}
-          <SharpenSection
-            onSharpenChange={setSharpenData}
-            initialData={{
-              items: sharpenData.items
-            }}
-          />
+          {/* Sharpen Section - Only show for small_repair jobs */}
+          {jobType === 'small_repair' && (
+            <SharpenSection
+              onSharpenChange={setSharpenData}
+              initialData={{
+                items: sharpenData.items
+              }}
+            />
+          )}
 
-          {/* Small Repair Section */}
-          <SmallRepairSection
-            data={smallRepairData}
-            onChange={setSmallRepairData}
-          />
+          {/* Small Repair Section - Only show for small_repair jobs */}
+          {jobType === 'small_repair' && (
+            <SmallRepairSection
+              data={smallRepairData}
+              onChange={setSmallRepairData}
+            />
+          )}
 
           {/* Quotation Box */}
           <Card className="form-section border-orange-200 bg-orange-50/50">
@@ -1762,6 +1840,12 @@ export default function JobForm({ job, onSave, onPrint, onReturnToList, listStat
                   </span>
                   <span className="font-medium">{formatCurrency(calculations.labourTotal)}</span>
                 </div>
+                {collectSalesWithJob && salesTotal > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Unpaid Sales</span>
+                    <span className="font-medium">{formatCurrency(salesTotal)}</span>
+                  </div>
+                )}
                 <Separator />
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{t('summary.subtotal')}</span>

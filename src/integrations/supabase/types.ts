@@ -1185,6 +1185,66 @@ export type Database = {
           },
         ]
       }
+      job_sales_items: {
+        Row: {
+          amount: number
+          category: string
+          collect_with_job: boolean | null
+          created_at: string | null
+          customer_id: string
+          description: string
+          id: string
+          job_id: string
+          notes: string | null
+          paid_date: string | null
+          paid_status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          category: string
+          collect_with_job?: boolean | null
+          created_at?: string | null
+          customer_id: string
+          description: string
+          id?: string
+          job_id: string
+          notes?: string | null
+          paid_date?: string | null
+          paid_status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          category?: string
+          collect_with_job?: boolean | null
+          created_at?: string | null
+          customer_id?: string
+          description?: string
+          id?: string
+          job_id?: string
+          notes?: string | null
+          paid_date?: string | null
+          paid_status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_sales_items_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers_db"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_sales_items_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_search_prefs: {
         Row: {
           created_at: string
@@ -1232,6 +1292,7 @@ export type Database = {
           id: string
           job_company_name: string | null
           job_number: string
+          job_type: string | null
           labour_hours: number
           labour_rate: number
           labour_total: number
@@ -1293,6 +1354,7 @@ export type Database = {
           id?: string
           job_company_name?: string | null
           job_number: string
+          job_type?: string | null
           labour_hours?: number
           labour_rate?: number
           labour_total?: number
@@ -1354,6 +1416,7 @@ export type Database = {
           id?: string
           job_company_name?: string | null
           job_number?: string
+          job_type?: string | null
           labour_hours?: number
           labour_rate?: number
           labour_total?: number
