@@ -1673,6 +1673,39 @@ export type Database = {
           },
         ]
       }
+      maintenance_audit: {
+        Row: {
+          action: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          performed_at: string
+          performed_by: string | null
+          rows_affected: number | null
+          table_name: string
+        }
+        Insert: {
+          action: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          performed_at?: string
+          performed_by?: string | null
+          rows_affected?: number | null
+          table_name: string
+        }
+        Update: {
+          action?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          performed_at?: string
+          performed_by?: string | null
+          rows_affected?: number | null
+          table_name?: string
+        }
+        Relationships: []
+      }
       parts_audit_log: {
         Row: {
           action: string
@@ -2569,6 +2602,15 @@ export type Database = {
           p_tenant_id?: string
         }
         Returns: string
+      }
+      validate_job_customer_links: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          customer_id: string
+          issue: string
+          job_number: string
+          severity: string
+        }[]
       }
     }
     Enums: {
