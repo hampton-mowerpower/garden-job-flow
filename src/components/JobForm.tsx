@@ -887,10 +887,19 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
   };
 
   const performSave = async () => {
+    console.log('🔵 [SAVE] Starting performSave...');
+    console.log('🔵 [SAVE] Customer data:', {
+      name: customer.name,
+      phone: customer.phone,
+      email: customer.email,
+      companyName: jobCompanyName
+    });
+    
     setIsLoading(true);
     setAutoSaveStatus('saving');
 
     try {
+      console.log('🔵 [SAVE] Ensuring category exists...');
       // Ensure category exists in Supabase (for new categories added from booking)
       await ensureCategoryExists(machineCategory, labourRate);
 
@@ -972,7 +981,21 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
         accountCustomerId: hasAccount ? accountCustomerId : undefined
       };
 
+      console.log('🔵 [SAVE] Calling jobBookingDB.saveJob with jobData:', {
+        jobNumber: jobData.jobNumber,
+        customerId: jobData.customer.id,
+        customerName: jobData.customer.name,
+        customerPhone: jobData.customer.phone
+      });
+
       const savedJob = await jobBookingDB.saveJob(jobData);
+      
+      console.log('✅ [SAVE] Job saved successfully:', {
+        id: savedJob.id,
+        jobNumber: savedJob.jobNumber,
+        customerId: savedJob.customerId,
+        customerName: savedJob.customer.name
+      });
       
       // Create audit log if customer data changed for existing job
       const isExistingJob = !!(job && job.id);
@@ -984,9 +1007,18 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
       );
 
       if (customerDataChanged && savedJob.id) {
+        console.log('📝 [AUDIT] Customer data changed, creating audit log...');
+        console.log('📝 [AUDIT] Old customer:', originalCustomer);
+        console.log('📝 [AUDIT] New customer:', {
+          name: customerData.name,
+          phone: customerData.phone,
+          email: customerData.email,
+          companyName: jobCompanyName
+        });
+        
         try {
           const { data: userData } = await supabase.auth.getUser();
-          await supabase.from('customer_change_audit').insert({
+          const auditData = {
             job_id: savedJob.id,
             job_number: savedJob.jobNumber,
             old_customer_id: job?.customerId,
@@ -1001,7 +1033,18 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
             new_customer_company: jobCompanyName || null,
             changed_by: userData?.user?.id || null,
             change_reason: 'User manually changed customer information'
-          });
+          };
+          
+          console.log('📝 [AUDIT] Inserting audit log:', auditData);
+          
+          const { error: auditError } = await supabase.from('customer_change_audit').insert(auditData);
+          
+          if (auditError) {
+            console.error('❌ [AUDIT] Failed to create audit log:', auditError);
+            throw auditError;
+          }
+          
+          console.log('✅ [AUDIT] Audit log created successfully');
           
           // Update original customer to new values after successful save
           setOriginalCustomer({
@@ -1196,7 +1239,14 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
       // Don't call onSave for edits - stay on the page
       
     } catch (error: any) {
-      console.error('Error saving job:', error);
+      console.error('❌ [SAVE] Error saving job:', error);
+      console.error('❌ [SAVE] Error details:', {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint
+      });
+      
       setAutoSaveStatus('idle');
       
       // Handle specific error cases
@@ -1225,6 +1275,9 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
           variant: "destructive"
         });
       }
+      
+      // CRITICAL: Re-throw the error so the confirmation dialog knows the save failed
+      throw error;
     } finally {
       setIsLoading(false);
     }
