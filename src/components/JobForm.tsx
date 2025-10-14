@@ -1861,12 +1861,12 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
               
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t('summary.parts')}</span>
+                  <span className="text-muted-foreground">Parts</span>
                   <span className="font-medium">{formatCurrency(calculations.partsSubtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
-                    {t('summary.labour')} ({labourHours} hrs @ {formatCurrency(labourRate)}/hr)
+                    Labour ({labourHours} hrs @ {formatCurrency(labourRate)}/hr)
                   </span>
                   <span className="font-medium">{formatCurrency(calculations.labourTotal)}</span>
                 </div>
@@ -1876,51 +1876,54 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                     <span className="font-medium">{formatCurrency(salesTotal)}</span>
                   </div>
                 )}
-                <Separator />
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t('summary.subtotal')}</span>
-                  <span className="font-medium">{formatCurrency(calculations.subtotal)}</span>
-                </div>
                 
                 {/* Discount Section */}
-                <div className="space-y-2 pt-2 pb-2 border-t">
-                  <Label className="text-xs">Discount</Label>
-                  <div className="flex gap-2">
-                    <Select value={discountType} onValueChange={(v: 'PERCENT' | 'AMOUNT') => setDiscountType(v)}>
-                      <SelectTrigger className="w-[100px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="PERCENT">%</SelectItem>
-                        <SelectItem value="AMOUNT">$</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Input
-                      type="number"
-                      min="0"
-                      step={discountType === 'PERCENT' ? '1' : '0.01'}
-                      max={discountType === 'PERCENT' ? '100' : undefined}
-                      value={discountValue}
-                      onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
-                      placeholder="0"
-                      className="flex-1"
-                    />
-                  </div>
-                  {calculations.discountAmount > 0 && (
-                    <div className="flex justify-between text-sm text-green-600">
-                      <span>Discount Applied:</span>
-                      <span>-{formatCurrency(calculations.discountAmount)}</span>
+                {(discountType && discountValue > 0) && (
+                  <div className="space-y-2 pt-2 pb-2">
+                    <div className="flex gap-2">
+                      <Select value={discountType} onValueChange={(v: 'PERCENT' | 'AMOUNT') => setDiscountType(v)}>
+                        <SelectTrigger className="w-[100px] h-8 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="PERCENT">%</SelectItem>
+                          <SelectItem value="AMOUNT">$</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        type="number"
+                        min="0"
+                        step={discountType === 'PERCENT' ? '1' : '0.01'}
+                        max={discountType === 'PERCENT' ? '100' : undefined}
+                        value={discountValue}
+                        onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
+                        placeholder="0"
+                        className="flex-1 h-8 text-xs"
+                      />
                     </div>
-                  )}
-                </div>
-
+                    {calculations.discountAmount > 0 && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Discount Applied:</span>
+                        <span>-{formatCurrency(calculations.discountAmount)}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
+                <Separator className="my-3" />
+                
+                {/* Simplified totals - ex GST + GST = Total */}
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">{t('summary.gst')}</span>
+                  <span className="text-muted-foreground">Subtotal (ex GST)</span>
+                  <span className="font-medium">{formatCurrency(calculations.subtotalAfterDiscount)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">GST (10%)</span>
                   <span className="font-medium">{formatCurrency(calculations.gst)}</span>
                 </div>
-                <Separator />
+                <Separator className="my-2" />
                 <div className="flex justify-between">
-                  <span className="font-semibold">{t('summary.total')}</span>
+                  <span className="font-semibold">TOTAL (inc GST)</span>
                   <span className="font-bold text-lg">{formatCurrency(calculations.grandTotal)}</span>
                 </div>
               </div>

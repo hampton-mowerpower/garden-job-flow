@@ -38,6 +38,17 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
       .filter(item => item.collect_with_job)
       .reduce((sum, item) => sum + Number(item.amount), 0);
 
+    // Log for debugging totals stability
+    console.info('[Invoice Calculation]', {
+      jobNumber: job.jobNumber,
+      timestamp: new Date().toISOString(),
+      unpaidSalesItems: job.salesItems?.length || 0,
+      unpaidSalesTotal,
+      partsSubtotal: job.partsSubtotal || 0,
+      labourTotal: job.labourTotal || 0,
+      calculatedTotal: (job.partsSubtotal || 0) + (job.labourTotal || 0) + unpaidSalesTotal
+    });
+
     // Recalculate totals using the same logic as JobForm
     const partsSubtotal = job.partsSubtotal || 0;
     const labourTotal = job.labourTotal || 0;
@@ -385,13 +396,13 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
             </tbody>
           </table>
 
-          {/* Totals Card */}
+          {/* Totals Card - Simplified display */}
           <div style={styles.totalsWrapper}>
             <div style={styles.totalsCard}>
               <div style={styles.totalsRow}>
-                <span style={styles.totalsLabel}>Subtotal:</span>
+                <span style={styles.totalsLabel}>Subtotal (ex GST):</span>
                 <span style={styles.totalsValue}>
-                  {formatCurrency(calculatedSubtotal)}
+                  {formatCurrency(calculatedGrandTotal - calculatedGST)}
                 </span>
               </div>
               {discountAmount > 0 && (
@@ -411,7 +422,7 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
                 </span>
               </div>
               <div style={{...styles.totalsRow, ...styles.totalsBold}}>
-                <span style={styles.totalsLabel}>Total:</span>
+                <span style={styles.totalsLabel}>TOTAL (inc GST):</span>
                 <span style={styles.totalsValue}>
                   {formatCurrency(calculatedGrandTotal)}
                 </span>

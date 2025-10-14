@@ -32,6 +32,20 @@ export function useUnpaidSalesAutosave({
 
     const saveSales = async () => {
       isSavingRef.current = true;
+      
+      console.info('[Unpaid Sales Autosave]', {
+        timestamp: new Date().toISOString(),
+        jobId,
+        customerId,
+        itemCount: debouncedSalesItems.length,
+        totalAmount: debouncedSalesItems.reduce((sum, item) => sum + item.amount, 0),
+        items: debouncedSalesItems.map(item => ({
+          description: item.description,
+          amount: item.amount,
+          collect: item.collect_with_job
+        }))
+      });
+      
       try {
         // Delete existing sales items for this job
         await supabase
