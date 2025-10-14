@@ -32,9 +32,41 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
       ? new Date(issueDateObj.getTime() + 30 * 24 * 60 * 60 * 1000)
       : issueDateObj;
 
+    // RECALCULATE TOTALS INCLUDING UNPAID SALES
+    // Calculate unpaid sales total (only items marked to collect with job)
+    const unpaidSalesTotal = (job.salesItems || [])
+      .filter(item => item.collect_with_job)
+      .reduce((sum, item) => sum + Number(item.amount), 0);
+
+    // Recalculate totals using the same logic as JobForm
+    const partsSubtotal = job.partsSubtotal || 0;
+    const labourTotal = job.labourTotal || 0;
+    const transportTotal = job.transportTotalCharge || 0;
+    const sharpenTotal = job.sharpenTotalCharge || 0;
+    const smallRepairTotal = job.smallRepairTotal || 0;
+
+    // Subtotal includes ALL items (GST-inclusive)
+    const calculatedSubtotal = partsSubtotal + labourTotal + transportTotal + sharpenTotal + smallRepairTotal + unpaidSalesTotal;
+
+    // Apply discount if any
+    let discountAmount = 0;
+    if (job.discountType && job.discountValue && job.discountValue > 0) {
+      if (job.discountType === 'PERCENT') {
+        discountAmount = calculatedSubtotal * (job.discountValue / 100);
+      } else {
+        discountAmount = job.discountValue;
+      }
+    }
+
+    const subtotalAfterDiscount = Math.max(0, calculatedSubtotal - discountAmount);
+    
+    // Back-calculate GST from GST-inclusive amount
+    const calculatedGST = subtotalAfterDiscount * (0.10 / 1.10);
+    const calculatedGrandTotal = subtotalAfterDiscount;
+
     // Calculate balance from payments
     const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
-    const balanceDue = Math.max(0, job.grandTotal - totalPaid);
+    const balanceDue = Math.max(0, calculatedGrandTotal - totalPaid);
     const isPaid = balanceDue === 0;
 
     // Get checked checklist items only
@@ -359,29 +391,29 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
               <div style={styles.totalsRow}>
                 <span style={styles.totalsLabel}>Subtotal:</span>
                 <span style={styles.totalsValue}>
-                  {formatCurrency(job.subtotal)}
+                  {formatCurrency(calculatedSubtotal)}
                 </span>
               </div>
-              {job.discountValue && job.discountValue > 0 && (
+              {discountAmount > 0 && (
                 <div style={{...styles.totalsRow, color: '#16a34a'}}>
                   <span style={styles.totalsLabel}>
                     Discount {job.discountType === 'PERCENT' ? `(${job.discountValue}%)` : ''}:
                   </span>
                   <span style={styles.totalsValue}>
-                    -{formatCurrency(job.discountType === 'PERCENT' ? (job.subtotal * (job.discountValue / 100)) : job.discountValue)}
+                    -{formatCurrency(discountAmount)}
                   </span>
                 </div>
               )}
               <div style={styles.totalsRow}>
                 <span style={styles.totalsLabel}>GST (10%):</span>
                 <span style={styles.totalsValue}>
-                  {formatCurrency(job.gst)}
+                  {formatCurrency(calculatedGST)}
                 </span>
               </div>
               <div style={{...styles.totalsRow, ...styles.totalsBold}}>
                 <span style={styles.totalsLabel}>Total:</span>
                 <span style={styles.totalsValue}>
-                  {formatCurrency(job.grandTotal)}
+                  {formatCurrency(calculatedGrandTotal)}
                 </span>
               </div>
               {job.serviceDeposit > 0 && (
