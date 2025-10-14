@@ -587,6 +587,80 @@ export type Database = {
           },
         ]
       }
+      customer_change_audit: {
+        Row: {
+          change_reason: string | null
+          changed_at: string
+          changed_by: string | null
+          created_at: string
+          id: string
+          job_id: string
+          job_number: string | null
+          metadata: Json | null
+          new_customer_company: string | null
+          new_customer_email: string | null
+          new_customer_id: string | null
+          new_customer_name: string | null
+          new_customer_phone: string | null
+          old_customer_company: string | null
+          old_customer_email: string | null
+          old_customer_id: string | null
+          old_customer_name: string | null
+          old_customer_phone: string | null
+          tenant_id: string | null
+        }
+        Insert: {
+          change_reason?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          job_id: string
+          job_number?: string | null
+          metadata?: Json | null
+          new_customer_company?: string | null
+          new_customer_email?: string | null
+          new_customer_id?: string | null
+          new_customer_name?: string | null
+          new_customer_phone?: string | null
+          old_customer_company?: string | null
+          old_customer_email?: string | null
+          old_customer_id?: string | null
+          old_customer_name?: string | null
+          old_customer_phone?: string | null
+          tenant_id?: string | null
+        }
+        Update: {
+          change_reason?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          job_id?: string
+          job_number?: string | null
+          metadata?: Json | null
+          new_customer_company?: string | null
+          new_customer_email?: string | null
+          new_customer_id?: string | null
+          new_customer_name?: string | null
+          new_customer_phone?: string | null
+          old_customer_company?: string | null
+          old_customer_email?: string | null
+          old_customer_id?: string | null
+          old_customer_name?: string | null
+          old_customer_phone?: string | null
+          tenant_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_change_audit_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customers_db: {
         Row: {
           address: string

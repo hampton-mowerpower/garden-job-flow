@@ -54,6 +54,7 @@ import { UnpaidSalesSection } from './booking/UnpaidSalesSection';
 import { syncJobToAccountCustomer } from '@/utils/accountCustomerSync';
 import { scheduleServiceReminder, cancelMachineReminders } from '@/utils/reminderScheduler';
 import { useAutoSave } from '@/hooks/useAutoSave';
+import { CustomerChangeConfirmationDialog } from './CustomerChangeConfirmationDialog';
 
 // Simple unique ID generator for UI elements (not database records)
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -88,6 +89,11 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
   
   // Track if form has been initialized to prevent duplicate job numbers
   const initializedRef = React.useRef(false);
+  
+  // Track original customer data for change detection
+  const [originalCustomer, setOriginalCustomer] = useState<Partial<Customer> | null>(null);
+  const [showCustomerChangeDialog, setShowCustomerChangeDialog] = useState(false);
+  const [pendingSaveData, setPendingSaveData] = useState<{ jobData: Job; savedJob: Job } | null>(null);
   
   // Delete handler
   const handleDeleteJob = async () => {
@@ -441,6 +447,13 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
       
       setJobNumber(job.jobNumber);
       setCustomer(job.customer);
+      // Store original customer data for change detection
+      setOriginalCustomer({
+        name: job.customer.name,
+        phone: job.customer.phone,
+        email: job.customer.email,
+        companyName: job.customer.companyName
+      });
       setCustomerType(job.customerType || job.customer.customerType || 'domestic');
       setJobCompanyName(job.jobCompanyName || job.customer.companyName || '');
       setMachineCategory(job.machineCategory);
@@ -853,6 +866,27 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
       return;
     }
 
+    // Check if customer data has changed for existing jobs
+    const isExistingJob = !!(job && job.id);
+    const customerDataChanged = isExistingJob && originalCustomer && (
+      customer.name !== originalCustomer.name ||
+      customer.phone !== originalCustomer.phone ||
+      customer.email !== originalCustomer.email ||
+      jobCompanyName !== originalCustomer.companyName
+    );
+
+    // If customer data changed, show confirmation dialog
+    if (customerDataChanged) {
+      setShowCustomerChangeDialog(true);
+      // handleSave will be called again after confirmation
+      return;
+    }
+
+    // Proceed with actual save
+    await performSave();
+  };
+
+  const performSave = async () => {
     setIsLoading(true);
     setAutoSaveStatus('saving');
 
@@ -939,6 +973,48 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
       };
 
       const savedJob = await jobBookingDB.saveJob(jobData);
+      
+      // Create audit log if customer data changed for existing job
+      const isExistingJob = !!(job && job.id);
+      const customerDataChanged = isExistingJob && originalCustomer && (
+        customerData.name !== originalCustomer.name ||
+        customerData.phone !== originalCustomer.phone ||
+        customerData.email !== originalCustomer.email ||
+        jobCompanyName !== originalCustomer.companyName
+      );
+
+      if (customerDataChanged && savedJob.id) {
+        try {
+          const { data: userData } = await supabase.auth.getUser();
+          await supabase.from('customer_change_audit').insert({
+            job_id: savedJob.id,
+            job_number: savedJob.jobNumber,
+            old_customer_id: job?.customerId,
+            new_customer_id: savedJob.customerId,
+            old_customer_name: originalCustomer.name,
+            new_customer_name: customerData.name,
+            old_customer_phone: originalCustomer.phone,
+            new_customer_phone: customerData.phone,
+            old_customer_email: originalCustomer.email || null,
+            new_customer_email: customerData.email || null,
+            old_customer_company: originalCustomer.companyName || null,
+            new_customer_company: jobCompanyName || null,
+            changed_by: userData?.user?.id || null,
+            change_reason: 'User manually changed customer information'
+          });
+          
+          // Update original customer to new values after successful save
+          setOriginalCustomer({
+            name: customerData.name,
+            phone: customerData.phone,
+            email: customerData.email,
+            companyName: jobCompanyName
+          });
+        } catch (auditError) {
+          console.error('Failed to create audit log (non-blocking):', auditError);
+          // Don't block the save flow
+        }
+      }
       
       // Save unpaid sales items to Supabase - NEW
       if (salesItems.length > 0 && savedJob.id) {
@@ -1930,6 +2006,35 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
           job={job}
           open={showEmailDialog}
           onOpenChange={setShowEmailDialog}
+        />
+      )}
+
+      {/* Customer Change Confirmation Dialog */}
+      {originalCustomer && (
+        <CustomerChangeConfirmationDialog
+          open={showCustomerChangeDialog}
+          onOpenChange={setShowCustomerChangeDialog}
+          onConfirm={() => {
+            setShowCustomerChangeDialog(false);
+            // Proceed with save after confirmation
+            performSave();
+          }}
+          jobNumber={jobNumber}
+          oldCustomer={{
+            name: originalCustomer.name || '',
+            phone: originalCustomer.phone || '',
+            email: originalCustomer.email,
+            company: originalCustomer.companyName
+          }}
+          newCustomer={{
+            name: customer.name || '',
+            phone: customer.phone || '',
+            email: customer.email,
+            company: jobCompanyName
+          }}
+          hasPayments={job && job.serviceDeposit > 0}
+          hasInvoice={job && (job.status === 'completed' || job.status === 'delivered')}
+          isCompleted={job && job.status === 'completed'}
         />
       )}
     </div>
