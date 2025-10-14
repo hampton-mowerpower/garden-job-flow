@@ -646,78 +646,11 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
     fillEmailFromAccount();
   }, [accountCustomerId]);
 
-  // Auto-save customer data to Supabase
-  const saveCustomerData = async (customerData: Partial<Customer>) => {
-    // Only save if we have essential data
-    if (!customerData.name || !customerData.phone) return;
-    
-    try {
-      const normalizedEmail = customerData.email ? customerData.email.toLowerCase().trim() : '';
-      const normalizedPhone = customerData.phone.replace(/[^0-9]/g, '');
-      
-      // Check for existing customer by normalized fields
-      const { data: existingCustomers } = await supabase
-        .from('customers_db')
-        .select('id')
-        .or(`normalized_email.eq.${normalizedEmail},normalized_phone.eq.${normalizedPhone}`)
-        .limit(1);
-      
-      // Use existing customer ID if found
-      const customerId = existingCustomers && existingCustomers.length > 0 
-        ? existingCustomers[0].id 
-        : customerData.id;
-      
-      // Update local state with existing ID if found and not already set
-      if (customerId && customerId !== customerData.id) {
-        setCustomer(prev => ({ ...prev, id: customerId }));
-      }
-      
-      // Upsert customer data
-      const customerPayload = {
-        id: customerId,
-        name: toTitleCase(customerData.name.trim()),
-        phone: customerData.phone,
-        email: customerData.email || null,
-        address: customerData.address || '',
-        suburb: null,
-        postcode: null,
-        notes: customerData.notes || null,
-        customer_type: customerType,
-        company_name: customerType === 'commercial' ? jobCompanyName : null,
-        billing_address: null,
-        is_deleted: false
-      };
-      
-      const { data, error } = await supabase
-        .from('customers_db')
-        .upsert(customerPayload, { onConflict: 'id' })
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
-      // Update local state with the saved customer ID
-      if (data && !customerData.id) {
-        setCustomer(prev => ({ ...prev, id: data.id }));
-      }
-    } catch (error) {
-      console.error('Error auto-saving customer:', error);
-      // Don't throw - autosave failures shouldn't block the form
-    }
-  };
+  // Customer autosave removed - was causing jobs to share customer records
+  // Customer data is now saved only when the job is saved (in storage.ts)
+  // This prevents one job's customer edit from affecting other jobs
   
-  // Use autosave hook for customer data
-  useAutoSave({
-    data: { ...customer, customerType, jobCompanyName },
-    onSave: async (data) => {
-      // Always save new customers, only respect toggle for existing customers
-      if (!customer.id || updateCustomerProfile) {
-        await saveCustomerData(data);
-      }
-    },
-    delay: 600,
-    enabled: !!customer.name && !!customer.phone // Only enable when we have minimum data
-  });
+  // Reserved for future implementation if needed
 
   const addPart = () => {
     const newPart: JobPart = {
