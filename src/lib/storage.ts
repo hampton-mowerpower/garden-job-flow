@@ -9,12 +9,46 @@ class JobBookingDB {
 
   // Customer operations
   async saveCustomer(customer: Customer): Promise<Customer> {
-    // If customer has a valid ID, just use it - never update based on phone matching
-    // This prevents one job's customer edit from affecting other jobs
+    // If customer has a valid ID, UPDATE the customer record in the database
+    // This ensures customer profile changes are persisted
     if (customer.id && this.isValidUUID(customer.id)) {
-      // Just return the customer with their ID - don't update or check phone
-      // The customer data on the job is stored separately and doesn't affect other jobs
-      return customer;
+      console.log('🔵 [STORAGE] Updating existing customer:', customer.id);
+      
+      const { data, error } = await supabase
+        .from('customers_db')
+        .update({
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email || null,
+          address: customer.address,
+          notes: customer.notes || null,
+          customer_type: customer.customerType || 'domestic',
+          company_name: customer.companyName || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', customer.id)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('❌ [STORAGE] Failed to update customer:', error);
+        throw error;
+      }
+      
+      console.log('✅ [STORAGE] Customer updated successfully');
+      
+      return {
+        id: data.id,
+        name: data.name,
+        phone: data.phone,
+        email: data.email || '',
+        address: data.address,
+        notes: data.notes || '',
+        customerType: data.customer_type || 'domestic',
+        companyName: data.company_name || undefined,
+        createdAt: new Date(data.created_at),
+        updatedAt: new Date(data.updated_at)
+      };
     }
     
     // For new customers (no ID), check if phone already exists
