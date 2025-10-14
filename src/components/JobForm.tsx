@@ -232,6 +232,45 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
   const [salesItems, setSalesItems] = useState<JobSalesItem[]>([]);
   const [collectSalesWithJob, setCollectSalesWithJob] = useState(false);
   
+  // Auto-save unpaid sales when they change
+  useEffect(() => {
+    if (!job?.id || !customer.id || salesItems.length === 0) return;
+    
+    const saveSales = async () => {
+      try {
+        // Delete existing sales items for this job
+        await supabase
+          .from('job_sales_items')
+          .delete()
+          .eq('job_id', job.id);
+
+        // Insert new sales items
+        if (salesItems.length > 0) {
+          const itemsToInsert = salesItems.map(item => ({
+            job_id: job.id,
+            customer_id: customer.id,
+            description: item.description,
+            category: item.category,
+            amount: item.amount,
+            notes: item.notes || null,
+            collect_with_job: item.collect_with_job,
+            paid_status: item.paid_status || 'unpaid'
+          }));
+
+          await supabase
+            .from('job_sales_items')
+            .insert(itemsToInsert);
+        }
+      } catch (error) {
+        console.error('Failed to auto-save unpaid sales:', error);
+      }
+    };
+
+    // Debounce the save operation
+    const timeoutId = setTimeout(saveSales, 400);
+    return () => clearTimeout(timeoutId);
+  }, [salesItems, job?.id, customer.id, collectSalesWithJob]);
+  
   // Calculations - use Supabase categories for labour rate
   const labourRate = getLabourRate(machineCategory) || 95;
   
@@ -1419,15 +1458,6 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
               onBrandChange={setMachineBrand}
               onModelChange={setMachineModel}
             />
-              <div>
-                <Label htmlFor="machine-serial">{t('machine.serial')}</Label>
-                <Input
-                  id="machine-serial"
-                  value={machineSerial}
-                  onChange={(e) => setMachineSerial(e.target.value)}
-                  placeholder={t('placeholder.machine.serial')}
-                />
-              </div>
               
               {/* Requested Finish Date */}
               <RequestedFinishDatePicker

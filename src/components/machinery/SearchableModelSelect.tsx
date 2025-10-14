@@ -53,7 +53,8 @@ export function SearchableModelSelect({ value, onValueChange, brandName, categor
       }
 
       if (query) {
-        queryBuilder = queryBuilder.or(`name.ilike.%${query}%,normalized_name.ilike.%${query}%`);
+        const normalizedQuery = query.toLowerCase().trim();
+        queryBuilder = queryBuilder.or(`name.ilike.%${normalizedQuery}%,normalized_name.ilike.%${normalizedQuery}%`);
       }
 
       const { data, error } = await queryBuilder;

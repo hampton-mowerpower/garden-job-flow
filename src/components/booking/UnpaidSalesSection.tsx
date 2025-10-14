@@ -77,7 +77,7 @@ export const UnpaidSalesSection: React.FC<UnpaidSalesSectionProps> = ({
 
   const getCategoryLabel = (category: string) => {
     switch (category) {
-      case 'new_mower': return 'New Mower';
+      case 'new_mower': return 'New Machine';
       case 'parts': return 'Parts';
       case 'accessories': return 'Accessories';
       case 'other': return 'Other';
@@ -141,7 +141,7 @@ export const UnpaidSalesSection: React.FC<UnpaidSalesSectionProps> = ({
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="new_mower">New Mower</SelectItem>
+                          <SelectItem value="new_mower">New Machine</SelectItem>
                           <SelectItem value="parts">Parts</SelectItem>
                           <SelectItem value="accessories">Accessories</SelectItem>
                           <SelectItem value="other">Other</SelectItem>

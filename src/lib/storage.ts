@@ -1,4 +1,4 @@
-import { Job, Customer, JobBookingStats, MachineCategory, JobPart } from '@/types/job';
+import { Job, Customer, JobBookingStats, MachineCategory, JobPart, JobSalesItem } from '@/types/job';
 import { supabase } from '@/integrations/supabase/client';
 
 class JobBookingDB {
@@ -405,7 +405,16 @@ class JobBookingDB {
     // Load parts from job_parts table
     const parts = await this.getJobParts(id);
     
-    return this.mapJobFromDb(jobData, customer, parts);
+    // Load sales items
+    const salesItems = await this.getJobSalesItems(id);
+    
+    const job = this.mapJobFromDb(jobData, customer, parts);
+    job.salesItems = salesItems;
+    job.salesTotal = salesItems
+      .filter(item => item.collect_with_job)
+      .reduce((sum, item) => sum + item.amount, 0);
+    
+    return job;
   }
 
   async getJobByNumber(jobNumber: string): Promise<Job | null> {
@@ -424,7 +433,16 @@ class JobBookingDB {
     // Load parts from job_parts table
     const parts = await this.getJobParts(jobData.id);
     
-    return this.mapJobFromDb(jobData, customer, parts);
+    // Load sales items
+    const salesItems = await this.getJobSalesItems(jobData.id);
+    
+    const job = this.mapJobFromDb(jobData, customer, parts);
+    job.salesItems = salesItems;
+    job.salesTotal = salesItems
+      .filter(item => item.collect_with_job)
+      .reduce((sum, item) => sum + item.amount, 0);
+    
+    return job;
   }
 
   async getAllJobs(): Promise<Job[]> {
@@ -546,6 +564,30 @@ class JobBookingDB {
     return parts;
   }
 
+  // Get sales items for a specific job
+  private async getJobSalesItems(jobId: string): Promise<JobSalesItem[]> {
+    const { data, error } = await supabase
+      .from('job_sales_items')
+      .select('*')
+      .eq('job_id', jobId);
+    
+    if (error) throw error;
+    if (!data) return [];
+    
+    return data.map(item => ({
+      id: item.id,
+      job_id: item.job_id,
+      customer_id: item.customer_id,
+      description: item.description,
+      category: item.category as 'new_mower' | 'parts' | 'accessories' | 'other',
+      amount: parseFloat(String(item.amount)) || 0,
+      notes: item.notes || undefined,
+      collect_with_job: item.collect_with_job || false,
+      paid_status: item.paid_status as 'unpaid' | 'paid' | undefined,
+      paid_date: item.paid_date ? new Date(item.paid_date) : undefined
+    }));
+  }
+
   // Helper function to map database row to Job object
   private mapJobFromDb(jobData: any, customer: Customer, parts: JobPart[] = []): Job {
     return {
@@ -553,6 +595,7 @@ class JobBookingDB {
       jobNumber: jobData.job_number,
       customerId: jobData.customer_id,
       customer,
+      jobType: jobData.job_type || 'service',
       machineCategory: jobData.machine_category,
       machineBrand: jobData.machine_brand,
       machineModel: jobData.machine_model,
@@ -609,7 +652,10 @@ class JobBookingDB {
       smallRepairRate: parseFloat(jobData.small_repair_rate) || 0,
       smallRepairTotal: parseFloat(jobData.small_repair_total) || 0,
       // Account Customer link
-      accountCustomerId: jobData.account_customer_id || undefined
+      accountCustomerId: jobData.account_customer_id || undefined,
+      // Unpaid sales (will be loaded separately)
+      salesItems: [],
+      salesTotal: 0
     };
   }
 
