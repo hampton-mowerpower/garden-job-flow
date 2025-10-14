@@ -2014,10 +2014,9 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
         <CustomerChangeConfirmationDialog
           open={showCustomerChangeDialog}
           onOpenChange={setShowCustomerChangeDialog}
-          onConfirm={() => {
-            setShowCustomerChangeDialog(false);
+          onConfirm={async () => {
             // Proceed with save after confirmation
-            performSave();
+            await performSave();
           }}
           jobNumber={jobNumber}
           oldCustomer={{

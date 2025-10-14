@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -9,7 +9,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { AlertTriangle } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface CustomerData {
   name: string;
@@ -21,7 +22,7 @@ interface CustomerData {
 interface CustomerChangeConfirmationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<void>;
   jobNumber: string;
   oldCustomer: CustomerData;
   newCustomer: CustomerData;
@@ -41,15 +42,35 @@ export function CustomerChangeConfirmationDialog({
   hasInvoice = false,
   isCompleted = false,
 }: CustomerChangeConfirmationDialogProps) {
-  const handleConfirm = () => {
-    onConfirm();
-    onOpenChange(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleConfirm = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      await onConfirm();
+      // Only close dialog after successful save
+      onOpenChange(false);
+    } catch (err: any) {
+      console.error('Failed to save customer change:', err);
+      setError(err.message || 'Failed to save changes. Please try again.');
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (!isLoading) {
+      setError(null);
+      onOpenChange(false);
+    }
   };
 
   const showWarnings = hasPayments || hasInvoice || isCompleted;
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={isLoading ? undefined : onOpenChange}>
       <AlertDialogContent className="max-w-2xl">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-xl">
@@ -159,14 +180,39 @@ export function CustomerChangeConfirmationDialog({
               <p className="text-muted-foreground text-sm">
                 Are you sure you want to change the customer?
               </p>
+
+              {error && (
+                <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
+                  <p className="text-sm text-destructive font-semibold">
+                    ❌ {error}
+                  </p>
+                </div>
+              )}
             </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm} className="bg-primary">
-            Yes, Change Customer
-          </AlertDialogAction>
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isLoading}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirm}
+            disabled={isLoading}
+            className="bg-primary"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              'Yes, Change Customer'
+            )}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
