@@ -740,7 +740,7 @@ export type Database = {
           version: number | null
         }
         Insert: {
-          address: string
+          address?: string
           billing_address?: string | null
           company_abn?: string | null
           company_email?: string | null
@@ -1204,7 +1204,7 @@ export type Database = {
         Row: {
           awaiting_stock: boolean | null
           created_at: string
-          description: string | null
+          description: string
           equipment_category: string | null
           id: string
           is_custom: boolean | null
@@ -1222,7 +1222,7 @@ export type Database = {
         Insert: {
           awaiting_stock?: boolean | null
           created_at?: string
-          description?: string | null
+          description: string
           equipment_category?: string | null
           id?: string
           is_custom?: boolean | null
@@ -1234,13 +1234,13 @@ export type Database = {
           quantity?: number
           sku?: string | null
           tax_code?: string | null
-          total_price: number
-          unit_price: number
+          total_price?: number
+          unit_price?: number
         }
         Update: {
           awaiting_stock?: boolean | null
           created_at?: string
-          description?: string | null
+          description?: string
           equipment_category?: string | null
           id?: string
           is_custom?: boolean | null
@@ -2207,6 +2207,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_maintenance_mode: {
+        Row: {
+          affected_tables: string[]
+          disabled_at: string | null
+          enabled_at: string | null
+          enabled_by: string | null
+          excluded_roles: string[]
+          id: string
+          mode_type: string
+          reason: string | null
+        }
+        Insert: {
+          affected_tables: string[]
+          disabled_at?: string | null
+          enabled_at?: string | null
+          enabled_by?: string | null
+          excluded_roles?: string[]
+          id?: string
+          mode_type: string
+          reason?: string | null
+        }
+        Update: {
+          affected_tables?: string[]
+          disabled_at?: string | null
+          enabled_at?: string | null
+          enabled_by?: string | null
+          excluded_roles?: string[]
+          id?: string
+          mode_type?: string
+          reason?: string | null
+        }
+        Relationships: []
       }
       transport_charge_configs: {
         Row: {
