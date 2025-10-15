@@ -213,6 +213,7 @@ class JobBookingDB {
       }
     }
     
+    // CRITICAL: Build complete job data, never send undefined fields that could NULL existing data
     const jobData: any = {
       job_number: job.jobNumber,
       customer_id: savedCustomer.id,
@@ -275,11 +276,36 @@ class JobBookingDB {
       updated_at: new Date().toISOString()
     };
     
-    // Only include ID and created_at for updates
+    // Only include ID, created_at, and version for updates
     if (job.id && this.isValidUUID(job.id)) {
       jobData.id = job.id;
       jobData.created_at = new Date(job.createdAt).toISOString();
+      
+      // CRITICAL: For updates, fetch current record to ensure we have all fields
+      const { data: currentJob, error: fetchError } = await supabase
+        .from('jobs_db')
+        .select('*')
+        .eq('id', job.id)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      // Include version for optimistic concurrency control
+      if (currentJob) {
+        jobData.version = currentJob.version;
+        
+        // Merge with current data to prevent NULL overwrites
+        // Only overwrite fields that are explicitly provided (not undefined)
+        Object.keys(jobData).forEach(key => {
+          if (jobData[key] === undefined && currentJob[key] !== undefined) {
+            jobData[key] = currentJob[key];
+          }
+        });
+      }
     }
+    
+    // Audit context is handled by the trigger using auth.uid() automatically
+    // No need to set context manually
     
     const { data, error } = await supabase
       .from('jobs_db')

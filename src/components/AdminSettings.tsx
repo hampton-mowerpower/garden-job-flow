@@ -24,6 +24,8 @@ import { QuickProblemsAdmin } from './admin/QuickProblemsAdmin';
 import { TransportSettingsAdmin } from './admin/TransportSettingsAdmin';
 import { EmailHealthMonitor } from './admin/EmailHealthMonitor';
 import { AccountContactManager } from './account/AccountContactManager';
+import { DataLossForensics } from './admin/DataLossForensics';
+import { JobDataHealthMonitor } from './admin/JobDataHealthMonitor';
 
 // Simple unique ID generator for UI elements
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;

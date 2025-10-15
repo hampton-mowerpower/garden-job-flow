@@ -189,6 +189,54 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_log: {
+        Row: {
+          changed_at: string | null
+          changed_by: string
+          changed_fields: string[] | null
+          client_ip: unknown | null
+          id: number
+          new_values: Json | null
+          old_values: Json | null
+          operation: string
+          record_id: string
+          request_id: string | null
+          source: string | null
+          table_name: string
+          user_agent: string | null
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by: string
+          changed_fields?: string[] | null
+          client_ip?: unknown | null
+          id?: number
+          new_values?: Json | null
+          old_values?: Json | null
+          operation: string
+          record_id: string
+          request_id?: string | null
+          source?: string | null
+          table_name: string
+          user_agent?: string | null
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string
+          changed_fields?: string[] | null
+          client_ip?: unknown | null
+          id?: number
+          new_values?: Json | null
+          old_values?: Json | null
+          operation?: string
+          record_id?: string
+          request_id?: string | null
+          source?: string | null
+          table_name?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action: string
@@ -689,6 +737,7 @@ export type Database = {
           postcode: string | null
           suburb: string | null
           updated_at: string
+          version: number | null
         }
         Insert: {
           address: string
@@ -717,6 +766,7 @@ export type Database = {
           postcode?: string | null
           suburb?: string | null
           updated_at?: string
+          version?: number | null
         }
         Update: {
           address?: string
@@ -745,6 +795,7 @@ export type Database = {
           postcode?: string | null
           suburb?: string | null
           updated_at?: string
+          version?: number | null
         }
         Relationships: [
           {
@@ -1420,6 +1471,7 @@ export type Database = {
           transport_size_tier: string | null
           transport_total_charge: number | null
           updated_at: string
+          version: number | null
         }
         Insert: {
           account_customer_id?: string | null
@@ -1488,6 +1540,7 @@ export type Database = {
           transport_size_tier?: string | null
           transport_total_charge?: number | null
           updated_at?: string
+          version?: number | null
         }
         Update: {
           account_customer_id?: string | null
@@ -1556,6 +1609,7 @@ export type Database = {
           transport_size_tier?: string | null
           transport_total_charge?: number | null
           updated_at?: string
+          version?: number | null
         }
         Relationships: [
           {
@@ -2399,6 +2453,18 @@ export type Database = {
           part_count: number
         }[]
       }
+      find_rapid_changes: {
+        Args: { minutes?: number; threshold?: number }
+        Returns: {
+          change_count: number
+          first_change: string
+          job_number: string
+          last_change: string
+          record_id: string
+          table_name: string
+          time_span: unknown
+        }[]
+      }
       fn_search_customers: {
         Args: {
           limit_count?: number
@@ -2447,6 +2513,17 @@ export type Database = {
           date: string
           total_jobs: number
           total_revenue: number
+        }[]
+      }
+      get_job_audit_trail: {
+        Args: { p_job_id: string }
+        Returns: {
+          changed_at: string
+          changed_by: string
+          changed_fields: string[]
+          new_values: Json
+          old_values: Json
+          operation: string
         }[]
       }
       get_job_details: {
@@ -2517,6 +2594,17 @@ export type Database = {
           brand_id: string
           id: string
           name: string
+        }[]
+      }
+      get_null_overwrites: {
+        Args: { days?: number }
+        Returns: {
+          changed_at: string
+          changed_by: string
+          fields_nullified: string[]
+          job_number: string
+          record_id: string
+          table_name: string
         }[]
       }
       get_parts_usage_report: {
