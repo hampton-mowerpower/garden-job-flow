@@ -672,15 +672,18 @@ export type Database = {
           created_at: string
           customer_type: Database["public"]["Enums"]["customer_type"] | null
           email: string | null
+          email_norm: string | null
           id: string
           is_deleted: boolean | null
           merged_into_id: string | null
           name: string
           name_lower: string | null
+          name_norm: string | null
           normalized_email: string | null
           normalized_phone: string | null
           notes: string | null
           phone: string
+          phone_digits: string | null
           phone_e164: string | null
           phone_local: string | null
           postcode: string | null
@@ -697,15 +700,18 @@ export type Database = {
           created_at?: string
           customer_type?: Database["public"]["Enums"]["customer_type"] | null
           email?: string | null
+          email_norm?: string | null
           id?: string
           is_deleted?: boolean | null
           merged_into_id?: string | null
           name: string
           name_lower?: string | null
+          name_norm?: string | null
           normalized_email?: string | null
           normalized_phone?: string | null
           notes?: string | null
           phone: string
+          phone_digits?: string | null
           phone_e164?: string | null
           phone_local?: string | null
           postcode?: string | null
@@ -722,15 +728,18 @@ export type Database = {
           created_at?: string
           customer_type?: Database["public"]["Enums"]["customer_type"] | null
           email?: string | null
+          email_norm?: string | null
           id?: string
           is_deleted?: boolean | null
           merged_into_id?: string | null
           name?: string
           name_lower?: string | null
+          name_norm?: string | null
           normalized_email?: string | null
           normalized_phone?: string | null
           notes?: string | null
           phone?: string
+          phone_digits?: string | null
           phone_e164?: string | null
           phone_local?: string | null
           postcode?: string | null
@@ -1351,6 +1360,8 @@ export type Database = {
           assigned_technician: string | null
           attachments: Json | null
           balance_due: number
+          brand_norm: string | null
+          category_norm: string | null
           completed_at: string | null
           contact_id: string | null
           created_at: string
@@ -1366,6 +1377,8 @@ export type Database = {
           id: string
           job_company_name: string | null
           job_number: string
+          job_number_digits: string | null
+          job_number_norm: string | null
           job_type: string | null
           labour_hours: number
           labour_rate: number
@@ -1374,6 +1387,7 @@ export type Database = {
           machine_category: string
           machine_model: string
           machine_serial: string | null
+          model_norm: string | null
           notes: string | null
           parts_required: string | null
           parts_subtotal: number
@@ -1383,6 +1397,7 @@ export type Database = {
           quotation_status: string | null
           recommendations: string | null
           requested_finish_date: string | null
+          serial_norm: string | null
           service_deposit: number | null
           service_performed: string | null
           sharpen_breakdown: string | null
@@ -1413,6 +1428,8 @@ export type Database = {
           assigned_technician?: string | null
           attachments?: Json | null
           balance_due?: number
+          brand_norm?: string | null
+          category_norm?: string | null
           completed_at?: string | null
           contact_id?: string | null
           created_at?: string
@@ -1428,6 +1445,8 @@ export type Database = {
           id?: string
           job_company_name?: string | null
           job_number: string
+          job_number_digits?: string | null
+          job_number_norm?: string | null
           job_type?: string | null
           labour_hours?: number
           labour_rate?: number
@@ -1436,6 +1455,7 @@ export type Database = {
           machine_category: string
           machine_model: string
           machine_serial?: string | null
+          model_norm?: string | null
           notes?: string | null
           parts_required?: string | null
           parts_subtotal?: number
@@ -1445,6 +1465,7 @@ export type Database = {
           quotation_status?: string | null
           recommendations?: string | null
           requested_finish_date?: string | null
+          serial_norm?: string | null
           service_deposit?: number | null
           service_performed?: string | null
           sharpen_breakdown?: string | null
@@ -1475,6 +1496,8 @@ export type Database = {
           assigned_technician?: string | null
           attachments?: Json | null
           balance_due?: number
+          brand_norm?: string | null
+          category_norm?: string | null
           completed_at?: string | null
           contact_id?: string | null
           created_at?: string
@@ -1490,6 +1513,8 @@ export type Database = {
           id?: string
           job_company_name?: string | null
           job_number?: string
+          job_number_digits?: string | null
+          job_number_norm?: string | null
           job_type?: string | null
           labour_hours?: number
           labour_rate?: number
@@ -1498,6 +1523,7 @@ export type Database = {
           machine_category?: string
           machine_model?: string
           machine_serial?: string | null
+          model_norm?: string | null
           notes?: string | null
           parts_required?: string | null
           parts_subtotal?: number
@@ -1507,6 +1533,7 @@ export type Database = {
           quotation_status?: string | null
           recommendations?: string | null
           requested_finish_date?: string | null
+          serial_norm?: string | null
           service_deposit?: number | null
           service_performed?: string | null
           sharpen_breakdown?: string | null
@@ -2336,6 +2363,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      digits_only: {
+        Args: { t: string }
+        Returns: string
+      }
       find_customer_duplicates: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -2572,6 +2603,10 @@ export type Database = {
         Args: { duplicate_ids: string[]; primary_id: string }
         Returns: Json
       }
+      norm_text: {
+        Args: { t: string }
+        Returns: string
+      }
       normalize_contact_name: {
         Args: { txt: string }
         Returns: string
@@ -2646,6 +2681,26 @@ export type Database = {
           machine_brand: string
           machine_category: string
           machine_model: string
+          problem_description: string
+          status: string
+        }[]
+      }
+      search_jobs_unified: {
+        Args: { p_limit?: number; p_query: string; p_tenant_id?: string }
+        Returns: {
+          balance_due: number
+          created_at: string
+          customer_email: string
+          customer_id: string
+          customer_name: string
+          customer_phone: string
+          grand_total: number
+          id: string
+          job_number: string
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial: string
           problem_description: string
           status: string
         }[]
