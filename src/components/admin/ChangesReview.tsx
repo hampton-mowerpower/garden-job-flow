@@ -12,7 +12,7 @@ import { format } from 'date-fns';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface AuditEntry {
-  id: string;
+  id: number;
   changed_at: string;
   table_name: string;
   record_id: string;
@@ -81,7 +81,7 @@ export function ChangesReview() {
   });
 
   const acceptMutation = useMutation({
-    mutationFn: async (changeId: string) => {
+    mutationFn: async (changeId: number) => {
       // Mark as accepted in a metadata table or update audit_log if we add review fields
       toast.success('Change accepted and marked as reviewed');
     },
