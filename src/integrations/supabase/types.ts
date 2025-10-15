@@ -1368,6 +1368,63 @@ export type Database = {
           },
         ]
       }
+      job_recovery_staging: {
+        Row: {
+          applied_at: string | null
+          applied_by: string | null
+          created_at: string
+          created_by: string
+          id: string
+          job_id: string
+          job_number: string
+          recovery_data: Json
+          recovery_reason: string
+          reverted_at: string | null
+          reverted_by: string | null
+        }
+        Insert: {
+          applied_at?: string | null
+          applied_by?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          job_id: string
+          job_number: string
+          recovery_data: Json
+          recovery_reason: string
+          reverted_at?: string | null
+          reverted_by?: string | null
+        }
+        Update: {
+          applied_at?: string | null
+          applied_by?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          job_id?: string
+          job_number?: string
+          recovery_data?: Json
+          recovery_reason?: string
+          reverted_at?: string | null
+          reverted_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "job_recovery_staging_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_calculated_totals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_recovery_staging_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "jobs_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       job_sales_items: {
         Row: {
           amount: number
@@ -2135,6 +2192,48 @@ export type Database = {
           },
         ]
       }
+      protected_field_changes: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          change_reason: string
+          changed_at: string
+          changed_by: string
+          field_name: string
+          id: string
+          new_value: string | null
+          old_value: string | null
+          record_id: string
+          table_name: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          change_reason: string
+          changed_at?: string
+          changed_by: string
+          field_name: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          record_id: string
+          table_name: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          change_reason?: string
+          changed_at?: string
+          changed_by?: string
+          field_name?: string
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          record_id?: string
+          table_name?: string
+        }
+        Relationships: []
+      }
       quick_problems: {
         Row: {
           active: boolean | null
@@ -2159,6 +2258,33 @@ export type Database = {
           id?: string
           label?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      record_locks: {
+        Row: {
+          id: string
+          lock_reason: string | null
+          locked_at: string
+          locked_by: string
+          record_id: string
+          table_name: string
+        }
+        Insert: {
+          id?: string
+          lock_reason?: string | null
+          locked_at?: string
+          locked_by: string
+          record_id: string
+          table_name: string
+        }
+        Update: {
+          id?: string
+          lock_reason?: string | null
+          locked_at?: string
+          locked_by?: string
+          record_id?: string
+          table_name?: string
         }
         Relationships: []
       }
@@ -2246,6 +2372,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      shadow_audit_log: {
+        Row: {
+          audit_type: string
+          details: Json
+          detected_at: string
+          id: string
+          record_id: string
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          table_name: string
+        }
+        Insert: {
+          audit_type: string
+          details: Json
+          detected_at?: string
+          id?: string
+          record_id: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity: string
+          table_name: string
+        }
+        Update: {
+          audit_type?: string
+          details?: Json
+          detected_at?: string
+          id?: string
+          record_id?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          table_name?: string
+        }
+        Relationships: []
       }
       staff_job_notes: {
         Row: {
@@ -2553,9 +2715,26 @@ export type Database = {
       }
     }
     Functions: {
+      compute_job_totals: {
+        Args: { p_job_id: string }
+        Returns: Json
+      }
       digits_only: {
         Args: { t: string }
         Returns: string
+      }
+      find_customer_deterministic: {
+        Args: {
+          p_email?: string
+          p_name?: string
+          p_phone: string
+          p_suburb?: string
+        }
+        Returns: {
+          customer_id: string
+          match_score: number
+          match_type: string
+        }[]
       }
       find_customer_duplicates: {
         Args: Record<PropertyKey, never>
@@ -2998,6 +3177,10 @@ export type Database = {
           job_number: string
           severity: string
         }[]
+      }
+      verify_job_recovery: {
+        Args: { p_job_id: string }
+        Returns: Json
       }
     }
     Enums: {
