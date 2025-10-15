@@ -704,6 +704,13 @@ export type Database = {
             foreignKeyName: "customer_change_audit_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "job_calculated_totals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_change_audit_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
@@ -905,6 +912,13 @@ export type Database = {
             foreignKeyName: "email_outbox_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "job_calculated_totals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_outbox_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
@@ -1101,6 +1115,13 @@ export type Database = {
             foreignKeyName: "invoices_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "job_calculated_totals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
@@ -1148,6 +1169,13 @@ export type Database = {
             foreignKeyName: "job_labour_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "job_calculated_totals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_labour_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
@@ -1191,6 +1219,13 @@ export type Database = {
           visibility?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "job_notes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_calculated_totals"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "job_notes_job_id_fkey"
             columns: ["job_id"]
@@ -1260,6 +1295,13 @@ export type Database = {
             foreignKeyName: "job_parts_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "job_calculated_totals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_parts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
@@ -1310,6 +1352,13 @@ export type Database = {
           reference?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "job_payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_calculated_totals"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "job_payments_job_id_fkey"
             columns: ["job_id"]
@@ -1368,6 +1417,13 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers_db"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "job_sales_items_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_calculated_totals"
             referencedColumns: ["id"]
           },
           {
@@ -1809,6 +1865,13 @@ export type Database = {
             foreignKeyName: "machinery_sales_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
+            referencedRelation: "job_calculated_totals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "machinery_sales_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
@@ -2060,6 +2123,13 @@ export type Database = {
             foreignKeyName: "payments_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "job_calculated_totals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
@@ -2165,6 +2235,13 @@ export type Database = {
             foreignKeyName: "service_reminders_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
+            referencedRelation: "job_calculated_totals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_reminders_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
@@ -2199,6 +2276,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "staff_job_notes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "job_calculated_totals"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "staff_job_notes_job_id_fkey"
             columns: ["job_id"]
@@ -2447,7 +2531,26 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      job_calculated_totals: {
+        Row: {
+          balance_mismatch: boolean | null
+          calculated_balance_due: number | null
+          calculated_grand_total: number | null
+          calculated_gst: number | null
+          calculated_subtotal: number | null
+          id: string | null
+          job_number: string | null
+          parts_count: number | null
+          parts_total: number | null
+          payment_count: number | null
+          stored_balance_due: number | null
+          stored_deposit: number | null
+          stored_grand_total: number | null
+          total_mismatch: boolean | null
+          total_paid: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       digits_only: {
@@ -2486,6 +2589,29 @@ export type Database = {
           part_count: number
         }[]
       }
+      find_jobs_with_calculation_errors: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          balance_diff: number
+          calculated_balance: number
+          calculated_total: number
+          difference: number
+          job_number: string
+          stored_balance: number
+          stored_total: number
+        }[]
+      }
+      find_or_create_customer: {
+        Args: {
+          p_address?: string
+          p_company_name?: string
+          p_customer_type?: Database["public"]["Enums"]["customer_type"]
+          p_email?: string
+          p_name: string
+          p_phone: string
+        }
+        Returns: string
+      }
       find_rapid_changes: {
         Args: { minutes?: number; threshold?: number }
         Returns: {
@@ -2496,6 +2622,17 @@ export type Database = {
           record_id: string
           table_name: string
           time_span: unknown
+        }[]
+      }
+      find_suspicious_customer_changes: {
+        Args: { days?: number }
+        Returns: {
+          change_reason: string
+          changed_at: string
+          changed_by_user: string
+          job_number: string
+          new_customer: string
+          old_customer: string
         }[]
       }
       fn_search_customers: {
