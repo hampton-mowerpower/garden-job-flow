@@ -201,6 +201,10 @@ export type Database = {
           operation: string
           record_id: string
           request_id: string | null
+          review_at: string | null
+          review_by: string | null
+          review_status: string | null
+          reviewed: boolean | null
           source: string | null
           table_name: string
           user_agent: string | null
@@ -216,6 +220,10 @@ export type Database = {
           operation: string
           record_id: string
           request_id?: string | null
+          review_at?: string | null
+          review_by?: string | null
+          review_status?: string | null
+          reviewed?: boolean | null
           source?: string | null
           table_name: string
           user_agent?: string | null
@@ -231,6 +239,10 @@ export type Database = {
           operation?: string
           record_id?: string
           request_id?: string | null
+          review_at?: string | null
+          review_by?: string | null
+          review_status?: string | null
+          reviewed?: boolean | null
           source?: string | null
           table_name?: string
           user_agent?: string | null

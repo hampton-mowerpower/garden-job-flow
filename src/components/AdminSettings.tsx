@@ -29,6 +29,7 @@ import { JobDataHealthMonitor } from './admin/JobDataHealthMonitor';
 import { DataIntegrityMonitor } from './admin/DataIntegrityMonitor';
 import { JobForensics } from './admin/JobForensics';
 import { DataRecoveryTools } from './admin/DataRecoveryTools';
+import { DataReviewTabs } from './admin/DataReviewTabs';
 
 // Simple unique ID generator for UI elements
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -334,8 +335,9 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
           </p>
         </div>
 
-        <Tabs defaultValue="categories" className="space-y-6">
+        <Tabs defaultValue="data-review" className="space-y-6">
           <TabsList className="grid w-full grid-cols-10">
+            <TabsTrigger value="data-review">Data Review</TabsTrigger>
             <TabsTrigger value="categories">Categories & Rates</TabsTrigger>
             <TabsTrigger value="parts">Parts Management</TabsTrigger>
             <TabsTrigger value="accounts">Accounts & Contacts</TabsTrigger>
@@ -346,6 +348,10 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
             <TabsTrigger value="print">Print Settings</TabsTrigger>
             <TabsTrigger value="export">Data Export</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="data-review">
+            <DataReviewTabs />
+          </TabsContent>
 
           <TabsContent value="categories">
             <CategoriesLabourAdmin />
