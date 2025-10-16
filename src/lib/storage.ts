@@ -9,49 +9,11 @@ class JobBookingDB {
 
   // Customer operations
   async saveCustomer(customer: Customer): Promise<Customer> {
-    // Check if phone already exists for a different customer
-    const { data: existingByPhone } = await supabase
-      .from('customers_db')
-      .select('*')
-      .eq('phone', customer.phone)
-      .eq('is_deleted', false)
-      .maybeSingle();
-    
-    // If customer has a valid ID
+    // If customer has a valid ID, UPDATE the customer record in the database
+    // This ensures customer profile changes are persisted
     if (customer.id && this.isValidUUID(customer.id)) {
-      // If phone is taken by another customer, use that customer instead
-      if (existingByPhone && existingByPhone.id !== customer.id) {
-        const { data, error } = await supabase
-          .from('customers_db')
-          .update({
-            name: customer.name,
-            email: customer.email || null,
-            address: customer.address,
-            notes: customer.notes || null,
-            customer_type: customer.customerType || 'domestic',
-            company_name: customer.companyName || null
-          })
-          .eq('id', existingByPhone.id)
-          .select()
-          .single();
-        
-        if (error) throw error;
-        
-        return {
-          id: data.id,
-          name: data.name,
-          phone: data.phone,
-          email: data.email || '',
-          address: data.address,
-          notes: data.notes || '',
-          customerType: data.customer_type || 'domestic',
-          companyName: data.company_name || undefined,
-          createdAt: new Date(data.created_at),
-          updatedAt: new Date(data.updated_at)
-        };
-      }
+      console.log('🔵 [STORAGE] Updating existing customer:', customer.id);
       
-      // Update the existing customer
       const { data, error } = await supabase
         .from('customers_db')
         .update({
@@ -61,13 +23,19 @@ class JobBookingDB {
           address: customer.address,
           notes: customer.notes || null,
           customer_type: customer.customerType || 'domestic',
-          company_name: customer.companyName || null
+          company_name: customer.companyName || null,
+          updated_at: new Date().toISOString()
         })
         .eq('id', customer.id)
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [STORAGE] Failed to update customer:', error);
+        throw error;
+      }
+      
+      console.log('✅ [STORAGE] Customer updated successfully');
       
       return {
         id: data.id,
@@ -83,35 +51,27 @@ class JobBookingDB {
       };
     }
     
-    // For new customers, if phone exists, update that customer
+    // For new customers (no ID), check if phone already exists
+    const { data: existingByPhone } = await supabase
+      .from('customers_db')
+      .select('*')
+      .eq('phone', customer.phone)
+      .eq('is_deleted', false)
+      .maybeSingle();
+    
+    // If phone exists, return that existing customer (for deduplication of truly new customers)
     if (existingByPhone) {
-      const { data, error } = await supabase
-        .from('customers_db')
-        .update({
-          name: customer.name,
-          email: customer.email || null,
-          address: customer.address,
-          notes: customer.notes || null,
-          customer_type: customer.customerType || 'domestic',
-          company_name: customer.companyName || null
-        })
-        .eq('id', existingByPhone.id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      
       return {
-        id: data.id,
-        name: data.name,
-        phone: data.phone,
-        email: data.email || '',
-        address: data.address,
-        notes: data.notes || '',
-        customerType: data.customer_type || 'domestic',
-        companyName: data.company_name || undefined,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at)
+        id: existingByPhone.id,
+        name: existingByPhone.name,
+        phone: existingByPhone.phone,
+        email: existingByPhone.email || '',
+        address: existingByPhone.address,
+        notes: existingByPhone.notes || '',
+        customerType: existingByPhone.customer_type || 'domestic',
+        companyName: existingByPhone.company_name || undefined,
+        createdAt: new Date(existingByPhone.created_at),
+        updatedAt: new Date(existingByPhone.updated_at)
       };
     }
     

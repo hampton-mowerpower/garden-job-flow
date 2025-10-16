@@ -115,6 +115,7 @@ export function CustomerEdit({ customer, open, onOpenChange, onSaved }: Customer
         .from('jobs_db')
         .select('id')
         .eq('customer_id', formData.id)
+        .is('deleted_at', null)
         .limit(1);
 
       if (jobsError) throw jobsError;
@@ -122,8 +123,9 @@ export function CustomerEdit({ customer, open, onOpenChange, onSaved }: Customer
       if (jobs && jobs.length > 0) {
         toast({
           title: 'Cannot Delete',
-          description: 'This customer has existing jobs and cannot be deleted. Consider marking them inactive instead.',
-          variant: 'destructive'
+          description: 'This customer has existing jobs. Use Soft Delete to hide them from lists, or Merge to combine with another customer.',
+          variant: 'destructive',
+          duration: 6000
         });
         setShowDeleteDialog(false);
         setIsDeleting(false);
@@ -136,16 +138,22 @@ export function CustomerEdit({ customer, open, onOpenChange, onSaved }: Customer
         .delete()
         .eq('id', formData.id);
 
-      if (deleteError) throw deleteError;
-
-      // Log the deletion
-      await supabase
-        .from('customer_audit')
-        .insert({
-          action: 'deleted',
-          old_customer_id: formData.id,
-          details: { name: formData.name, phone: formData.phone }
-        });
+      if (deleteError) {
+        // Check if error is FK constraint
+        if (deleteError.message?.includes('foreign key') || deleteError.message?.includes('referenced')) {
+          toast({
+            title: 'Cannot Delete',
+            description: 'This customer is referenced by jobs. Use Soft Delete or Merge instead.',
+            variant: 'destructive',
+            duration: 6000
+          });
+        } else {
+          throw deleteError;
+        }
+        setShowDeleteDialog(false);
+        setIsDeleting(false);
+        return;
+      }
 
       toast({
         title: 'Success',
@@ -155,11 +163,55 @@ export function CustomerEdit({ customer, open, onOpenChange, onSaved }: Customer
       onSaved();
       onOpenChange(false);
       setShowDeleteDialog(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting customer:', error);
       toast({
         title: 'Error',
-        description: 'Failed to delete customer',
+        description: error.message || 'Failed to delete customer',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleSoftDelete = async () => {
+    if (!formData) return;
+
+    setIsDeleting(true);
+    try {
+      // Use direct query to soft delete (set deleted_at timestamp)
+      const { error } = await supabase
+        .from('customers_db')
+        .update({
+          deleted_at: new Date().toISOString(),
+          is_deleted: true
+        })
+        .eq('id', formData.id);
+
+      if (error) throw error;
+
+      // Count jobs for this customer
+      const { count } = await supabase
+        .from('jobs_db')
+        .select('*', { count: 'exact', head: true })
+        .eq('customer_id', formData.id)
+        .is('deleted_at', null);
+
+      toast({
+        title: 'Customer Hidden',
+        description: `${formData.name} has been hidden from lists. ${count || 0} jobs remain linked.`,
+        duration: 5000
+      });
+      
+      onSaved();
+      onOpenChange(false);
+      setShowDeleteDialog(false);
+    } catch (error: any) {
+      console.error('Error soft deleting customer:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to hide customer',
         variant: 'destructive'
       });
     } finally {
@@ -316,20 +368,31 @@ export function CustomerEdit({ customer, open, onOpenChange, onSaved }: Customer
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Customer?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete <strong>{formData.name}</strong>?
-              This action cannot be undone. The customer will only be deleted if they have no existing jobs.
+            <AlertDialogTitle>Delete or Hide Customer?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>Choose how to handle <strong>{formData.name}</strong>:</p>
+              <div className="text-sm space-y-2">
+                <p><strong>Soft Delete (Recommended):</strong> Hide from lists but keep all job history intact.</p>
+                <p><strong>Hard Delete:</strong> Permanently remove (only works if customer has no jobs).</p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
             <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+            <Button
+              onClick={handleSoftDelete}
+              disabled={isDeleting}
+              variant="outline"
+              className="border-orange-500 text-orange-600 hover:bg-orange-50"
+            >
+              {isDeleting ? 'Processing...' : 'Soft Delete (Hide)'}
+            </Button>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isDeleting}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? 'Deleting...' : 'Hard Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
