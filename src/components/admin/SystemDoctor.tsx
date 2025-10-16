@@ -223,7 +223,7 @@ export function SystemDoctor() {
   };
 
   return (
-    <Card>
+    <Card data-system-doctor>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Activity className="h-5 w-5" />

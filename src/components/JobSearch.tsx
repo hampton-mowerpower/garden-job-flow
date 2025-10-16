@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Download, RotateCcw, Loader2 } from 'lucide-react';
+import { Search, Download, RotateCcw, Loader2, RefreshCw, CheckCircle, AlertTriangle, Activity, Shield, Database } from 'lucide-react';
 import { Job } from '@/types/job';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -13,7 +13,6 @@ import { JobFilters } from './jobs/JobFilters';
 import { JobsTableVirtualized } from './jobs/JobsTableVirtualized';
 import { useJobsDirectFallback } from '@/hooks/useJobsDirectFallback';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle } from 'lucide-react';
 import { useJobStats } from '@/hooks/useJobStats';
 import { Skeleton } from '@/components/ui/skeleton';
 import { jobBookingDB } from '@/lib/storage';
@@ -68,6 +67,22 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
       setIsLoading(false);
     }
   }, [useDirectFallback, directJobs]);
+
+  // Show fallback error if RPC fails
+  useEffect(() => {
+    if (useDirectFallback && directLoading === false && directJobs.length === 0) {
+      // Check if there's an error from the fallback hook
+      const { error: fallbackError } = useJobsDirectFallback(25, 0, true);
+      if (fallbackError) {
+        toast({
+          title: '🚨 Fallback Failed',
+          description: 'Direct database query failed. Run RECOVERY_SAFE.sql immediately.',
+          variant: 'destructive',
+          duration: 0, // Don't auto-dismiss
+        });
+      }
+    }
+  }, [useDirectFallback, directLoading, directJobs, toast]);
 
   // Handler to update a specific job in the list without refetching
   const handleUpdateJob = useCallback((jobId: string, updates: Partial<Job>) => {
@@ -269,24 +284,14 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
                            err.message?.includes('Could not query the database');
       
       if (isSchemaError) {
-        setApiErrorCount(prev => prev + 1);
-        
-        if (apiErrorCount >= 1) {
-          setUseDirectFallback(true);
-          toast({
-            title: 'Using Direct Database Connection',
-            description: 'REST API is down. Switched to direct query. Admin: Run EMERGENCY_SQL_FIX_V3_FINAL.sql',
-            variant: 'destructive',
-            duration: 10000,
-          });
-        } else {
-          toast({
-            title: 'Database API Connection Lost',
-            description: 'Schema cache error. Admin: Run V3 SQL fix.',
-            variant: 'destructive',
-            duration: 10000,
-          });
-        }
+        // Activate fallback immediately on PGRST002
+        setUseDirectFallback(true);
+        toast({
+          title: '⚠️ Using Fallback Mode',
+          description: 'PostgREST schema cache error. Switched to direct database query. Admin: Run RECOVERY_SAFE.sql in SQL Editor.',
+          variant: 'destructive',
+          duration: 15000,
+        });
       } else {
         toast({
           variant: 'destructive',
@@ -510,13 +515,40 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
   return (
     <div className="space-y-6">
       {useDirectFallback && (
-        <Alert className="border-yellow-500 bg-yellow-50">
-          <AlertTriangle className="h-4 w-4 text-yellow-600" />
+        <Alert className="border-red-600 bg-red-50">
+          <AlertTriangle className="h-5 w-5 text-red-700" />
           <AlertDescription>
-            <strong className="text-yellow-900">⚠️ Direct Query Mode Active</strong>
-            <p className="text-sm text-yellow-800 mt-1">
-              REST API is down. Using direct database fallback. Search disabled. Admin: Run EMERGENCY_SQL_FIX_V3_FINAL.sql
-            </p>
+            <div className="space-y-2">
+              <strong className="text-red-900 text-base">🚨 CRITICAL: Database API Down - Fallback Mode Active</strong>
+              <p className="text-sm text-red-800 font-medium">
+                PostgREST schema cache error (PGRST002). Jobs will load via direct query once you run RECOVERY_SAFE.sql.
+              </p>
+              <div className="flex gap-2 mt-2">
+                <Button 
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => window.open('https://supabase.com/dashboard/project/kyiuojjaownbvouffqbm/sql/new', '_blank')}
+                  className="gap-2"
+                >
+                  <Database className="h-4 w-4" />
+                  → Open SQL Editor
+                </Button>
+                <Button 
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const el = document.querySelector('[data-system-doctor]');
+                    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className="gap-2"
+                >
+                  View System Doctor
+                </Button>
+              </div>
+              <p className="text-xs text-red-700 mt-2">
+                Instructions: Copy RECOVERY_SAFE.sql code → Paste in SQL Editor → Run → Refresh page
+              </p>
+            </div>
           </AlertDescription>
         </Alert>
       )}

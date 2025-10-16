@@ -34,7 +34,14 @@ export function useJobsDirectFallback(
 
         if (rpcError) {
           console.error('❌ Fallback RPC failed:', rpcError);
-          throw rpcError;
+          
+          // Check if it's a "function does not exist" error
+          if (rpcError.message?.includes('does not exist') || rpcError.code === '42883') {
+            setError('RECOVERY_SAFE.sql not run yet. Admin must run it in Supabase SQL Editor.');
+          } else {
+            setError(rpcError.message || 'Fallback query failed');
+          }
+          return;
         }
 
         console.log(`✅ Fallback loaded ${data?.length || 0} jobs`);
