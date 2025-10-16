@@ -11,6 +11,9 @@ import { EmailNotificationDialog } from './EmailNotificationDialog';
 import { JobStatsCards } from './jobs/JobStatsCards';
 import { JobFilters } from './jobs/JobFilters';
 import { JobsTableVirtualized } from './jobs/JobsTableVirtualized';
+import { useJobsDirectFallback } from '@/hooks/useJobsDirectFallback';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 import { useJobStats } from '@/hooks/useJobStats';
 import { Skeleton } from '@/components/ui/skeleton';
 import { jobBookingDB } from '@/lib/storage';
@@ -52,6 +55,19 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
   const [emailJob, setEmailJob] = useState<Job | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [highlightedJobId, setHighlightedJobId] = useState<string | null>(null);
+  const [useDirectFallback, setUseDirectFallback] = useState(false);
+  const [apiErrorCount, setApiErrorCount] = useState(0);
+
+  // Fallback: Direct database query when REST API is down
+  const { jobs: directJobs, isLoading: directLoading } = useJobsDirectFallback(25, 0, useDirectFallback);
+
+  // Sync direct jobs to main state
+  useEffect(() => {
+    if (useDirectFallback && directJobs.length > 0) {
+      setJobs(directJobs);
+      setIsLoading(false);
+    }
+  }, [useDirectFallback, directJobs]);
 
   // Handler to update a specific job in the list without refetching
   const handleUpdateJob = useCallback((jobId: string, updates: Partial<Job>) => {
@@ -248,24 +264,36 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     } catch (err: any) {
       console.error('Load jobs error:', err);
       
-      // Check if it's a schema cache error
       const isSchemaError = err.message?.includes('schema cache') || 
                            err.code === 'PGRST002' ||
                            err.message?.includes('Could not query the database');
       
-      toast({
-        variant: 'destructive',
-        title: isSchemaError ? 'Database API Connection Lost' : 'Failed to load jobs',
-        description: isSchemaError 
-          ? '⚠️ Schema cache error detected. Admin: Go to Admin Settings → Data Review → Forensics and click "Reload API Schema"'
-          : err.message || 'Please try again',
-        duration: isSchemaError ? 10000 : 5000,
-        action: (
-          <Button variant="outline" size="sm" onClick={() => loadJobsPage(isInitial)}>
-            Retry
-          </Button>
-        )
-      });
+      if (isSchemaError) {
+        setApiErrorCount(prev => prev + 1);
+        
+        if (apiErrorCount >= 1) {
+          setUseDirectFallback(true);
+          toast({
+            title: 'Using Direct Database Connection',
+            description: 'REST API is down. Switched to direct query. Admin: Run EMERGENCY_SQL_FIX_V3_FINAL.sql',
+            variant: 'destructive',
+            duration: 10000,
+          });
+        } else {
+          toast({
+            title: 'Database API Connection Lost',
+            description: 'Schema cache error. Admin: Run V3 SQL fix.',
+            variant: 'destructive',
+            duration: 10000,
+          });
+        }
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Failed to load jobs',
+          description: err.message || 'Please try again'
+        });
+      }
     } finally {
       setLoadingState(false);
     }
@@ -481,7 +509,18 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
 
   return (
     <div className="space-y-6">
-      {/* Analytics Cards */}
+      {useDirectFallback && (
+        <Alert className="border-yellow-500 bg-yellow-50">
+          <AlertTriangle className="h-4 w-4 text-yellow-600" />
+          <AlertDescription>
+            <strong className="text-yellow-900">⚠️ Direct Query Mode Active</strong>
+            <p className="text-sm text-yellow-800 mt-1">
+              REST API is down. Using direct database fallback. Search disabled. Admin: Run EMERGENCY_SQL_FIX_V3_FINAL.sql
+            </p>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <JobStatsCards stats={stats} onFilterClick={handleFilterClick} />
 
       {/* Search and Filters */}

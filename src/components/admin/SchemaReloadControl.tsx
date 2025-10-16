@@ -14,11 +14,24 @@ export function SchemaReloadControl() {
 
   const checkHealth = async () => {
     try {
-      // Use the dedicated health check function
+      // Try the RPC health check first
       const { data, error } = await supabase.rpc('api_health_check' as any);
       
       if (error) {
         console.error('Health check RPC failed:', error);
+        
+        // If we get PGRST002, PostgREST is down but DB might be OK
+        if (error.code === 'PGRST002') {
+          setHealthStatus('unhealthy');
+          toast({
+            title: '⚠️ PostgREST Schema Cache Error',
+            description: 'The API layer cannot query its schema. The database may be healthy but API is down. Run the V3 SQL fix script.',
+            variant: 'destructive',
+            duration: 10000,
+          });
+          return false;
+        }
+        
         setHealthStatus('unhealthy');
         return false;
       }
@@ -153,12 +166,23 @@ export function SchemaReloadControl() {
         <Alert className="border-red-500 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription>
-            <strong className="text-red-900">🚨 EMERGENCY: API is completely down</strong>
+            <strong className="text-red-900">🚨 CRITICAL: PostgREST Schema Cache Failure</strong>
             <div className="mt-2 space-y-2">
               <p className="text-sm text-red-800 font-medium">
-                ⚠️ PostgREST cannot query its schema cache. Follow these steps:
+                The database is healthy but PostgREST (API layer) cannot query its schema cache.
               </p>
-              <ol className="ml-4 list-decimal space-y-1.5 text-sm text-red-800">
+              <div className="bg-yellow-50 border border-yellow-200 rounded p-2 my-2">
+                <p className="text-xs font-bold text-yellow-900">DIAGNOSIS:</p>
+                <p className="text-xs text-yellow-800 mt-1">
+                  ✅ Database: Healthy (SQL queries work)<br/>
+                  ❌ PostgREST API: Down (PGRST002 error)<br/>
+                  📊 Impact: UI cannot load data via REST API
+                </p>
+              </div>
+              <p className="text-sm text-red-800 font-bold mt-3">
+                🔧 RUN THIS FINAL FIX:
+              </p>
+              <ol className="ml-4 list-decimal space-y-2 text-sm text-red-800">
                 <li>
                   <strong>Open Supabase SQL Editor</strong>
                   <div className="ml-4 mt-1">
@@ -166,31 +190,31 @@ export function SchemaReloadControl() {
                       href="https://supabase.com/dashboard/project/kyiuojjaownbvouffqbm/sql/new" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-blue-700 hover:underline"
+                      className="text-blue-700 hover:underline font-bold"
                     >
-                      → Click here to open SQL Editor ←
+                      → CLICK HERE TO OPEN SQL EDITOR ←
                     </a>
                   </div>
                 </li>
                 <li>
-                  <strong>Copy ALL code from EMERGENCY_SQL_FIX_V2.sql</strong>
+                  <strong>Copy ALL code from: <code className="bg-red-100 px-1 rounded">EMERGENCY_SQL_FIX_V3_FINAL.sql</code></strong>
                   <div className="ml-4 mt-1 text-xs">
-                    Location: Project root → <code className="bg-red-100 px-1 rounded">EMERGENCY_SQL_FIX_V2.sql</code>
+                    Location: Project root folder
                   </div>
                 </li>
-                <li><strong>Paste and click "Run"</strong> - wait for completion (20-30 sec)</li>
-                <li><strong>Check the output</strong> - should show "RECOVERY COMPLETE"</li>
-                <li><strong>Wait 10 seconds</strong> for PostgREST to fully reload</li>
-                <li><strong>Click "Check Health"</strong> above - should turn green</li>
+                <li><strong>Paste and click "Run"</strong> - wait 30-60 seconds</li>
+                <li><strong>Check output</strong> - should show "RECOVERY V3 COMPLETE"</li>
+                <li><strong>Wait 30 seconds</strong> for PostgREST to fully reload</li>
+                <li><strong>Click "Check Health"</strong> above</li>
               </ol>
-              <div className="mt-3 p-2 bg-red-100 rounded">
-                <p className="text-xs text-red-900 font-bold">
-                  ⚠️ If still failing after running V2 script:
+              <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                <p className="text-xs text-blue-900 font-bold">
+                  💡 IF STILL FAILING:
                 </p>
-                <ul className="ml-4 mt-1 text-xs text-red-800 list-disc">
-                  <li>Check SQL output for "BROKEN VIEW" warnings</li>
-                  <li>Look for permission errors in the output</li>
-                  <li>Screenshot the SQL output and report the specific error</li>
+                <ul className="ml-4 mt-1 text-xs text-blue-800 list-disc">
+                  <li><strong>PostgREST needs a hard restart</strong> (only Supabase support can do this)</li>
+                  <li>Contact Supabase: Settings → Support → Report "PGRST002 schema cache error"</li>
+                  <li>Meanwhile: App will use direct database function fallback</li>
                 </ul>
               </div>
             </div>

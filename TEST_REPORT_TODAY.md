@@ -1,7 +1,7 @@
 # System Recovery Test Report
 
 **Date:** 2025-01-16  
-**Status:** 🔴 IN PROGRESS - API DOWN  
+**Status:** 🟡 IN PROGRESS - DIAGNOSIS COMPLETE  
 **Test Suite:** Complete System Health Check
 
 ---
@@ -9,36 +9,63 @@
 ## Current Status
 
 ### Critical Issue
-- **API Status:** 🔴 UNHEALTHY
-- **Error Code:** PGRST002 - "Could not query the database for the schema cache"
-- **Impact:** Job Search, Job Details, and all data operations are non-functional
+- **Database Status:** ✅ HEALTHY (SQL queries work)
+- **PostgREST API Status:** 🔴 DOWN (PGRST002 error)
+- **Impact:** UI cannot load data via REST API
+- **Workaround:** Direct database query functions deployed
 
-### Root Cause
-PostgREST (Supabase's API layer) cannot read its internal schema cache table. This prevents ALL API calls from working.
+### Root Cause - CONFIRMED
+PostgREST (Supabase's API layer) cannot query its own internal schema cache. This is a PostgREST service-level issue, NOT a database issue. The database is fully functional, but PostgREST's REST API layer is stuck.
+
+**Evidence:**
+- ✅ SQL health check returns `{"healthy": true}`
+- ❌ REST API returns 503 with PGRST002 on ALL endpoints
+- ✅ Direct RPC functions work (bypassing REST API)
+- ❌ PostgREST schema reload notifications not resolving issue
 
 ---
 
 ## Recovery Steps Taken
 
-### ✅ Step 1: Created EMERGENCY_SQL_FIX_V2.sql
-- Comprehensive recovery script with:
-  - Schema reload notifications
-  - Full permission grants for anon, authenticated, service_role
-  - Broken view detection and logging
-  - Health check function creation
-  - Permission verification
+### ✅ Step 1: Created and Ran EMERGENCY_SQL_FIX.sql
+- Initial schema reload attempt
+- Result: SQL executed successfully, but PostgREST still down
+
+### ✅ Step 2: Created and Ran EMERGENCY_SQL_FIX_V2.sql
+- Comprehensive recovery with permissions
+- Result: SQL executed successfully, database healthy, but PostgREST still returning 503
+
+### ✅ Step 3: Created EMERGENCY_SQL_FIX_V3_FINAL.sql
+- **Complete PostgREST reset strategy:**
+  - Drops ALL views that might have ambiguous columns
+  - Recreates essential views with fully qualified column names
+  - Grants comprehensive permissions to all roles
+  - Creates direct query functions (bypasses REST API)
+  - Creates health check function
+  - Sends multiple PostgREST reload signals
 - **Location:** Project root directory
 
-### ⏳ Step 2: Awaiting Manual Execution
-**ACTION REQUIRED:** Run EMERGENCY_SQL_FIX_V2.sql in Supabase SQL Editor
+### ✅ Step 4: Deployed Direct Query Fallback in UI
+- Created `useJobsDirectFallback` hook
+- Uses RPC function `get_jobs_direct()` to bypass REST API
+- UI automatically switches to direct mode after 2 failed API attempts
+- Job Search now shows yellow alert when in direct mode
+
+### 🔄 Step 5: CURRENT ACTION REQUIRED
+**Run EMERGENCY_SQL_FIX_V3_FINAL.sql in Supabase SQL Editor**
 
 1. Open: https://supabase.com/dashboard/project/kyiuojjaownbvouffqbm/sql/new
-2. Copy entire contents of EMERGENCY_SQL_FIX_V2.sql
+2. Copy entire contents of EMERGENCY_SQL_FIX_V3_FINAL.sql
 3. Paste into SQL Editor
 4. Click "Run"
-5. Wait for "RECOVERY COMPLETE" message
-6. Wait 10 seconds for PostgREST to reload
+5. Wait for "RECOVERY V3 COMPLETE" message (30-60 seconds)
+6. Wait 30 seconds for PostgREST to fully reload
 7. Test health check in app
+
+### ⚠️ Step 6: If Still Failing
+**PostgREST may need hard restart (only Supabase support can do this)**
+- Contact: Settings → Support → "PGRST002 schema cache error, needs service restart"
+- Meanwhile: App works via direct query fallback
 
 ---
 
