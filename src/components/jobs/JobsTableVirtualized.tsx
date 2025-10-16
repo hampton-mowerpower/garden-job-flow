@@ -37,23 +37,16 @@ export function JobsTableVirtualized({
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   
   const handleStatusChange = async (job: Job, newStatus: Job['status']) => {
-    // Prevent no-op updates
-    if (job.status === newStatus) {
-      return;
-    }
-
     const previousStatus = job.status;
     const previousVersion = job.version || 1;
     setUpdatingStatus(job.id);
     
     // Optimistic update
     if (onUpdateJob) {
-      onUpdateJob(job.id, { status: newStatus, version: previousVersion + 1 });
+      onUpdateJob(job.id, { status: newStatus });
     }
     
     try {
-      console.log(`Updating job ${job.jobNumber} status: ${previousStatus} → ${newStatus} (v${previousVersion})`);
-      
       const updates: any = {
         status: newStatus,
         version: previousVersion + 1,
@@ -67,35 +60,19 @@ export function JobsTableVirtualized({
         updates.completed_at = new Date().toISOString();
       }
       
-      // Update with version check for concurrency - use maybeSingle to handle 0 rows
+      // Update with version check for concurrency
       const { data, error } = await supabase
         .from('jobs_db')
         .update(updates)
         .eq('id', job.id)
         .eq('version', previousVersion)
-        .select('id, version, status, updated_at')
-        .maybeSingle();
+        .select('version')
+        .single();
       
-      if (error) {
-        console.error('Supabase error:', error);
-        throw error;
-      }
+      if (error) throw error;
       
-      // Check if update succeeded (data will be null if no rows matched)
       if (!data) {
-        console.warn('Version conflict: job was modified by another user');
-        throw new Error('This job was modified by another user. Please refresh the page and try again.');
-      }
-      
-      console.log(`✓ Status updated successfully to ${data.status} (v${data.version})`);
-      
-      // Update local state with confirmed data from server
-      if (onUpdateJob) {
-        onUpdateJob(job.id, { 
-          status: data.status as Job['status'],
-          version: data.version,
-          updatedAt: new Date(data.updated_at)
-        });
+        throw new Error('Job was modified by another user. Please reload.');
       }
       
       // Schedule reminder if delivered
@@ -111,30 +88,14 @@ export function JobsTableVirtualized({
     } catch (error: any) {
       console.error('Error updating status:', error);
       
-      // Revert optimistic update to previous state
+      // Revert optimistic update
       if (onUpdateJob) {
-        onUpdateJob(job.id, { 
-          status: previousStatus, 
-          version: previousVersion 
-        });
-      }
-      
-      // Provide user-friendly error messages
-      let errorMessage = 'Failed to update job status';
-      
-      if (error.message && error.message.includes('modified by another user')) {
-        errorMessage = error.message;
-      } else if (error.code === 'PGRST116') {
-        errorMessage = 'Job was modified by another user. Please refresh and try again.';
-      } else if (error.code === '42501') {
-        errorMessage = 'You do not have permission to update this job.';
-      } else if (error.message) {
-        errorMessage = error.message;
+        onUpdateJob(job.id, { status: previousStatus });
       }
       
       toast({
-        title: 'Update Failed',
-        description: errorMessage,
+        title: 'Error',
+        description: error.message || 'Failed to update job status',
         variant: 'destructive',
       });
     } finally {
