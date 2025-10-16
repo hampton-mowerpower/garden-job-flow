@@ -148,37 +148,21 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
     try {
       // Create new part in catalog
       const { supabase } = await import('@/integrations/supabase/client');
-      
-      // Use upsert to handle duplicates gracefully
       const { data, error } = await supabase
         .from('parts_catalogue')
-        .upsert({
+        .insert({
           name: newPart.name,
           sku: newPart.sku || `CUSTOM-${Date.now()}`,
           category: equipmentCategory,
           base_price: newPart.price,
           sell_price: newPart.price,
           in_stock: true,
-          part_group: 'Custom Parts',
-          active: true
-        }, {
-          onConflict: 'sku',
-          ignoreDuplicates: false
+          part_group: 'Custom Parts'
         })
         .select()
-        .maybeSingle(); // Handle 0 or 1 row gracefully
+        .single();
 
-      if (error) {
-        // Handle specific error cases
-        if (error.code === '23505') {
-          throw new Error('A part with this SKU already exists. Please use a different SKU or search for the existing part.');
-        }
-        throw error;
-      }
-
-      if (!data) {
-        throw new Error('Failed to create part - no data returned');
-      }
+      if (error) throw error;
 
       // Add to job immediately
       const part: Part = {
@@ -193,7 +177,7 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
       onAddPart(part, newPart.quantity);
 
       toast({
-        title: 'Part Created',
+        title: 'Part created',
         description: `${newPart.name} added to catalog and job`
       });
 
@@ -205,13 +189,9 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
       refetch();
     } catch (error: any) {
       console.error('Error adding new part:', error);
-      
-      const errorMsg = error.message || 'Unknown error';
       toast({
-        title: 'Failed to Add Part',
-        description: errorMsg.includes('timeout') || errorMsg.includes('connection')
-          ? 'Database is busy. Please try again in a moment.'
-          : errorMsg,
+        title: 'Error',
+        description: 'Failed to add new part',
         variant: 'destructive'
       });
     }
