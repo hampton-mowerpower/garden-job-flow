@@ -4,7 +4,7 @@ import { DataRecovery } from './DataRecovery';
 import { ShadowAuditMonitor } from './ShadowAuditMonitor';
 import { DataReviewHelp } from './DataReviewHelp';
 import { JobReconciliation } from './JobReconciliation';
-import { SchemaReloadControl } from './SchemaReloadControl';
+import { SystemDoctor } from './SystemDoctor';
 
 export function DataReviewTabs() {
   return (
@@ -43,7 +43,7 @@ export function DataReviewTabs() {
         </TabsContent>
 
         <TabsContent value="forensics" className="space-y-4">
-          <SchemaReloadControl />
+          <SystemDoctor />
         </TabsContent>
 
         <TabsContent value="help" className="space-y-4">

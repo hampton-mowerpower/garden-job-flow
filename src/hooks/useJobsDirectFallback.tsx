@@ -5,6 +5,7 @@ import { Job } from '@/types/job';
 /**
  * Fallback hook that uses direct database functions when REST API is down
  * This bypasses PostgREST and queries the database directly via RPC functions
+ * Uses the RECOVERY_SAFE.sql functions (no aggregates, no SQL errors)
  */
 export function useJobsDirectFallback(
   limit: number = 25,
@@ -23,15 +24,20 @@ export function useJobsDirectFallback(
       setError(null);
 
       try {
-        // Use the direct query function that bypasses PostgREST REST API
+        console.log('🔄 Using fallback: get_jobs_direct RPC');
+        
+        // Use the safe direct query function (RECOVERY_SAFE.sql)
         const { data, error: rpcError } = await supabase.rpc('get_jobs_direct' as any, {
           p_limit: limit,
           p_offset: offset
         });
 
         if (rpcError) {
+          console.error('❌ Fallback RPC failed:', rpcError);
           throw rpcError;
         }
+
+        console.log(`✅ Fallback loaded ${data?.length || 0} jobs`);
 
         // Parse and convert to Job type - data is now an array of rows from TABLE return
         const rawJobs = data as any[];
@@ -55,9 +61,10 @@ export function useJobsDirectFallback(
             email: item.customer_email || ''
           }
         } as Job));
+        
         setJobs(convertedJobs);
       } catch (err: any) {
-        console.error('Direct query failed:', err);
+        console.error('❌ Direct query failed:', err);
         setError(err.message || 'Failed to fetch jobs via direct query');
       } finally {
         setIsLoading(false);
