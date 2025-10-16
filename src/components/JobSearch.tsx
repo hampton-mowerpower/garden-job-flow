@@ -11,8 +11,8 @@ import { EmailNotificationDialog } from './EmailNotificationDialog';
 import { JobStatsCards } from './jobs/JobStatsCards';
 import { JobFilters } from './jobs/JobFilters';
 import { JobsTableVirtualized } from './jobs/JobsTableVirtualized';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useJobStats } from '@/hooks/useJobStats';
+import { Skeleton } from '@/components/ui/skeleton';
 import { jobBookingDB } from '@/lib/storage';
 
 interface JobSearchProps {
@@ -96,7 +96,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     }
   }, [activeFilter]);
 
-  // Debounce search query (300ms for better responsiveness)
+  // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
@@ -166,55 +166,18 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
         ? activeFilter
         : null;
 
-      // Use direct query instead of RPC to avoid schema cache issues
-      let query = supabase
-        .from('jobs_db')
-        .select(`
-          id,
-          job_number,
-          status,
-          created_at,
-          grand_total,
-          customer_id,
-          machine_category,
-          machine_brand,
-          machine_model,
-          machine_serial,
-          problem_description,
-          balance_due,
-          customers_db!inner(
-            name,
-            phone,
-            email
-          )
-        `)
-        .is('deleted_at', null)
-        .order('created_at', { ascending: false })
-        .limit(PAGE_SIZE);
+      const fetchPromise = supabase.rpc('list_jobs_page', {
+        p_limit: PAGE_SIZE,
+        p_before: isInitial ? null : cursor,
+        p_status: statusFilter
+      });
 
-      if (!isInitial && cursor) {
-        query = query.lt('created_at', cursor);
-      }
-
-      if (statusFilter) {
-        query = query.eq('status', statusFilter);
-      }
-
-      const fetchPromise = query;
       const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
       const loadTime = performance.now() - startTime;
       console.log(`Jobs loaded in ${loadTime.toFixed(0)}ms`);
 
-      if (error) {
-        console.error('Load jobs error:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Failed to load jobs',
-          description: error.message || 'Please check console for details'
-        });
-        return;
-      }
+      if (error) throw error;
 
       if (!data || data.length === 0) {
         setHasMore(false);
@@ -228,19 +191,8 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
         return;
       }
 
-      // Convert to Job objects - extract customer data from nested object
-      const newJobs = data.map((row: any) => {
-        const job = convertToJob(row);
-        return {
-          ...job,
-          customer: {
-            ...job.customer,
-            name: row.customers_db?.name || 'Unknown',
-            phone: row.customers_db?.phone || '',
-            email: row.customers_db?.email || ''
-          }
-        };
-      });
+      // Convert to Job objects - customer data already included
+      const newJobs = data.map((row: any) => convertToJob(row));
 
       setJobs(prev => isInitial ? newJobs : [...prev, ...newJobs]);
 
@@ -258,14 +210,19 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
       toast({
         variant: 'destructive',
         title: 'Failed to load jobs',
-        description: err.message || 'Please try again'
+        description: err.message || 'Please try again',
+        action: (
+          <Button variant="outline" size="sm" onClick={() => loadJobsPage(isInitial)}>
+            Retry
+          </Button>
+        )
       });
     } finally {
       setLoadingState(false);
     }
   }, [isLoading, isLoadingMore, cursor, activeFilter, isSearchMode, convertToJob, refreshStats, toast]);
 
-  // Fast unified search function using new search_jobs_unified RPC
+  // Fast search function
   const handleSearch = useCallback(async (term: string) => {
     if (!term.trim()) {
       setIsSearchMode(false);
@@ -278,80 +235,43 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     const startTime = performance.now();
 
     try {
-      console.log('🔍 Searching for:', term);
+      let result;
 
-      // Use direct query with ILIKE for better reliability
-      const searchTerm = term.toLowerCase();
-      const { data, error } = await supabase
-        .from('jobs_db')
-        .select(`
-          id,
-          job_number,
-          status,
-          created_at,
-          grand_total,
-          customer_id,
-          machine_category,
-          machine_brand,
-          machine_model,
-          machine_serial,
-          problem_description,
-          balance_due,
-          customers_db!inner(
-            name,
-            phone,
-            email
-          )
-        `)
-        .is('deleted_at', null)
-        .or(`job_number.ilike.%${searchTerm}%,machine_model.ilike.%${searchTerm}%,machine_brand.ilike.%${searchTerm}%,machine_serial.ilike.%${searchTerm}%,customers_db.name.ilike.%${searchTerm}%,customers_db.phone.ilike.%${searchTerm}%`)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      // Check if it's a phone number (digits only)
+      if (/^\d+$/.test(term)) {
+        result = await supabase.rpc('search_jobs_by_phone', {
+          p_phone: term,
+          p_limit: 50
+        });
+      } else if (term.toUpperCase().startsWith('JB')) {
+        // Job number search
+        result = await supabase.rpc('search_job_by_number', {
+          p_job_number: term.toUpperCase()
+        });
+      } else {
+        // Customer name search
+        result = await supabase.rpc('search_jobs_by_customer_name', {
+          p_name: term,
+          p_limit: 50
+        });
+      }
 
       const searchTime = performance.now() - startTime;
-      console.log(`✅ Search completed in ${searchTime.toFixed(0)}ms, found ${data?.length || 0} results`);
+      console.log(`Search completed in ${searchTime.toFixed(0)}ms`);
 
-      if (error) {
-        console.error('❌ Search error:', error);
-        throw error;
-      }
+      if (result.error) throw result.error;
 
-      if (!data || data.length === 0) {
-        console.log('📭 No results found for:', term);
-        setJobs([]);
-        setHasMore(false);
-        toast({
-          title: 'No results found',
-          description: `Try searching by job number (e.g., "JB2025-0061", "0061", "61"), customer name, phone, or machine model.`,
-        });
-        return;
-      }
-
-      const searchResults = data.map((row: any) => {
-        const job = convertToJob(row);
-        return {
-          ...job,
-          customer: {
-            ...job.customer,
-            name: row.customers_db?.name || 'Unknown',
-            phone: row.customers_db?.phone || '',
-            email: row.customers_db?.email || ''
-          }
-        };
-      });
+      const searchResults = (result.data || []).map((row: any) => convertToJob(row));
       setJobs(searchResults);
       setHasMore(false);
 
-      console.log('✅ Search results loaded:', searchResults.length);
-
     } catch (err: any) {
-      console.error('❌ Search failed:', err);
+      console.error('Search error:', err);
       toast({
         variant: 'destructive',
         title: 'Search failed',
-        description: err.message || 'Please try again'
+        description: err.message
       });
-      setJobs([]);
     } finally {
       setIsLoading(false);
     }
@@ -475,6 +395,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
 
   return (
     <div className="space-y-6">
+      {/* Analytics Cards */}
       <JobStatsCards stats={stats} onFilterClick={handleFilterClick} />
 
       {/* Search and Filters */}
@@ -499,7 +420,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search: job# (0061), customer name, phone (0422), model (hru19), serial..."
+                placeholder="Search by job number, customer name, or phone..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -520,20 +441,14 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
           <JobFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
           {isLoading && jobs.length === 0 ? (
-            <div className="text-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
-              <p className="mt-2 text-muted-foreground">Loading jobs...</p>
+            <div className="space-y-2">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-24 w-full" />
+              ))}
             </div>
           ) : jobs.length === 0 ? (
-            <div className="text-center py-8 space-y-2">
-              <p className="text-muted-foreground">
-                {searchQuery ? 'No jobs found matching your search.' : 'No jobs created yet.'}
-              </p>
-              {searchQuery && (
-                <p className="text-sm text-muted-foreground">
-                  <strong>Search tips:</strong> Try "JB2025-0061", "0061", "61", customer name "mark sm", phone "0422", or model "hru19"
-                </p>
-              )}
+            <div className="text-center py-8 text-muted-foreground">
+              {searchQuery ? 'No jobs found matching your search.' : 'No jobs created yet.'}
             </div>
           ) : (
             <>

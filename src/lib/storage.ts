@@ -213,7 +213,6 @@ class JobBookingDB {
       }
     }
     
-    // CRITICAL: Build complete job data, never send undefined fields that could NULL existing data
     const jobData: any = {
       job_number: job.jobNumber,
       customer_id: savedCustomer.id,
@@ -276,155 +275,78 @@ class JobBookingDB {
       updated_at: new Date().toISOString()
     };
     
-    // Only include ID, created_at, and version for updates
+    // Only include ID and created_at for updates
     if (job.id && this.isValidUUID(job.id)) {
       jobData.id = job.id;
       jobData.created_at = new Date(job.createdAt).toISOString();
-      
-      // CRITICAL: For updates, fetch current record with version for OCC
-      const { data: currentJob, error: fetchError } = await supabase
-        .from('jobs_db')
-        .select('*')
-        .eq('id', job.id)
-        .single();
-      
-      if (fetchError) throw fetchError;
-      
-      if (currentJob) {
-        // OPTIMISTIC CONCURRENCY: Must match current version
-        jobData.version = currentJob.version;
-        
-        // Merge with current data to prevent NULL overwrites
-        // Only overwrite fields that are explicitly provided (not undefined)
-        Object.keys(jobData).forEach(key => {
-          if (jobData[key] === undefined && currentJob[key] !== undefined) {
-            jobData[key] = currentJob[key];
-          }
-        });
-      }
-      
-      // For updates, use UPDATE with version check instead of upsert
-      const { data, error } = await supabase
-        .from('jobs_db')
-        .update(jobData)
-        .eq('id', job.id)
-        .eq('version', jobData.version) // OCC: must match version
-        .select()
-        .maybeSingle();
-      
-      if (error) {
-        if (error.code === '40001') {
-          throw new Error('CONFLICT: Job was modified by another user. Please refresh and try again.');
-        }
-        throw error;
-      }
-      
-      if (!data) {
-        throw new Error('CONFLICT: Job version mismatch. Please refresh and try again.');
-      }
-      
-      // Continue with parts save using the returned data
-      const updatedJob = data;
-      
-      // Save parts with transaction-like behavior
-      await this.saveJobParts(updatedJob.id, job.parts || []);
-      
-      return this.mapJobFromDb(updatedJob, savedCustomer, job.parts);
     }
     
-    // For new jobs, use insert
     const { data, error } = await supabase
       .from('jobs_db')
-      .insert(jobData)
+      .upsert(jobData)
       .select()
       .single();
     
     if (error) throw error;
     
-    // Save parts for new job
-    await this.saveJobParts(data.id, job.parts || []);
-    
-    return this.mapJobFromDb(data, savedCustomer, job.parts);
-  }
-
-  /**
-   * CRITICAL FIX: Smart parts save - prevents accidental deletion
-   * Only saves parts if explicitly provided, never deletes on empty array
-   */
-  private async saveJobParts(jobId: string, parts: JobPart[]): Promise<void> {
-    // SAFETY CHECK: Only proceed if parts array is explicitly provided and valid
-    if (!parts || !Array.isArray(parts)) {
-      console.warn('[STORAGE] Parts array not provided - skipping parts update to prevent data loss');
-      return;
-    }
-    
-    // If parts array is explicitly empty, warn but allow (user may be removing all parts)
-    if (parts.length === 0) {
-      console.warn('[STORAGE] Empty parts array - deleting all parts for job', jobId);
-    }
-    
-    // Fetch existing parts for comparison
-    const { data: existingParts } = await supabase
-      .from('job_parts')
-      .select('*')
-      .eq('job_id', jobId);
-    
-    // Build map of new parts for efficient lookup
-    const newPartsMap = new Map(parts.map(p => [p.partId + '_' + p.partName, p]));
-    
-    // Delete parts that are no longer in the list
-    const partsToDelete = (existingParts || []).filter(existing => {
-      const key = (existing.part_id || 'custom') + '_' + existing.description;
-      return !newPartsMap.has(key);
-    });
-    
-    if (partsToDelete.length > 0) {
+    // Save job parts to junction table
+    if (job.parts && job.parts.length > 0) {
+      // First, delete existing parts for this job
       await supabase
         .from('job_parts')
         .delete()
-        .in('id', partsToDelete.map(p => p.id));
-    }
-    
-    // Process parts to insert/update
-    const partsToInsert = [];
-    for (const part of parts) {
-      if (!part.partName || part.partName.trim() === '') continue;
+        .eq('job_id', data.id);
       
-      let cataloguePartId = null;
-      
-      // If partId looks like a UUID, use it directly
-      if (part.partId && this.isValidUUID(part.partId)) {
-        cataloguePartId = part.partId;
-      } else if (part.partId && part.partId !== 'custom') {
-        // Look up part in catalogue by SKU
-        const { data: cataloguePart } = await supabase
-          .from('parts_catalogue')
-          .select('id')
-          .eq('sku', part.partId)
-          .maybeSingle();
+      // Process parts and look up UUIDs from parts_catalogue
+      const partsToInsert = [];
+      for (const part of job.parts) {
+        if (!part.partName || part.partName.trim() === '') continue;
         
-        if (cataloguePart) {
-          cataloguePartId = cataloguePart.id;
+        let cataloguePartId = null;
+        
+        // If partId looks like a UUID, use it directly
+        if (part.partId && this.isValidUUID(part.partId)) {
+          cataloguePartId = part.partId;
+        } else if (part.partId && part.partId !== 'custom') {
+          // Otherwise, look up the part in parts_catalogue by SKU (which matches the old string IDs)
+          const { data: cataloguePart } = await supabase
+            .from('parts_catalogue')
+            .select('id')
+            .eq('sku', part.partId)
+            .maybeSingle();
+          
+          if (cataloguePart) {
+            cataloguePartId = cataloguePart.id;
+          }
         }
+        // For custom parts (partId === 'custom'), cataloguePartId stays null
+        
+        partsToInsert.push({
+          job_id: data.id,
+          part_id: cataloguePartId,
+          description: part.partName, // Store part name for custom parts
+          quantity: part.quantity,
+          unit_price: part.unitPrice,
+          total_price: part.totalPrice
+        });
       }
       
-      partsToInsert.push({
-        job_id: jobId,
-        part_id: cataloguePartId,
-        description: part.partName,
-        quantity: part.quantity,
-        unit_price: part.unitPrice,
-        total_price: part.totalPrice
-      });
+      if (partsToInsert.length > 0) {
+        const { error: partsError } = await supabase
+          .from('job_parts')
+          .insert(partsToInsert);
+        
+        if (partsError) throw partsError;
+      }
+    } else {
+      // If no parts, delete any existing parts for this job
+      await supabase
+        .from('job_parts')
+        .delete()
+        .eq('job_id', data.id);
     }
     
-    if (partsToInsert.length > 0) {
-      const { error: partsError } = await supabase
-        .from('job_parts')
-        .insert(partsToInsert);
-      
-      if (partsError) throw partsError;
-    }
+    return this.mapJobFromDb(data, savedCustomer, job.parts);
   }
 
   async getJob(id: string): Promise<Job | null> {

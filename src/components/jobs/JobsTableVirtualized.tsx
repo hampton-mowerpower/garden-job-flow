@@ -38,7 +38,6 @@ export function JobsTableVirtualized({
   
   const handleStatusChange = async (job: Job, newStatus: Job['status']) => {
     const previousStatus = job.status;
-    const previousVersion = job.version || 1;
     setUpdatingStatus(job.id);
     
     // Optimistic update
@@ -49,53 +48,41 @@ export function JobsTableVirtualized({
     try {
       const updates: any = {
         status: newStatus,
-        version: previousVersion + 1,
         updated_at: new Date().toISOString()
       };
       
-      // Set timestamps based on status
+      // If status is delivered, set delivered_at and schedule reminder
       if (newStatus === 'delivered') {
         updates.delivered_at = new Date().toISOString();
-      } else if (newStatus === 'completed') {
-        updates.completed_at = new Date().toISOString();
-      }
-      
-      // Update with version check for concurrency
-      const { data, error } = await supabase
-        .from('jobs_db')
-        .update(updates)
-        .eq('id', job.id)
-        .eq('version', previousVersion)
-        .select('version')
-        .single();
-      
-      if (error) throw error;
-      
-      if (!data) {
-        throw new Error('Job was modified by another user. Please reload.');
-      }
-      
-      // Schedule reminder if delivered
-      if (newStatus === 'delivered') {
+        
+        // Schedule service reminder by calling with the updated job
         const updatedJob = { ...job, status: newStatus, deliveredAt: new Date() };
         await scheduleServiceReminder(updatedJob);
       }
       
+      // Update job status in Supabase
+      const { error } = await supabase
+        .from('jobs_db')
+        .update(updates)
+        .eq('id', job.id);
+      
+      if (error) throw error;
+      
       toast({
         title: 'Status Updated',
-        description: `Job ${job.jobNumber} marked as ${newStatus.replace(/[_-]/g, ' ')}`,
+        description: `Job ${job.jobNumber} marked as ${newStatus.replace('_', ' ')}`,
       });
     } catch (error: any) {
       console.error('Error updating status:', error);
       
-      // Revert optimistic update
+      // Revert optimistic update on error
       if (onUpdateJob) {
         onUpdateJob(job.id, { status: previousStatus });
       }
       
       toast({
         title: 'Error',
-        description: error.message || 'Failed to update job status',
+        description: 'Failed to update job status',
         variant: 'destructive',
       });
     } finally {
