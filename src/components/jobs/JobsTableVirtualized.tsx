@@ -37,6 +37,11 @@ export function JobsTableVirtualized({
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   
   const handleStatusChange = async (job: Job, newStatus: Job['status']) => {
+    // Skip if same status
+    if (job.status === newStatus) {
+      return;
+    }
+
     const previousStatus = job.status;
     setUpdatingStatus(job.id);
     
@@ -47,20 +52,21 @@ export function JobsTableVirtualized({
     
     try {
       const updates: any = {
-        status: newStatus,
-        updated_at: new Date().toISOString()
+        status: newStatus
+        // Let trigger handle updated_at
       };
       
-      // If status is delivered, set delivered_at and schedule reminder
+      // If status is delivered, set delivered_at (don't await reminder - let it happen async)
       if (newStatus === 'delivered') {
         updates.delivered_at = new Date().toISOString();
         
-        // Schedule service reminder by calling with the updated job
-        const updatedJob = { ...job, status: newStatus, deliveredAt: new Date() };
-        await scheduleServiceReminder(updatedJob);
+        // Fire and forget - don't block on reminder scheduling
+        scheduleServiceReminder({ ...job, status: newStatus, deliveredAt: new Date() }).catch(err => {
+          console.warn('Failed to schedule reminder:', err);
+        });
       }
       
-      // Update job status in Supabase
+      // Simple update without version check - last write wins
       const { error } = await supabase
         .from('jobs_db')
         .update(updates)
@@ -80,9 +86,12 @@ export function JobsTableVirtualized({
         onUpdateJob(job.id, { status: previousStatus });
       }
       
+      const errorMsg = error.message || 'Unknown error';
       toast({
-        title: 'Error',
-        description: 'Failed to update job status',
+        title: 'Update Failed',
+        description: errorMsg.includes('timeout') 
+          ? 'Database is busy. Please try again in a moment.'
+          : 'Failed to update job status',
         variant: 'destructive',
       });
     } finally {
