@@ -58,7 +58,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
   const [apiErrorCount, setApiErrorCount] = useState(0);
 
   // Fallback: Direct database query when REST API is down
-  const { jobs: directJobs, isLoading: directLoading } = useJobsDirectFallback(25, 0, useDirectFallback);
+  const { jobs: directJobs, isLoading: directLoading, error: directError } = useJobsDirectFallback(25, 0, useDirectFallback);
 
   // Sync direct jobs to main state
   useEffect(() => {
@@ -70,19 +70,15 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
 
   // Show fallback error if RPC fails
   useEffect(() => {
-    if (useDirectFallback && directLoading === false && directJobs.length === 0) {
-      // Check if there's an error from the fallback hook
-      const { error: fallbackError } = useJobsDirectFallback(25, 0, true);
-      if (fallbackError) {
-        toast({
-          title: '🚨 Fallback Failed',
-          description: 'Direct database query failed. Run RECOVERY_SAFE.sql immediately.',
-          variant: 'destructive',
-          duration: 0, // Don't auto-dismiss
-        });
-      }
+    if (useDirectFallback && directError) {
+      toast({
+        title: '🚨 Fallback RPC Failed',
+        description: directError,
+        variant: 'destructive',
+        duration: 0,
+      });
     }
-  }, [useDirectFallback, directLoading, directJobs, toast]);
+  }, [useDirectFallback, directError, toast]);
 
   // Handler to update a specific job in the list without refetching
   const handleUpdateJob = useCallback((jobId: string, updates: Partial<Job>) => {
