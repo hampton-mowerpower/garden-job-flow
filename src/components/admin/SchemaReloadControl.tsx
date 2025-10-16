@@ -14,14 +14,22 @@ export function SchemaReloadControl() {
 
   const checkHealth = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .select('id')
-        .limit(1);
+      // Use the dedicated health check function
+      const { data, error } = await supabase.rpc('api_health_check' as any);
       
-      if (error) throw error;
-      setHealthStatus('healthy');
-      return true;
+      if (error) {
+        console.error('Health check RPC failed:', error);
+        setHealthStatus('unhealthy');
+        return false;
+      }
+      
+      if (data?.healthy) {
+        setHealthStatus('healthy');
+        return true;
+      } else {
+        setHealthStatus('unhealthy');
+        return false;
+      }
     } catch (error) {
       console.error('Health check failed:', error);
       setHealthStatus('unhealthy');
@@ -145,17 +153,47 @@ export function SchemaReloadControl() {
         <Alert className="border-red-500 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription>
-            <strong className="text-red-900">🚨 EMERGENCY: If API is completely down:</strong>
-            <ol className="mt-2 ml-4 list-decimal space-y-1 text-sm text-red-800">
-              <li>Open Supabase Dashboard → SQL Editor</li>
-              <li><strong>Copy and run ALL commands from EMERGENCY_SQL_FIX.sql</strong></li>
-              <li>Wait 10 seconds for PostgREST to reload</li>
-              <li>Click "Check Health" above</li>
-              <li>If still failing, check for broken views in the SQL output</li>
-            </ol>
-            <p className="mt-3 text-xs text-red-700 font-medium">
-              File location: <code className="bg-red-100 px-1 rounded">EMERGENCY_SQL_FIX.sql</code> (root directory)
-            </p>
+            <strong className="text-red-900">🚨 EMERGENCY: API is completely down</strong>
+            <div className="mt-2 space-y-2">
+              <p className="text-sm text-red-800 font-medium">
+                ⚠️ PostgREST cannot query its schema cache. Follow these steps:
+              </p>
+              <ol className="ml-4 list-decimal space-y-1.5 text-sm text-red-800">
+                <li>
+                  <strong>Open Supabase SQL Editor</strong>
+                  <div className="ml-4 mt-1">
+                    <a 
+                      href="https://supabase.com/dashboard/project/kyiuojjaownbvouffqbm/sql/new" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-700 hover:underline"
+                    >
+                      → Click here to open SQL Editor ←
+                    </a>
+                  </div>
+                </li>
+                <li>
+                  <strong>Copy ALL code from EMERGENCY_SQL_FIX_V2.sql</strong>
+                  <div className="ml-4 mt-1 text-xs">
+                    Location: Project root → <code className="bg-red-100 px-1 rounded">EMERGENCY_SQL_FIX_V2.sql</code>
+                  </div>
+                </li>
+                <li><strong>Paste and click "Run"</strong> - wait for completion (20-30 sec)</li>
+                <li><strong>Check the output</strong> - should show "RECOVERY COMPLETE"</li>
+                <li><strong>Wait 10 seconds</strong> for PostgREST to fully reload</li>
+                <li><strong>Click "Check Health"</strong> above - should turn green</li>
+              </ol>
+              <div className="mt-3 p-2 bg-red-100 rounded">
+                <p className="text-xs text-red-900 font-bold">
+                  ⚠️ If still failing after running V2 script:
+                </p>
+                <ul className="ml-4 mt-1 text-xs text-red-800 list-disc">
+                  <li>Check SQL output for "BROKEN VIEW" warnings</li>
+                  <li>Look for permission errors in the output</li>
+                  <li>Screenshot the SQL output and report the specific error</li>
+                </ul>
+              </div>
+            </div>
           </AlertDescription>
         </Alert>
       </CardContent>

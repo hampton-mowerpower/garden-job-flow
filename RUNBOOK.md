@@ -7,6 +7,7 @@
 - Job Search shows "No jobs created yet" when jobs exist
 - Console error: `PGRST002: Could not query the database for the schema cache`
 - All API requests return 503 status
+- Admin → Data Review → Forensics shows "Unhealthy - Schema cache issue detected"
 
 ### Root Cause
 PostgREST (Supabase's API layer) cannot read its internal schema cache table. This happens after:
@@ -14,26 +15,94 @@ PostgREST (Supabase's API layer) cannot read its internal schema cache table. Th
 - Views created with ambiguous column names
 - Missing permissions after adding new tables
 - Schema changes without reloading PostgREST
+- Functions without proper `SET search_path = public`
 
-### ⚡ IMMEDIATE FIX (5 minutes)
+### ⚡ IMMEDIATE FIX (5-10 minutes)
+
+#### Step 1: Run Emergency Recovery Script
 
 1. **Open Supabase SQL Editor**
-   - URL: https://supabase.com/dashboard/project/kyiuojjaownbvouffqbm/sql/new
+   - Direct link: https://supabase.com/dashboard/project/kyiuojjaownbvouffqbm/sql/new
+   - Or: Supabase Dashboard → SQL Editor → New Query
 
-2. **Run the emergency SQL file**
-   - Copy ALL commands from `EMERGENCY_SQL_FIX.sql` in your project root
+2. **Copy the entire V2 recovery script**
+   - Open file: `EMERGENCY_SQL_FIX_V2.sql` in your project root
+   - Select ALL (Ctrl+A / Cmd+A)
+   - Copy (Ctrl+C / Cmd+C)
+
+3. **Paste and execute**
    - Paste into SQL Editor
-   - Click "Run"
-   - Check output for any errors
+   - Click "Run" (or press Ctrl+Enter)
+   - Wait 20-30 seconds for completion
+   - **IMPORTANT:** Do not interrupt the execution
 
-3. **Wait 10 seconds**
-   - PostgREST automatically reloads when it receives the pg_notify
+4. **Verify the output**
+   - Look for: `║  RECOVERY COMPLETE - Now test the health check:  ║`
+   - Check for "BROKEN VIEW" warnings (if any)
+   - Review the permission verification table
+   - Final line should show `{"success": true, "healthy": true}`
 
-4. **Verify the fix**
-   - In your app: Admin → Data Review → Forensics
+#### Step 2: Test Recovery
+
+1. **Wait 10 seconds** for PostgREST to fully reload
+
+2. **In your app, go to:**
+   - Admin → Data Review → Forensics
    - Click "Check Health"
    - Should show green "Healthy" status
-   - Go to Job Search - should load jobs
+
+3. **Navigate to Job Search**
+   - Should load jobs without errors
+   - No red error toasts
+   - Search should work
+
+4. **Test Job Details**
+   - Click any job
+   - Should open with full details
+   - Status dropdown should work
+
+### What V2 Does (Technical Details)
+
+The V2 script performs comprehensive recovery:
+
+1. **Forces PostgREST reload** via `pg_notify`
+2. **Grants all necessary permissions:**
+   - USAGE on public schema
+   - SELECT on all tables for anon/authenticated
+   - Full permissions for service_role
+   - Specific CRUD permissions on critical tables
+3. **Detects broken views:**
+   - Tests every view for compilation errors
+   - Logs broken views to maintenance_audit
+   - Shows specific error messages
+4. **Creates health check functions:**
+   - `api_health_check()` - tests basic connectivity
+   - `reload_api_schema()` - manual reload trigger
+5. **Verifies permissions:**
+   - Shows permission matrix for critical tables
+   - Highlights missing permissions
+
+### If V2 Still Fails
+
+Check the SQL output for:
+
+**Broken Views:**
+```
+⚠ BROKEN VIEW: jobs_with_customer - Error: column "id" is ambiguous
+```
+**Fix:** View has duplicate column names. Needs explicit aliases.
+
+**Permission Errors:**
+```
+ERROR: permission denied for table jobs_db
+```
+**Fix:** RLS policy might be blocking. Check policies.
+
+**Function Errors:**
+```
+ERROR: function has_role does not exist
+```
+**Fix:** Missing dependency function. Check function definitions.
 
 ### Prevention Steps
 
