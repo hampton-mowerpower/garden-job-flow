@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Download, RotateCcw, Loader2, RefreshCw, CheckCircle, AlertTriangle, Activity, Shield, Database } from 'lucide-react';
+import { Search, Download, RotateCcw, Loader2 } from 'lucide-react';
 import { Job } from '@/types/job';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -11,10 +11,8 @@ import { EmailNotificationDialog } from './EmailNotificationDialog';
 import { JobStatsCards } from './jobs/JobStatsCards';
 import { JobFilters } from './jobs/JobFilters';
 import { JobsTableVirtualized } from './jobs/JobsTableVirtualized';
-import { useJobsDirectFallback } from '@/hooks/useJobsDirectFallback';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useJobStats } from '@/hooks/useJobStats';
-import { Skeleton } from '@/components/ui/skeleton';
 import { jobBookingDB } from '@/lib/storage';
 
 interface JobSearchProps {
@@ -54,31 +52,6 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
   const [emailJob, setEmailJob] = useState<Job | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [highlightedJobId, setHighlightedJobId] = useState<string | null>(null);
-  const [useDirectFallback, setUseDirectFallback] = useState(false);
-  const [apiErrorCount, setApiErrorCount] = useState(0);
-
-  // Fallback: Direct database query when REST API is down
-  const { jobs: directJobs, isLoading: directLoading, error: directError } = useJobsDirectFallback(25, 0, useDirectFallback);
-
-  // Sync direct jobs to main state
-  useEffect(() => {
-    if (useDirectFallback && directJobs.length > 0) {
-      setJobs(directJobs);
-      setIsLoading(false);
-    }
-  }, [useDirectFallback, directJobs]);
-
-  // Show fallback error if RPC fails
-  useEffect(() => {
-    if (useDirectFallback && directError) {
-      toast({
-        title: '🚨 Fallback RPC Failed',
-        description: directError,
-        variant: 'destructive',
-        duration: 0,
-      });
-    }
-  }, [useDirectFallback, directError, toast]);
 
   // Handler to update a specific job in the list without refetching
   const handleUpdateJob = useCallback((jobId: string, updates: Partial<Job>) => {
@@ -233,7 +206,15 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
       const loadTime = performance.now() - startTime;
       console.log(`Jobs loaded in ${loadTime.toFixed(0)}ms`);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Load jobs error:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Failed to load jobs',
+          description: error.message || 'Please check console for details'
+        });
+        return;
+      }
 
       if (!data || data.length === 0) {
         setHasMore(false);
@@ -274,27 +255,11 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
 
     } catch (err: any) {
       console.error('Load jobs error:', err);
-      
-      const isSchemaError = err.message?.includes('schema cache') || 
-                           err.code === 'PGRST002' ||
-                           err.message?.includes('Could not query the database');
-      
-      if (isSchemaError) {
-        // Activate fallback immediately on PGRST002
-        setUseDirectFallback(true);
-        toast({
-          title: '⚠️ Using Fallback Mode',
-          description: 'PostgREST schema cache error. Switched to direct database query. Admin: Run RECOVERY_SAFE.sql in SQL Editor.',
-          variant: 'destructive',
-          duration: 15000,
-        });
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Failed to load jobs',
-          description: err.message || 'Please try again'
-        });
-      }
+      toast({
+        variant: 'destructive',
+        title: 'Failed to load jobs',
+        description: err.message || 'Please try again'
+      });
     } finally {
       setLoadingState(false);
     }
@@ -510,45 +475,6 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
 
   return (
     <div className="space-y-6">
-      {useDirectFallback && (
-        <Alert className="border-red-600 bg-red-50">
-          <AlertTriangle className="h-5 w-5 text-red-700" />
-          <AlertDescription>
-            <div className="space-y-2">
-              <strong className="text-red-900 text-base">🚨 CRITICAL: Database API Down - Fallback Mode Active</strong>
-              <p className="text-sm text-red-800 font-medium">
-                PostgREST schema cache error (PGRST002). Jobs will load via direct query once you run RECOVERY_SAFE.sql.
-              </p>
-              <div className="flex gap-2 mt-2">
-                <Button 
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => window.open('https://supabase.com/dashboard/project/kyiuojjaownbvouffqbm/sql/new', '_blank')}
-                  className="gap-2"
-                >
-                  <Database className="h-4 w-4" />
-                  → Open SQL Editor
-                </Button>
-                <Button 
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    const el = document.querySelector('[data-system-doctor]');
-                    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }}
-                  className="gap-2"
-                >
-                  View System Doctor
-                </Button>
-              </div>
-              <p className="text-xs text-red-700 mt-2">
-                Instructions: Copy RECOVERY_SAFE.sql code → Paste in SQL Editor → Run → Refresh page
-              </p>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
       <JobStatsCards stats={stats} onFilterClick={handleFilterClick} />
 
       {/* Search and Filters */}
@@ -594,10 +520,9 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
           <JobFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
 
           {isLoading && jobs.length === 0 ? (
-            <div className="space-y-2">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-24 w-full" />
-              ))}
+            <div className="text-center py-8">
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
+              <p className="mt-2 text-muted-foreground">Loading jobs...</p>
             </div>
           ) : jobs.length === 0 ? (
             <div className="text-center py-8 space-y-2">
