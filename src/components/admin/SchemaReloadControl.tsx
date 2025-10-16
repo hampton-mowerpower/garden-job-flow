@@ -180,7 +180,7 @@ export function SchemaReloadControl() {
                 </p>
               </div>
               <p className="text-sm text-red-800 font-bold mt-3">
-                🔧 RUN THIS FINAL FIX:
+                🔧 RUN THIS V4 FIX NOW:
               </p>
               <ol className="ml-4 list-decimal space-y-2 text-sm text-red-800">
                 <li>
@@ -197,15 +197,15 @@ export function SchemaReloadControl() {
                   </div>
                 </li>
                 <li>
-                  <strong>Copy ALL code from: <code className="bg-red-100 px-1 rounded">EMERGENCY_SQL_FIX_V3_FINAL.sql</code></strong>
+                  <strong>Copy ALL code from: <code className="bg-red-100 px-1 rounded">EMERGENCY_SQL_FIX_V4_FINAL.sql</code></strong>
                   <div className="ml-4 mt-1 text-xs">
-                    Location: Project root folder
+                    Location: Project root folder (fixes SQL aggregate error)
                   </div>
                 </li>
-                <li><strong>Paste and click "Run"</strong> - wait 30-60 seconds</li>
-                <li><strong>Check output</strong> - should show "RECOVERY V3 COMPLETE"</li>
-                <li><strong>Wait 30 seconds</strong> for PostgREST to fully reload</li>
-                <li><strong>Click "Check Health"</strong> above</li>
+                <li><strong>Paste and click "Run"</strong> - wait 10-20 seconds</li>
+                <li><strong>Check output</strong> - should show "V4 FIX COMPLETE"</li>
+                <li><strong>Refresh your app</strong> - jobs should load immediately in fallback mode</li>
+                <li><strong>Click "Check Health"</strong> above to verify</li>
               </ol>
               <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
                 <p className="text-xs text-blue-900 font-bold">

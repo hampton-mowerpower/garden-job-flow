@@ -33,7 +33,7 @@ export function useJobsDirectFallback(
           throw rpcError;
         }
 
-        // Parse and convert to Job type
+        // Parse and convert to Job type - data is now an array of rows from TABLE return
         const rawJobs = data as any[];
         const convertedJobs: Job[] = (rawJobs || []).map(item => ({
           id: item.id,
@@ -47,12 +47,12 @@ export function useJobsDirectFallback(
           machineModel: item.machine_model,
           machineSerial: item.machine_serial,
           problemDescription: item.problem_description,
-          customerId: item.customer?.id || '',
+          customerId: item.customer_id || '',
           customer: {
-            id: item.customer?.id || '',
-            name: item.customer?.name || 'Unknown',
-            phone: item.customer?.phone || '',
-            email: item.customer?.email || ''
+            id: item.customer_id || '',
+            name: item.customer_name || 'Unknown',
+            phone: item.customer_phone || '',
+            email: item.customer_email || ''
           }
         } as Job));
         setJobs(convertedJobs);

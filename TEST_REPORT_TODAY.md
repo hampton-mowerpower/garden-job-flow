@@ -1,7 +1,7 @@
 # System Recovery Test Report
 
-**Date:** 2025-01-16  
-**Status:** 🟡 IN PROGRESS - DIAGNOSIS COMPLETE  
+**Date:** 2025-10-16  
+**Status:** 🔴 CRITICAL - V4 FIX REQUIRED  
 **Test Suite:** Complete System Health Check
 
 ---
@@ -11,17 +11,31 @@
 ### Critical Issue
 - **Database Status:** ✅ HEALTHY (SQL queries work)
 - **PostgREST API Status:** 🔴 DOWN (PGRST002 error)
-- **Impact:** UI cannot load data via REST API
-- **Workaround:** Direct database query functions deployed
+- **Fallback RPC Status:** 🔴 BROKEN (SQL aggregate error)
+- **Impact:** UI cannot load ANY data (REST AND fallback both failing)
+- **V4 Fix:** Required - SQL script ready to run
 
-### Root Cause - CONFIRMED
-PostgREST (Supabase's API layer) cannot query its own internal schema cache. This is a PostgREST service-level issue, NOT a database issue. The database is fully functional, but PostgREST's REST API layer is stuck.
+### Root Cause - DOUBLE FAILURE CONFIRMED
+
+**Issue 1: PostgREST PGRST002 (Still Present)**
+PostgREST (Supabase's API layer) cannot query its own internal schema cache.
+
+**Issue 2: Fallback RPC SQL Error (NEW - CRITICAL)**
+The V3 fallback function `get_jobs_direct()` has a SQL aggregate error:
+```
+ERROR: column "j.created_at" must appear in the GROUP BY clause 
+       or be used in an aggregate function
+CONTEXT: PL/pgSQL function get_jobs_direct(integer,integer)
+```
+
+**Why This Happened:**
+V3 used `jsonb_agg()` (aggregate) with `ORDER BY` + `LIMIT`. PostgreSQL requires all ORDER BY columns to be in GROUP BY when using aggregates, but you can't use GROUP BY with LIMIT on ungrouped data.
 
 **Evidence:**
-- ✅ SQL health check returns `{"healthy": true}`
+- ✅ SQL health check returns `{"healthy": true}` (DB is fine)
 - ❌ REST API returns 503 with PGRST002 on ALL endpoints
-- ✅ Direct RPC functions work (bypassing REST API)
-- ❌ PostgREST schema reload notifications not resolving issue
+- ❌ Direct RPC `get_jobs_direct()` fails with aggregate error
+- ❌ Jobs cannot load via ANY method
 
 ---
 
@@ -51,21 +65,36 @@ PostgREST (Supabase's API layer) cannot query its own internal schema cache. Thi
 - UI automatically switches to direct mode after 2 failed API attempts
 - Job Search now shows yellow alert when in direct mode
 
-### 🔄 Step 5: CURRENT ACTION REQUIRED
-**Run EMERGENCY_SQL_FIX_V3_FINAL.sql in Supabase SQL Editor**
+### ✅ Step 5: Created EMERGENCY_SQL_FIX_V4_FINAL.sql
+**Fixes the fallback RPC function to work immediately**
+
+**Key Changes in V4:**
+- Changed `get_jobs_direct()` from returning `jsonb` to returning `TABLE`
+- Returns explicit columns instead of aggregate (no GROUP BY needed)
+- Added `get_job_detail_direct()` for single job queries
+- Updated permissions for both functions
+- Includes automatic test suite
+
+### 🔄 Step 6: CURRENT ACTION REQUIRED
+**Run EMERGENCY_SQL_FIX_V4_FINAL.sql in Supabase SQL Editor NOW**
 
 1. Open: https://supabase.com/dashboard/project/kyiuojjaownbvouffqbm/sql/new
-2. Copy entire contents of EMERGENCY_SQL_FIX_V3_FINAL.sql
+2. Copy entire contents of **EMERGENCY_SQL_FIX_V4_FINAL.sql** (in project root)
 3. Paste into SQL Editor
 4. Click "Run"
-5. Wait for "RECOVERY V3 COMPLETE" message (30-60 seconds)
-6. Wait 30 seconds for PostgREST to fully reload
-7. Test health check in app
+5. Wait for "V4 FIX COMPLETE" message (10-20 seconds)
+6. **Refresh your app** - jobs should load immediately in fallback mode
+7. Look for yellow "Fallback Mode" banner (means it's working)
 
-### ⚠️ Step 6: If Still Failing
-**PostgREST may need hard restart (only Supabase support can do this)**
-- Contact: Settings → Support → "PGRST002 schema cache error, needs service restart"
-- Meanwhile: App works via direct query fallback
+### ⚠️ Step 7: After Jobs Load (Fix PostgREST)
+Once jobs load in fallback mode, we still need to fix the PostgREST REST API:
+1. Check Forensics → Check Health to see if REST is still PGRST002
+2. If still down, investigate:
+   - Wrong env keys? (SUPABASE_URL, SUPABASE_ANON_KEY)
+   - Missing permissions? (SELECT on tables/views)
+   - Broken views? (ambiguous columns)
+   - RLS blocking reads?
+3. Contact Supabase support if PostgREST needs hard restart
 
 ---
 
@@ -113,12 +142,13 @@ Check SQL output for:
 
 ## Next Steps
 
-1. **IMMEDIATE:** Run EMERGENCY_SQL_FIX_V2.sql in Supabase SQL Editor
-2. **Verify:** Check SQL output shows "RECOVERY COMPLETE"
-3. **Test:** Wait 10 seconds, then click "Check Health" in app
-4. **Confirm:** Health status should show "Healthy"
-5. **Full Test:** Navigate to Job Search - should load data
-6. **Report:** Update this document with actual test results
+1. **IMMEDIATE:** Run **EMERGENCY_SQL_FIX_V4_FINAL.sql** in Supabase SQL Editor
+2. **Verify:** Check SQL output shows "V4 FIX COMPLETE"
+3. **Refresh:** Reload your app in browser
+4. **Confirm:** Jobs list should load with yellow "Fallback Mode" banner
+5. **Test:** Click on a job - Job Details should open
+6. **Check Health:** Admin → Forensics → Check Health to see PostgREST status
+7. **Report:** Update this document with actual test results
 
 ---
 
