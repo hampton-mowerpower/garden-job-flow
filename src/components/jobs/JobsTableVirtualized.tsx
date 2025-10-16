@@ -67,7 +67,49 @@ export function JobsTableVirtualized({
         updates.completed_at = new Date().toISOString();
       }
       
-      // Update with version check for concurrency - use maybeSingle to handle 0 rows
+      // First try without version check to see if job exists
+      const { data: checkData, error: checkError } = await supabase
+        .from('jobs_db')
+        .select('id, version, status, updated_at')
+        .eq('id', job.id)
+        .maybeSingle();
+      
+      if (checkError) {
+        console.error('Check error:', checkError);
+        throw checkError;
+      }
+      
+      if (!checkData) {
+        throw new Error('Job not found. It may have been deleted.');
+      }
+      
+      // Check for version conflict
+      if (checkData.version !== previousVersion) {
+        console.warn(`Version conflict: expected v${previousVersion}, found v${checkData.version}`);
+        
+        // Revert optimistic update
+        if (onUpdateJob) {
+          onUpdateJob(job.id, { 
+            status: checkData.status as Job['status'],
+            version: checkData.version,
+            updatedAt: new Date(checkData.updated_at)
+          });
+        }
+        
+        toast({
+          title: 'Conflict Detected',
+          description: 'This job was modified. Your changes have been synced. Click to retry.',
+          variant: 'destructive',
+        });
+        
+        // Auto-retry after a short delay
+        setTimeout(() => {
+          handleStatusChange({ ...job, version: checkData.version, status: checkData.status as Job['status'] }, newStatus);
+        }, 1500);
+        return;
+      }
+      
+      // Now perform the actual update with version check
       const { data, error } = await supabase
         .from('jobs_db')
         .update(updates)
@@ -77,14 +119,12 @@ export function JobsTableVirtualized({
         .maybeSingle();
       
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('Update error:', error);
         throw error;
       }
       
-      // Check if update succeeded (data will be null if no rows matched)
       if (!data) {
-        console.warn('Version conflict: job was modified by another user');
-        throw new Error('This job was modified by another user. Please refresh the page and try again.');
+        throw new Error('Update failed unexpectedly. Please try again.');
       }
       
       console.log(`✓ Status updated successfully to ${data.status} (v${data.version})`);
@@ -119,22 +159,9 @@ export function JobsTableVirtualized({
         });
       }
       
-      // Provide user-friendly error messages
-      let errorMessage = 'Failed to update job status';
-      
-      if (error.message && error.message.includes('modified by another user')) {
-        errorMessage = error.message;
-      } else if (error.code === 'PGRST116') {
-        errorMessage = 'Job was modified by another user. Please refresh and try again.';
-      } else if (error.code === '42501') {
-        errorMessage = 'You do not have permission to update this job.';
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
       toast({
         title: 'Update Failed',
-        description: errorMessage,
+        description: error.message || 'Failed to update job status. Please try again.',
         variant: 'destructive',
       });
     } finally {

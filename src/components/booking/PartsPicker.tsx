@@ -146,8 +146,27 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
     }
 
     try {
-      // Create new part in catalog
       const { supabase } = await import('@/integrations/supabase/client');
+      
+      // Check for duplicate SKU if provided
+      if (newPart.sku && newPart.sku.trim()) {
+        const { data: existing } = await supabase
+          .from('parts_catalogue')
+          .select('id')
+          .eq('sku', newPart.sku)
+          .maybeSingle();
+          
+        if (existing) {
+          toast({
+            title: 'Duplicate SKU',
+            description: 'A part with this SKU already exists. Use a different SKU or leave blank.',
+            variant: 'destructive'
+          });
+          return;
+        }
+      }
+      
+      // Create new part in catalog
       const { data, error } = await supabase
         .from('parts_catalogue')
         .insert({
@@ -157,14 +176,22 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
           base_price: newPart.price,
           sell_price: newPart.price,
           in_stock: true,
+          active: true,
           part_group: 'Custom Parts'
         })
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Insert error:', error);
+        throw error;
+      }
 
-      // Add to job immediately
+      if (!data) {
+        throw new Error('No data returned from insert');
+      }
+
+      // Create part object to add to job
       const part: Part = {
         id: data.id,
         sku: data.sku,
@@ -177,8 +204,8 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
       onAddPart(part, newPart.quantity);
 
       toast({
-        title: 'Part created',
-        description: `${newPart.name} added to catalog and job`
+        title: 'Success',
+        description: `${newPart.name} created and added to job`
       });
 
       // Reset form
@@ -189,9 +216,19 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
       refetch();
     } catch (error: any) {
       console.error('Error adding new part:', error);
+      
+      let errorMessage = 'Failed to add new part';
+      if (error.message?.includes('violates row-level security')) {
+        errorMessage = 'Permission denied. Please check your access rights.';
+      } else if (error.code === '23505') {
+        errorMessage = 'A part with this SKU already exists';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: 'Error',
-        description: 'Failed to add new part',
+        description: errorMessage,
         variant: 'destructive'
       });
     }
