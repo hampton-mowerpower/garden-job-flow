@@ -32,15 +32,22 @@ export function SchemaReloadControl() {
   const reloadSchema = async () => {
     setIsReloading(true);
     try {
-      // Try to call the reload function (may not exist yet if migration failed)
+      // Try to call the reload function
       const { data, error } = await supabase.rpc('reload_api_schema' as any);
       
       if (error) {
-        // If RPC fails, provide manual instructions
-        throw new Error('API unavailable - manual reload required');
+        console.error('RPC error:', error);
+        toast({
+          title: 'Manual SQL Required',
+          description: 'API is down. Run EMERGENCY_SQL_FIX.sql in Supabase SQL Editor.',
+          variant: 'destructive',
+          duration: 10000,
+        });
+        setHealthStatus('unhealthy');
+        return;
       }
       
-      // Wait a moment for reload to propagate
+      // Wait for reload to propagate
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       // Check health
@@ -49,19 +56,27 @@ export function SchemaReloadControl() {
       if (isHealthy) {
         setLastReload(new Date());
         toast({
-          title: 'Schema Reloaded Successfully',
-          description: 'API schema cache has been refreshed. Job Search should work now.',
+          title: '✅ Schema Reloaded',
+          description: 'API is healthy. Test Job Search now.',
+          duration: 5000,
         });
       } else {
-        throw new Error('Schema reloaded but health check still failing');
+        toast({
+          title: '⚠️ Partial Success',
+          description: 'Schema reloaded but health check still failing. Check RLS policies.',
+          variant: 'destructive',
+          duration: 8000,
+        });
       }
     } catch (error: any) {
       console.error('Schema reload error:', error);
       toast({
-        title: 'Schema Reload Failed',
-        description: 'Please use manual SQL commands in Supabase dashboard.',
+        title: '❌ Reload Failed',
+        description: error.message || 'Check console for details.',
         variant: 'destructive',
+        duration: 10000,
       });
+      setHealthStatus('unhealthy');
     } finally {
       setIsReloading(false);
     }
@@ -126,17 +141,21 @@ export function SchemaReloadControl() {
           </div>
         )}
 
-        {/* Manual Instructions */}
-        <Alert>
-          <AlertTriangle className="h-4 w-4" />
+        {/* Emergency Instructions */}
+        <Alert className="border-red-500 bg-red-50">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription>
-            <strong>If automatic reload fails:</strong>
-            <ol className="mt-2 ml-4 list-decimal space-y-1 text-sm">
+            <strong className="text-red-900">🚨 EMERGENCY: If API is completely down:</strong>
+            <ol className="mt-2 ml-4 list-decimal space-y-1 text-sm text-red-800">
               <li>Open Supabase Dashboard → SQL Editor</li>
-              <li>Run: <code className="bg-gray-100 px-1 rounded">SELECT pg_notify('pgrst', 'reload schema');</code></li>
-              <li>Run: <code className="bg-gray-100 px-1 rounded">SELECT pg_notify('pgrst', 'reload config');</code></li>
-              <li>Click "Check Health" above to verify</li>
+              <li><strong>Copy and run ALL commands from EMERGENCY_SQL_FIX.sql</strong></li>
+              <li>Wait 10 seconds for PostgREST to reload</li>
+              <li>Click "Check Health" above</li>
+              <li>If still failing, check for broken views in the SQL output</li>
             </ol>
+            <p className="mt-3 text-xs text-red-700 font-medium">
+              File location: <code className="bg-red-100 px-1 rounded">EMERGENCY_SQL_FIX.sql</code> (root directory)
+            </p>
           </AlertDescription>
         </Alert>
       </CardContent>
