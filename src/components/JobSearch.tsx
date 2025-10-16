@@ -247,10 +247,19 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
 
     } catch (err: any) {
       console.error('Load jobs error:', err);
+      
+      // Check if it's a schema cache error
+      const isSchemaError = err.message?.includes('schema cache') || 
+                           err.code === 'PGRST002' ||
+                           err.message?.includes('Could not query the database');
+      
       toast({
         variant: 'destructive',
-        title: 'Failed to load jobs',
-        description: err.message || 'Please try again',
+        title: isSchemaError ? 'Database API Connection Lost' : 'Failed to load jobs',
+        description: isSchemaError 
+          ? '⚠️ Schema cache error detected. Admin: Go to Admin Settings → Data Review → Forensics and click "Reload API Schema"'
+          : err.message || 'Please try again',
+        duration: isSchemaError ? 10000 : 5000,
         action: (
           <Button variant="outline" size="sm" onClick={() => loadJobsPage(isInitial)}>
             Retry

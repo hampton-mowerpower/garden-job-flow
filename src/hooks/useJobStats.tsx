@@ -76,8 +76,17 @@ export function useJobStats() {
       };
 
       setStats(newStats);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading job stats:', error);
+      
+      // Check if it's a schema cache error
+      const isSchemaError = error.message?.includes('schema cache') || 
+                           error.code === 'PGRST002';
+      
+      if (isSchemaError) {
+        console.error('⚠️ SCHEMA CACHE ERROR: PostgREST cannot query schema. Admin needs to reload API schema.');
+      }
+      
       setStats(prev => ({ ...prev, loading: false }));
     }
   };

@@ -4,6 +4,7 @@ import { DataRecovery } from './DataRecovery';
 import { ShadowAuditMonitor } from './ShadowAuditMonitor';
 import { DataReviewHelp } from './DataReviewHelp';
 import { JobReconciliation } from './JobReconciliation';
+import { SchemaReloadControl } from './SchemaReloadControl';
 
 export function DataReviewTabs() {
   return (
@@ -21,6 +22,7 @@ export function DataReviewTabs() {
           <TabsTrigger value="reconcile">Reconcile</TabsTrigger>
           <TabsTrigger value="recovery">Recovery</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+          <TabsTrigger value="forensics">Forensics</TabsTrigger>
           <TabsTrigger value="help">Help</TabsTrigger>
         </TabsList>
 
@@ -38,6 +40,10 @@ export function DataReviewTabs() {
 
         <TabsContent value="monitoring" className="space-y-4">
           <ShadowAuditMonitor />
+        </TabsContent>
+
+        <TabsContent value="forensics" className="space-y-4">
+          <SchemaReloadControl />
         </TabsContent>
 
         <TabsContent value="help" className="space-y-4">
