@@ -96,7 +96,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     }
   }, [activeFilter]);
 
-  // Debounce search query
+  // Debounce search query (300ms for better responsiveness)
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery);
@@ -222,7 +222,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     }
   }, [isLoading, isLoadingMore, cursor, activeFilter, isSearchMode, convertToJob, refreshStats, toast]);
 
-  // Fast search function
+  // Fast unified search function using new search_jobs_unified RPC
   const handleSearch = useCallback(async (term: string) => {
     if (!term.trim()) {
       setIsSearchMode(false);
@@ -235,43 +235,48 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     const startTime = performance.now();
 
     try {
-      let result;
+      console.log('🔍 Searching for:', term);
 
-      // Check if it's a phone number (digits only)
-      if (/^\d+$/.test(term)) {
-        result = await supabase.rpc('search_jobs_by_phone', {
-          p_phone: term,
-          p_limit: 50
-        });
-      } else if (term.toUpperCase().startsWith('JB')) {
-        // Job number search
-        result = await supabase.rpc('search_job_by_number', {
-          p_job_number: term.toUpperCase()
-        });
-      } else {
-        // Customer name search
-        result = await supabase.rpc('search_jobs_by_customer_name', {
-          p_name: term,
-          p_limit: 50
-        });
-      }
+      // Use unified search function
+      const { data, error } = await supabase.rpc('search_jobs_unified', {
+        p_query: term,
+        p_limit: 50,
+        p_tenant_id: null // RLS will handle tenant scoping
+      });
 
       const searchTime = performance.now() - startTime;
-      console.log(`Search completed in ${searchTime.toFixed(0)}ms`);
+      console.log(`✅ Search completed in ${searchTime.toFixed(0)}ms, found ${data?.length || 0} results`);
 
-      if (result.error) throw result.error;
+      if (error) {
+        console.error('❌ Search error:', error);
+        throw error;
+      }
 
-      const searchResults = (result.data || []).map((row: any) => convertToJob(row));
+      if (!data || data.length === 0) {
+        console.log('📭 No results found for:', term);
+        setJobs([]);
+        setHasMore(false);
+        toast({
+          title: 'No results found',
+          description: `Try searching by job number (e.g., "JB2025-0061", "0061", "61"), customer name, phone, or machine model.`,
+        });
+        return;
+      }
+
+      const searchResults = data.map((row: any) => convertToJob(row));
       setJobs(searchResults);
       setHasMore(false);
 
+      console.log('✅ Search results loaded:', searchResults.length);
+
     } catch (err: any) {
-      console.error('Search error:', err);
+      console.error('❌ Search failed:', err);
       toast({
         variant: 'destructive',
         title: 'Search failed',
-        description: err.message
+        description: err.message || 'Please try again'
       });
+      setJobs([]);
     } finally {
       setIsLoading(false);
     }
@@ -420,7 +425,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by job number, customer name, or phone..."
+                placeholder="Search: job# (0061), customer name, phone (0422), model (hru19), serial..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -447,8 +452,15 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
               ))}
             </div>
           ) : jobs.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {searchQuery ? 'No jobs found matching your search.' : 'No jobs created yet.'}
+            <div className="text-center py-8 space-y-2">
+              <p className="text-muted-foreground">
+                {searchQuery ? 'No jobs found matching your search.' : 'No jobs created yet.'}
+              </p>
+              {searchQuery && (
+                <p className="text-sm text-muted-foreground">
+                  <strong>Search tips:</strong> Try "JB2025-0061", "0061", "61", customer name "mark sm", phone "0422", or model "hru19"
+                </p>
+              )}
             </div>
           ) : (
             <>

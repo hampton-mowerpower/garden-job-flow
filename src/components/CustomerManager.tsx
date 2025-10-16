@@ -109,7 +109,8 @@ export function CustomerManager() {
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.phone.includes(searchTerm) ||
-    (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase()))
+    (customer.email && customer.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    ((customer as any).company_name && (customer as any).company_name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleSendReminder = async () => {
@@ -211,64 +212,72 @@ export function CustomerManager() {
               <p className="text-muted-foreground">{t('customer.none')}</p>
             </div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('customer.name')}</TableHead>
-                  <TableHead>{t('customer.phone')}</TableHead>
-                  <TableHead>{t('customer.email')}</TableHead>
-                  <TableHead>{t('customer.address')}</TableHead>
-                  <TableHead>{t('common.actions')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredCustomers.map((customer) => (
-                  <TableRow key={customer.id}>
-                    <TableCell className="font-medium">{customer.name}</TableCell>
-                    <TableCell>{customer.phone}</TableCell>
-                    <TableCell>{customer.email || '-'}</TableCell>
-                    <TableCell className="max-w-xs truncate">{customer.address}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedCustomer(customer);
-                            setShowProfileDialog(true);
-                          }}
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          View
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedCustomer(customer);
-                            setShowEditDialog(true);
-                          }}
-                        >
-                          <Edit className="w-4 h-4 mr-2" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedCustomer(customer);
-                            setShowReminderDialog(true);
-                          }}
-                        >
-                          <Mail className="w-4 h-4 mr-2" />
-                          {t('reminder.send')}
-                        </Button>
-                      </div>
-                    </TableCell>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('customer.name')}</TableHead>
+                    <TableHead>{t('customer.phone')}</TableHead>
+                    <TableHead>{t('customer.email')}</TableHead>
+                    <TableHead>Address</TableHead>
+                    <TableHead>Customer Type</TableHead>
+                    <TableHead>Company Name</TableHead>
+                    <TableHead>{t('common.actions')}</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredCustomers.map((customer: any) => (
+                    <TableRow key={customer.id}>
+                      <TableCell className="font-medium">{customer.name}</TableCell>
+                      <TableCell>{customer.phone}</TableCell>
+                      <TableCell>{customer.email || '-'}</TableCell>
+                      <TableCell className="max-w-xs truncate">{customer.address}</TableCell>
+                      <TableCell>
+                        <Badge variant={customer.customer_type === 'commercial' ? 'default' : 'secondary'}>
+                          {customer.customer_type || 'domestic'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{customer.company_name || '-'}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedCustomer(customer);
+                              setShowProfileDialog(true);
+                            }}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            View
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedCustomer(customer);
+                              setShowEditDialog(true);
+                            }}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedCustomer(customer);
+                              setShowReminderDialog(true);
+                            }}
+                          >
+                            <Mail className="w-4 h-4 mr-2" />
+                            {t('reminder.send')}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
           )}
         </CardContent>
       </Card>

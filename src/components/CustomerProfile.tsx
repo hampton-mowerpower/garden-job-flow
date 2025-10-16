@@ -3,6 +3,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { CustomerJobsTab } from '@/components/customers/CustomerJobsTab';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -80,11 +81,12 @@ export const CustomerProfile: React.FC<CustomerProfileProps> = ({
         }
       }
       
-      // Step 2: Load ALL jobs for any of these customer IDs
+      // Step 2: Load ALL jobs for any of these customer IDs (LIVE data, no cache)
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs_db')
         .select('*')
         .in('customer_id', relatedCustomerIds)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (jobsError) throw jobsError;
@@ -242,39 +244,7 @@ export const CustomerProfile: React.FC<CustomerProfileProps> = ({
             </TabsList>
 
             <TabsContent value="jobs" className="space-y-3">
-              {loading ? (
-                <p className="text-center py-4">Loading...</p>
-              ) : jobs.length === 0 ? (
-                <p className="text-center py-4 text-muted-foreground">No jobs found</p>
-              ) : (
-                jobs.map(job => (
-                  <Card key={job.id}>
-                    <CardContent className="pt-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium">{job.job_number}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {job.machine_category} - {job.machine_brand} {job.machine_model}
-                          </p>
-                          <p className="text-xs mt-1">{job.problem_description}</p>
-                        </div>
-                        <Badge variant={
-                          job.status === 'completed' ? 'default' :
-                          job.status === 'in-progress' ? 'secondary' : 'outline'
-                        }>
-                          {job.status}
-                        </Badge>
-                      </div>
-                      <div className="flex justify-between items-center mt-3 pt-3 border-t">
-                        <span className="text-sm text-muted-foreground">
-                          {format(new Date(job.created_at), 'PP')}
-                        </span>
-                        <span className="font-medium">${job.grand_total?.toFixed(2)}</span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+              <CustomerJobsTab customerId={customer.id} />
             </TabsContent>
 
             <TabsContent value="machines" className="space-y-3">
