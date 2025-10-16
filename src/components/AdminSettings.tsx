@@ -24,6 +24,12 @@ import { QuickProblemsAdmin } from './admin/QuickProblemsAdmin';
 import { TransportSettingsAdmin } from './admin/TransportSettingsAdmin';
 import { EmailHealthMonitor } from './admin/EmailHealthMonitor';
 import { AccountContactManager } from './account/AccountContactManager';
+import { DataLossForensics } from './admin/DataLossForensics';
+import { JobDataHealthMonitor } from './admin/JobDataHealthMonitor';
+import { DataIntegrityMonitor } from './admin/DataIntegrityMonitor';
+import { JobForensics } from './admin/JobForensics';
+import { DataRecoveryTools } from './admin/DataRecoveryTools';
+import { DataReviewTabs } from './admin/DataReviewTabs';
 
 // Simple unique ID generator for UI elements
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -329,17 +335,23 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
           </p>
         </div>
 
-        <Tabs defaultValue="categories" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+        <Tabs defaultValue="data-review" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-10">
+            <TabsTrigger value="data-review">Data Review</TabsTrigger>
             <TabsTrigger value="categories">Categories & Rates</TabsTrigger>
             <TabsTrigger value="parts">Parts Management</TabsTrigger>
             <TabsTrigger value="accounts">Accounts & Contacts</TabsTrigger>
             <TabsTrigger value="descriptions">Quick Problems</TabsTrigger>
             <TabsTrigger value="transport">Transport Settings</TabsTrigger>
             <TabsTrigger value="email-health">Email Health</TabsTrigger>
+            <TabsTrigger value="forensics">Data Forensics</TabsTrigger>
             <TabsTrigger value="print">Print Settings</TabsTrigger>
             <TabsTrigger value="export">Data Export</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="data-review">
+            <DataReviewTabs />
+          </TabsContent>
 
           <TabsContent value="categories">
             <CategoriesLabourAdmin />
@@ -363,6 +375,16 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
 
           <TabsContent value="email-health">
             <EmailHealthMonitor />
+          </TabsContent>
+
+          <TabsContent value="forensics">
+            <div className="space-y-6">
+              <JobDataHealthMonitor />
+              <DataIntegrityMonitor />
+              <JobForensics />
+              <DataRecoveryTools />
+              <DataLossForensics />
+            </div>
           </TabsContent>
 
           <TabsContent value="print">

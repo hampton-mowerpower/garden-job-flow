@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { getQueryClient } from '@/lib/queryClient';
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { LoginPage } from '@/components/auth/LoginPage';
@@ -110,14 +112,18 @@ function AppContent() {
 }
 
 function App() {
+  const queryClient = getQueryClient();
+  
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <LanguageProvider>
-          <AppContent />
-          <Toaster />
-        </LanguageProvider>
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <LanguageProvider>
+            <AppContent />
+            <Toaster />
+          </LanguageProvider>
+        </AuthProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

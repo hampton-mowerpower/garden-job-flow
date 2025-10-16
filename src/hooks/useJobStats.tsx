@@ -43,10 +43,11 @@ export function useJobStats() {
       const monthStart = startOfMonth(now).toISOString();
       const yearStart = startOfYear(now).toISOString();
 
-      // Get all jobs in one query
+      // Get all jobs in one query - filter out deleted jobs
       const { data: jobs, error } = await supabase
         .from('jobs_db')
         .select('id, created_at, status, quotation_status')
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -75,8 +76,17 @@ export function useJobStats() {
       };
 
       setStats(newStats);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading job stats:', error);
+      
+      // Check if it's a schema cache error
+      const isSchemaError = error.message?.includes('schema cache') || 
+                           error.code === 'PGRST002';
+      
+      if (isSchemaError) {
+        console.error('⚠️ SCHEMA CACHE ERROR: PostgREST cannot query schema. Admin needs to reload API schema.');
+      }
+      
       setStats(prev => ({ ...prev, loading: false }));
     }
   };
