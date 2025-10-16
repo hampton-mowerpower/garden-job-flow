@@ -166,12 +166,41 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
         ? activeFilter
         : null;
 
-      const fetchPromise = supabase.rpc('list_jobs_page', {
-        p_limit: PAGE_SIZE,
-        p_before: isInitial ? null : cursor,
-        p_status: statusFilter
-      });
+      // Use direct query instead of RPC to avoid schema cache issues
+      let query = supabase
+        .from('jobs_db')
+        .select(`
+          id,
+          job_number,
+          status,
+          created_at,
+          grand_total,
+          customer_id,
+          machine_category,
+          machine_brand,
+          machine_model,
+          machine_serial,
+          problem_description,
+          balance_due,
+          customers_db!inner(
+            name,
+            phone,
+            email
+          )
+        `)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .limit(PAGE_SIZE);
 
+      if (!isInitial && cursor) {
+        query = query.lt('created_at', cursor);
+      }
+
+      if (statusFilter) {
+        query = query.eq('status', statusFilter);
+      }
+
+      const fetchPromise = query;
       const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
       const loadTime = performance.now() - startTime;
@@ -191,8 +220,19 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
         return;
       }
 
-      // Convert to Job objects - customer data already included
-      const newJobs = data.map((row: any) => convertToJob(row));
+      // Convert to Job objects - extract customer data from nested object
+      const newJobs = data.map((row: any) => {
+        const job = convertToJob(row);
+        return {
+          ...job,
+          customer: {
+            ...job.customer,
+            name: row.customers_db?.name || 'Unknown',
+            phone: row.customers_db?.phone || '',
+            email: row.customers_db?.email || ''
+          }
+        };
+      });
 
       setJobs(prev => isInitial ? newJobs : [...prev, ...newJobs]);
 
@@ -237,12 +277,33 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     try {
       console.log('🔍 Searching for:', term);
 
-      // Use unified search function
-      const { data, error } = await supabase.rpc('search_jobs_unified', {
-        p_query: term,
-        p_limit: 50,
-        p_tenant_id: null // RLS will handle tenant scoping
-      });
+      // Use direct query with ILIKE for better reliability
+      const searchTerm = term.toLowerCase();
+      const { data, error } = await supabase
+        .from('jobs_db')
+        .select(`
+          id,
+          job_number,
+          status,
+          created_at,
+          grand_total,
+          customer_id,
+          machine_category,
+          machine_brand,
+          machine_model,
+          machine_serial,
+          problem_description,
+          balance_due,
+          customers_db!inner(
+            name,
+            phone,
+            email
+          )
+        `)
+        .is('deleted_at', null)
+        .or(`job_number.ilike.%${searchTerm}%,machine_model.ilike.%${searchTerm}%,machine_brand.ilike.%${searchTerm}%,machine_serial.ilike.%${searchTerm}%,customers_db.name.ilike.%${searchTerm}%,customers_db.phone.ilike.%${searchTerm}%`)
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       const searchTime = performance.now() - startTime;
       console.log(`✅ Search completed in ${searchTime.toFixed(0)}ms, found ${data?.length || 0} results`);
@@ -263,7 +324,18 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
         return;
       }
 
-      const searchResults = data.map((row: any) => convertToJob(row));
+      const searchResults = data.map((row: any) => {
+        const job = convertToJob(row);
+        return {
+          ...job,
+          customer: {
+            ...job.customer,
+            name: row.customers_db?.name || 'Unknown',
+            phone: row.customers_db?.phone || '',
+            email: row.customers_db?.email || ''
+          }
+        };
+      });
       setJobs(searchResults);
       setHasMore(false);
 

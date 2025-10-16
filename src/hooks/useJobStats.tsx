@@ -43,10 +43,11 @@ export function useJobStats() {
       const monthStart = startOfMonth(now).toISOString();
       const yearStart = startOfYear(now).toISOString();
 
-      // Get all jobs in one query
+      // Get all jobs in one query - filter out deleted jobs
       const { data: jobs, error } = await supabase
         .from('jobs_db')
         .select('id, created_at, status, quotation_status')
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
