@@ -37,131 +37,52 @@ export function JobsTableVirtualized({
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   
   const handleStatusChange = async (job: Job, newStatus: Job['status']) => {
-    // Prevent no-op updates
-    if (job.status === newStatus) {
-      return;
-    }
-
     const previousStatus = job.status;
-    const previousVersion = job.version || 1;
     setUpdatingStatus(job.id);
     
     // Optimistic update
     if (onUpdateJob) {
-      onUpdateJob(job.id, { status: newStatus, version: previousVersion + 1 });
+      onUpdateJob(job.id, { status: newStatus });
     }
     
     try {
-      console.log(`Updating job ${job.jobNumber} status: ${previousStatus} → ${newStatus} (v${previousVersion})`);
-      
       const updates: any = {
         status: newStatus,
-        version: previousVersion + 1,
         updated_at: new Date().toISOString()
       };
       
-      // Set timestamps based on status
+      // If status is delivered, set delivered_at and schedule reminder
       if (newStatus === 'delivered') {
         updates.delivered_at = new Date().toISOString();
-      } else if (newStatus === 'completed') {
-        updates.completed_at = new Date().toISOString();
-      }
-      
-      // First try without version check to see if job exists
-      const { data: checkData, error: checkError } = await supabase
-        .from('jobs_db')
-        .select('id, version, status, updated_at')
-        .eq('id', job.id)
-        .maybeSingle();
-      
-      if (checkError) {
-        console.error('Check error:', checkError);
-        throw checkError;
-      }
-      
-      if (!checkData) {
-        throw new Error('Job not found. It may have been deleted.');
-      }
-      
-      // Check for version conflict
-      if (checkData.version !== previousVersion) {
-        console.warn(`Version conflict: expected v${previousVersion}, found v${checkData.version}`);
         
-        // Revert optimistic update
-        if (onUpdateJob) {
-          onUpdateJob(job.id, { 
-            status: checkData.status as Job['status'],
-            version: checkData.version,
-            updatedAt: new Date(checkData.updated_at)
-          });
-        }
-        
-        toast({
-          title: 'Conflict Detected',
-          description: 'This job was modified. Your changes have been synced. Click to retry.',
-          variant: 'destructive',
-        });
-        
-        // Auto-retry after a short delay
-        setTimeout(() => {
-          handleStatusChange({ ...job, version: checkData.version, status: checkData.status as Job['status'] }, newStatus);
-        }, 1500);
-        return;
-      }
-      
-      // Now perform the actual update with version check
-      const { data, error } = await supabase
-        .from('jobs_db')
-        .update(updates)
-        .eq('id', job.id)
-        .eq('version', previousVersion)
-        .select('id, version, status, updated_at')
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Update error:', error);
-        throw error;
-      }
-      
-      if (!data) {
-        throw new Error('Update failed unexpectedly. Please try again.');
-      }
-      
-      console.log(`✓ Status updated successfully to ${data.status} (v${data.version})`);
-      
-      // Update local state with confirmed data from server
-      if (onUpdateJob) {
-        onUpdateJob(job.id, { 
-          status: data.status as Job['status'],
-          version: data.version,
-          updatedAt: new Date(data.updated_at)
-        });
-      }
-      
-      // Schedule reminder if delivered
-      if (newStatus === 'delivered') {
+        // Schedule service reminder by calling with the updated job
         const updatedJob = { ...job, status: newStatus, deliveredAt: new Date() };
         await scheduleServiceReminder(updatedJob);
       }
       
+      // Update job status in Supabase
+      const { error } = await supabase
+        .from('jobs_db')
+        .update(updates)
+        .eq('id', job.id);
+      
+      if (error) throw error;
+      
       toast({
         title: 'Status Updated',
-        description: `Job ${job.jobNumber} marked as ${newStatus.replace(/[_-]/g, ' ')}`,
+        description: `Job ${job.jobNumber} marked as ${newStatus.replace('_', ' ')}`,
       });
     } catch (error: any) {
       console.error('Error updating status:', error);
       
-      // Revert optimistic update to previous state
+      // Revert optimistic update on error
       if (onUpdateJob) {
-        onUpdateJob(job.id, { 
-          status: previousStatus, 
-          version: previousVersion 
-        });
+        onUpdateJob(job.id, { status: previousStatus });
       }
       
       toast({
-        title: 'Update Failed',
-        description: error.message || 'Failed to update job status. Please try again.',
+        title: 'Error',
+        description: 'Failed to update job status',
         variant: 'destructive',
       });
     } finally {

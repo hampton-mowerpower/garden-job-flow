@@ -54,7 +54,6 @@ import { UnpaidSalesSection } from './booking/UnpaidSalesSection';
 import { syncJobToAccountCustomer } from '@/utils/accountCustomerSync';
 import { scheduleServiceReminder, cancelMachineReminders } from '@/utils/reminderScheduler';
 import { useAutoSave } from '@/hooks/useAutoSave';
-import { CustomerChangeConfirmationDialog } from './CustomerChangeConfirmationDialog';
 
 // Simple unique ID generator for UI elements (not database records)
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -89,11 +88,6 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
   
   // Track if form has been initialized to prevent duplicate job numbers
   const initializedRef = React.useRef(false);
-  
-  // Track original customer data for change detection
-  const [originalCustomer, setOriginalCustomer] = useState<Partial<Customer> | null>(null);
-  const [showCustomerChangeDialog, setShowCustomerChangeDialog] = useState(false);
-  const [pendingSaveData, setPendingSaveData] = useState<{ jobData: Job; savedJob: Job } | null>(null);
   
   // Delete handler
   const handleDeleteJob = async () => {
@@ -238,8 +232,44 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
   const [salesItems, setSalesItems] = useState<JobSalesItem[]>([]);
   const [collectSalesWithJob, setCollectSalesWithJob] = useState(false);
   
-  // REMOVED: Buggy autosave that creates duplicates
-  // Unpaid sales now save when job is saved via handleSave()
+  // Auto-save unpaid sales when they change
+  useEffect(() => {
+    if (!job?.id || !customer.id || salesItems.length === 0) return;
+    
+    const saveSales = async () => {
+      try {
+        // Delete existing sales items for this job
+        await supabase
+          .from('job_sales_items')
+          .delete()
+          .eq('job_id', job.id);
+
+        // Insert new sales items
+        if (salesItems.length > 0) {
+          const itemsToInsert = salesItems.map(item => ({
+            job_id: job.id,
+            customer_id: customer.id,
+            description: item.description,
+            category: item.category,
+            amount: item.amount,
+            notes: item.notes || null,
+            collect_with_job: item.collect_with_job,
+            paid_status: item.paid_status || 'unpaid'
+          }));
+
+          await supabase
+            .from('job_sales_items')
+            .insert(itemsToInsert);
+        }
+      } catch (error) {
+        console.error('Failed to auto-save unpaid sales:', error);
+      }
+    };
+
+    // Debounce the save operation
+    const timeoutId = setTimeout(saveSales, 400);
+    return () => clearTimeout(timeoutId);
+  }, [salesItems, job?.id, customer.id, collectSalesWithJob]);
   
   // Calculations - use Supabase categories for labour rate
   const labourRate = getLabourRate(machineCategory) || 95;
@@ -447,13 +477,6 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
       
       setJobNumber(job.jobNumber);
       setCustomer(job.customer);
-      // Store original customer data for change detection
-      setOriginalCustomer({
-        name: job.customer.name,
-        phone: job.customer.phone,
-        email: job.customer.email,
-        companyName: job.customer.companyName
-      });
       setCustomerType(job.customerType || job.customer.customerType || 'domestic');
       setJobCompanyName(job.jobCompanyName || job.customer.companyName || '');
       setMachineCategory(job.machineCategory);
@@ -659,11 +682,78 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
     fillEmailFromAccount();
   }, [accountCustomerId]);
 
-  // Customer autosave removed - was causing jobs to share customer records
-  // Customer data is now saved only when the job is saved (in storage.ts)
-  // This prevents one job's customer edit from affecting other jobs
+  // Auto-save customer data to Supabase
+  const saveCustomerData = async (customerData: Partial<Customer>) => {
+    // Only save if we have essential data
+    if (!customerData.name || !customerData.phone) return;
+    
+    try {
+      const normalizedEmail = customerData.email ? customerData.email.toLowerCase().trim() : '';
+      const normalizedPhone = customerData.phone.replace(/[^0-9]/g, '');
+      
+      // Check for existing customer by normalized fields
+      const { data: existingCustomers } = await supabase
+        .from('customers_db')
+        .select('id')
+        .or(`normalized_email.eq.${normalizedEmail},normalized_phone.eq.${normalizedPhone}`)
+        .limit(1);
+      
+      // Use existing customer ID if found
+      const customerId = existingCustomers && existingCustomers.length > 0 
+        ? existingCustomers[0].id 
+        : customerData.id;
+      
+      // Update local state with existing ID if found and not already set
+      if (customerId && customerId !== customerData.id) {
+        setCustomer(prev => ({ ...prev, id: customerId }));
+      }
+      
+      // Upsert customer data
+      const customerPayload = {
+        id: customerId,
+        name: toTitleCase(customerData.name.trim()),
+        phone: customerData.phone,
+        email: customerData.email || null,
+        address: customerData.address || '',
+        suburb: null,
+        postcode: null,
+        notes: customerData.notes || null,
+        customer_type: customerType,
+        company_name: customerType === 'commercial' ? jobCompanyName : null,
+        billing_address: null,
+        is_deleted: false
+      };
+      
+      const { data, error } = await supabase
+        .from('customers_db')
+        .upsert(customerPayload, { onConflict: 'id' })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Update local state with the saved customer ID
+      if (data && !customerData.id) {
+        setCustomer(prev => ({ ...prev, id: data.id }));
+      }
+    } catch (error) {
+      console.error('Error auto-saving customer:', error);
+      // Don't throw - autosave failures shouldn't block the form
+    }
+  };
   
-  // Reserved for future implementation if needed
+  // Use autosave hook for customer data
+  useAutoSave({
+    data: { ...customer, customerType, jobCompanyName },
+    onSave: async (data) => {
+      // Always save new customers, only respect toggle for existing customers
+      if (!customer.id || updateCustomerProfile) {
+        await saveCustomerData(data);
+      }
+    },
+    delay: 600,
+    enabled: !!customer.name && !!customer.phone // Only enable when we have minimum data
+  });
 
   const addPart = () => {
     const newPart: JobPart = {
@@ -866,40 +956,10 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
       return;
     }
 
-    // Check if customer data has changed for existing jobs
-    const isExistingJob = !!(job && job.id);
-    const customerDataChanged = isExistingJob && originalCustomer && (
-      customer.name !== originalCustomer.name ||
-      customer.phone !== originalCustomer.phone ||
-      customer.email !== originalCustomer.email ||
-      jobCompanyName !== originalCustomer.companyName
-    );
-
-    // If customer data changed, show confirmation dialog
-    if (customerDataChanged) {
-      setShowCustomerChangeDialog(true);
-      // handleSave will be called again after confirmation
-      return;
-    }
-
-    // Proceed with actual save
-    await performSave();
-  };
-
-  const performSave = async () => {
-    console.log('🔵 [SAVE] Starting performSave...');
-    console.log('🔵 [SAVE] Customer data:', {
-      name: customer.name,
-      phone: customer.phone,
-      email: customer.email,
-      companyName: jobCompanyName
-    });
-    
     setIsLoading(true);
     setAutoSaveStatus('saving');
 
     try {
-      console.log('🔵 [SAVE] Ensuring category exists...');
       // Ensure category exists in Supabase (for new categories added from booking)
       await ensureCategoryExists(machineCategory, labourRate);
 
@@ -981,83 +1041,7 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
         accountCustomerId: hasAccount ? accountCustomerId : undefined
       };
 
-      console.log('🔵 [SAVE] Calling jobBookingDB.saveJob with jobData:', {
-        jobNumber: jobData.jobNumber,
-        customerId: jobData.customer.id,
-        customerName: jobData.customer.name,
-        customerPhone: jobData.customer.phone
-      });
-
       const savedJob = await jobBookingDB.saveJob(jobData);
-      
-      console.log('✅ [SAVE] Job saved successfully:', {
-        id: savedJob.id,
-        jobNumber: savedJob.jobNumber,
-        customerId: savedJob.customerId,
-        customerName: savedJob.customer.name
-      });
-      
-      // Create audit log if customer data changed for existing job
-      const isExistingJob = !!(job && job.id);
-      const customerDataChanged = isExistingJob && originalCustomer && (
-        customerData.name !== originalCustomer.name ||
-        customerData.phone !== originalCustomer.phone ||
-        customerData.email !== originalCustomer.email ||
-        jobCompanyName !== originalCustomer.companyName
-      );
-
-      if (customerDataChanged && savedJob.id) {
-        console.log('📝 [AUDIT] Customer data changed, creating audit log...');
-        console.log('📝 [AUDIT] Old customer:', originalCustomer);
-        console.log('📝 [AUDIT] New customer:', {
-          name: customerData.name,
-          phone: customerData.phone,
-          email: customerData.email,
-          companyName: jobCompanyName
-        });
-        
-        try {
-          const { data: userData } = await supabase.auth.getUser();
-          const auditData = {
-            job_id: savedJob.id,
-            job_number: savedJob.jobNumber,
-            old_customer_id: job?.customerId,
-            new_customer_id: savedJob.customerId,
-            old_customer_name: originalCustomer.name,
-            new_customer_name: customerData.name,
-            old_customer_phone: originalCustomer.phone,
-            new_customer_phone: customerData.phone,
-            old_customer_email: originalCustomer.email || null,
-            new_customer_email: customerData.email || null,
-            old_customer_company: originalCustomer.companyName || null,
-            new_customer_company: jobCompanyName || null,
-            changed_by: userData?.user?.id || null,
-            change_reason: 'User manually changed customer information'
-          };
-          
-          console.log('📝 [AUDIT] Inserting audit log:', auditData);
-          
-          const { error: auditError } = await supabase.from('customer_change_audit').insert(auditData);
-          
-          if (auditError) {
-            console.error('❌ [AUDIT] Failed to create audit log:', auditError);
-            throw auditError;
-          }
-          
-          console.log('✅ [AUDIT] Audit log created successfully');
-          
-          // Update original customer to new values after successful save
-          setOriginalCustomer({
-            name: customerData.name,
-            phone: customerData.phone,
-            email: customerData.email,
-            companyName: jobCompanyName
-          });
-        } catch (auditError) {
-          console.error('Failed to create audit log (non-blocking):', auditError);
-          // Don't block the save flow
-        }
-      }
       
       // Save unpaid sales items to Supabase - NEW
       if (salesItems.length > 0 && savedJob.id) {
@@ -1239,14 +1223,7 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
       // Don't call onSave for edits - stay on the page
       
     } catch (error: any) {
-      console.error('❌ [SAVE] Error saving job:', error);
-      console.error('❌ [SAVE] Error details:', {
-        message: error?.message,
-        code: error?.code,
-        details: error?.details,
-        hint: error?.hint
-      });
-      
+      console.error('Error saving job:', error);
       setAutoSaveStatus('idle');
       
       // Handle specific error cases
@@ -1275,9 +1252,6 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
           variant: "destructive"
         });
       }
-      
-      // CRITICAL: Re-throw the error so the confirmation dialog knows the save failed
-      throw error;
     } finally {
       setIsLoading(false);
     }
@@ -1904,7 +1878,7 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                 )}
                 
                 {/* Discount Section */}
-                {discountValue > 0 ? (
+                {(discountType && discountValue > 0) && (
                   <div className="space-y-2 pt-2 pb-2">
                     <div className="flex gap-2">
                       <Select value={discountType} onValueChange={(v: 'PERCENT' | 'AMOUNT') => setDiscountType(v)}>
@@ -1926,15 +1900,6 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                         placeholder="0"
                         className="flex-1 h-8 text-xs"
                       />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDiscountValue(0)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
                     </div>
                     {calculations.discountAmount > 0 && (
                       <div className="flex justify-between text-sm text-green-600">
@@ -1943,16 +1908,6 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                       </div>
                     )}
                   </div>
-                ) : (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setDiscountValue(5)}
-                    className="w-full h-8 text-xs"
-                  >
-                    <Plus className="h-3 w-3 mr-1" /> Add Discount
-                  </Button>
                 )}
                 
                 <Separator className="my-3" />
@@ -2078,34 +2033,6 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
           job={job}
           open={showEmailDialog}
           onOpenChange={setShowEmailDialog}
-        />
-      )}
-
-      {/* Customer Change Confirmation Dialog */}
-      {originalCustomer && (
-        <CustomerChangeConfirmationDialog
-          open={showCustomerChangeDialog}
-          onOpenChange={setShowCustomerChangeDialog}
-          onConfirm={async () => {
-            // Proceed with save after confirmation
-            await performSave();
-          }}
-          jobNumber={jobNumber}
-          oldCustomer={{
-            name: originalCustomer.name || '',
-            phone: originalCustomer.phone || '',
-            email: originalCustomer.email,
-            company: originalCustomer.companyName
-          }}
-          newCustomer={{
-            name: customer.name || '',
-            phone: customer.phone || '',
-            email: customer.email,
-            company: jobCompanyName
-          }}
-          hasPayments={job && job.serviceDeposit > 0}
-          hasInvoice={job && (job.status === 'completed' || job.status === 'delivered')}
-          isCompleted={job && job.status === 'completed'}
         />
       )}
     </div>
