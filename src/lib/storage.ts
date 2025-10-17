@@ -9,13 +9,19 @@ class JobBookingDB {
 
   // Customer operations
   async saveCustomer(customer: Customer): Promise<Customer> {
-    // Check if phone already exists for a different customer
-    const { data: existingByPhone } = await supabase
-      .from('customers_db')
-      .select('*')
-      .eq('phone', customer.phone)
-      .eq('is_deleted', false)
-      .maybeSingle();
+    try {
+      // Check if phone already exists for a different customer
+      const { data: existingByPhone, error: phoneCheckError } = await supabase
+        .from('customers_db')
+        .select('*')
+        .eq('phone', customer.phone)
+        .eq('is_deleted', false)
+        .maybeSingle();
+      
+      if (phoneCheckError) {
+        console.error('Error checking phone:', phoneCheckError);
+        throw phoneCheckError;
+      }
     
     // If customer has a valid ID
     if (customer.id && this.isValidUUID(customer.id)) {
@@ -144,6 +150,10 @@ class JobBookingDB {
       createdAt: new Date(data.created_at),
       updatedAt: new Date(data.updated_at)
     };
+    } catch (error: any) {
+      console.error('saveCustomer error:', error);
+      throw error;
+    }
   }
   
   private isValidUUID(id: string): boolean {

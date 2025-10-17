@@ -1877,9 +1877,21 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                   </div>
                 )}
                 
-                {/* Discount Section */}
-                {(discountType && discountValue > 0) && (
-                  <div className="space-y-2 pt-2 pb-2">
+                {/* Discount Section - Always Visible */}
+                {discountValue > 0 ? (
+                  <div className="space-y-2 pt-2 pb-2 border-t">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Discount</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDiscountValue(0)}
+                        className="h-6 w-6 p-0 hover:bg-destructive/10"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                     <div className="flex gap-2">
                       <Select value={discountType} onValueChange={(v: 'PERCENT' | 'AMOUNT') => setDiscountType(v)}>
                         <SelectTrigger className="w-[100px] h-8 text-xs">
@@ -1907,6 +1919,19 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                         <span>-{formatCurrency(calculations.discountAmount)}</span>
                       </div>
                     )}
+                  </div>
+                ) : (
+                  <div className="pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDiscountValue(1)}
+                      className="w-full h-8 text-xs"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Discount
+                    </Button>
                   </div>
                 )}
                 
