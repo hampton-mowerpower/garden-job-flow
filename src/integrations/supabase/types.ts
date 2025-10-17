@@ -2300,39 +2300,6 @@ export type Database = {
         }
         Relationships: []
       }
-      save_error_log: {
-        Row: {
-          attempted_data: Json | null
-          created_at: string | null
-          error_code: string | null
-          error_message: string | null
-          id: string
-          operation: string
-          table_name: string
-          user_id: string | null
-        }
-        Insert: {
-          attempted_data?: Json | null
-          created_at?: string | null
-          error_code?: string | null
-          error_message?: string | null
-          id?: string
-          operation: string
-          table_name: string
-          user_id?: string | null
-        }
-        Update: {
-          attempted_data?: Json | null
-          created_at?: string | null
-          error_code?: string | null
-          error_message?: string | null
-          id?: string
-          operation?: string
-          table_name?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       service_reminders: {
         Row: {
           contact_email: string | null
@@ -2764,15 +2731,6 @@ export type Database = {
         Args: { p_job_id: string }
         Returns: Json
       }
-      detect_data_drift: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          details: Json
-          issue_type: string
-          record_id: string
-          table_name: string
-        }[]
-      }
       digits_only: {
         Args: { t: string }
         Returns: string
@@ -2854,7 +2812,7 @@ export type Database = {
           last_change: string
           record_id: string
           table_name: string
-          time_span: string
+          time_span: unknown
         }[]
       }
       find_suspicious_customer_changes: {
@@ -3211,15 +3169,6 @@ export type Database = {
       show_trgm: {
         Args: { "": string }
         Returns: string[]
-      }
-      update_job_status_with_audit: {
-        Args: {
-          p_current_version: number
-          p_job_id: string
-          p_new_status: string
-          p_reason?: string
-        }
-        Returns: Json
       }
       upsert_contact: {
         Args: {
