@@ -89,19 +89,21 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     }
   }, [restoredState]);
 
-  // Initial load with cleanup
+  // DISABLED: Auto-loading jobs on mount to prevent connection pool exhaustion
+  // Jobs will only be loaded when user clicks a filter or searches
+  // This prevents unnecessary database connections on page load
+  
+  // Initial load with cleanup - ONLY if restored state exists
   useEffect(() => {
-    const abortController = new AbortController();
-    
-    if (!restoredState) {
+    if (restoredState) {
+      const abortController = new AbortController();
       loadJobsPage(true, abortController.signal);
+      
+      return () => {
+        abortController.abort();
+      };
     }
-    
-    // Cleanup: abort pending query on unmount or filter change
-    return () => {
-      abortController.abort();
-    };
-  }, [activeFilter]);
+  }, [restoredState]);
 
   // Debounce search query
   useEffect(() => {
@@ -403,6 +405,8 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     setActiveFilter(filter);
     setSearchQuery('');
     setIsSearchMode(false);
+    // Trigger load when user clicks a filter
+    loadJobsPage(true);
   };
 
   return (
@@ -450,9 +454,18 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
             </div>
           </div>
 
-          <JobFilters activeFilter={activeFilter} onFilterChange={setActiveFilter} />
+          <JobFilters activeFilter={activeFilter} onFilterChange={handleFilterClick} />
 
-          {isLoading && jobs.length === 0 ? (
+          {jobs.length === 0 && !isLoading && !searchQuery ? (
+            <div className="text-center py-12">
+              <p className="text-lg text-muted-foreground mb-4">
+                Click a filter above or use the search bar to load jobs
+              </p>
+              <Button onClick={() => handleFilterClick('all')} size="lg">
+                Load All Jobs
+              </Button>
+            </div>
+          ) : isLoading && jobs.length === 0 ? (
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => (
                 <Skeleton key={i} className="h-24 w-full" />
