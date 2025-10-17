@@ -43,34 +43,43 @@ export function useJobStats() {
       const monthStart = startOfMonth(now).toISOString();
       const yearStart = startOfYear(now).toISOString();
 
-      // Get all jobs in one query
-      const { data: jobs, error } = await supabase
-        .from('jobs_db')
-        .select('id, created_at, status, quotation_status')
-        .order('created_at', { ascending: false });
+      // Use COUNT queries instead of loading all jobs - MUCH faster!
+      const [
+        todayCount,
+        weekCount,
+        monthCount,
+        yearCount,
+        openCount,
+        partsCount,
+        quoteCount,
+        completedCount,
+        deliveredCount,
+        writeOffCount
+      ] = await Promise.all([
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).gte('created_at', todayStart).is('deleted_at', null),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).gte('created_at', weekStart).is('deleted_at', null),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).gte('created_at', monthStart).is('deleted_at', null),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).gte('created_at', yearStart).is('deleted_at', null),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).in('status', ['pending', 'in-progress']).is('deleted_at', null),
+        supabase.from('job_parts').select('job_id', { count: 'exact', head: true }).eq('awaiting_stock', true),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).eq('quotation_status', 'pending').is('deleted_at', null),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).eq('status', 'completed').is('deleted_at', null),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).eq('status', 'delivered').is('deleted_at', null),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).eq('status', 'write_off').is('deleted_at', null)
+      ]);
 
-      if (error) throw error;
-
-      // Get job parts to check for awaiting stock
-      const { data: jobParts } = await supabase
-        .from('job_parts')
-        .select('job_id, awaiting_stock')
-        .eq('awaiting_stock', true);
-
-      const partsJobIds = new Set(jobParts?.map(p => p.job_id) || []);
-
-      // Calculate stats
+      // Build stats from counts
       const newStats: JobStats = {
-        today: jobs?.filter(j => j.created_at >= todayStart).length || 0,
-        thisWeek: jobs?.filter(j => j.created_at >= weekStart).length || 0,
-        thisMonth: jobs?.filter(j => j.created_at >= monthStart).length || 0,
-        thisYear: jobs?.filter(j => j.created_at >= yearStart).length || 0,
-        open: jobs?.filter(j => j.status === 'pending' || j.status === 'in-progress').length || 0,
-        waitingForParts: jobs?.filter(j => partsJobIds.has(j.id)).length || 0,
-        waitingForQuote: jobs?.filter(j => j.quotation_status === 'pending').length || 0,
-        completed: jobs?.filter(j => j.status === 'completed').length || 0,
-        delivered: jobs?.filter(j => j.status === 'delivered').length || 0,
-        writeOff: jobs?.filter(j => j.status === 'write_off').length || 0,
+        today: todayCount.count || 0,
+        thisWeek: weekCount.count || 0,
+        thisMonth: monthCount.count || 0,
+        thisYear: yearCount.count || 0,
+        open: openCount.count || 0,
+        waitingForParts: partsCount.count || 0,
+        waitingForQuote: quoteCount.count || 0,
+        completed: completedCount.count || 0,
+        delivered: deliveredCount.count || 0,
+        writeOff: writeOffCount.count || 0,
         loading: false,
       };
 

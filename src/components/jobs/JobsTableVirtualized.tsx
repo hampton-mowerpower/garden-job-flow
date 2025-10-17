@@ -78,14 +78,14 @@ export function JobsTableVirtualized({
         
         console.log('[STATUS UPDATE] Executing database update (attempt ' + (retryCount + 1) + ')');
         
-        // Update job status in Supabase with timeout
+        // Update job status in Supabase with timeout (increased to 15s after adding indexes)
         const { error } = await Promise.race([
           supabase
             .from('jobs_db')
             .update(updates)
             .eq('id', job.id),
           new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Request timeout after 10s')), 10000)
+            setTimeout(() => reject(new Error('Request timeout after 15s')), 15000)
           )
         ]) as any;
         
