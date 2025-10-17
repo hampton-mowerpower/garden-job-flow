@@ -1,4 +1,4 @@
-project_id = "kyiuojjaownbvouffqbm"
+project_id = "zqujcxgnelnzxzpfykxn"
 
 [functions.send-reminder]
 verify_jwt = true
@@ -7,4 +7,7 @@ verify_jwt = true
 verify_jwt = true
 
 [functions.approve-quotation]
+verify_jwt = false
+
+[functions.migrate-customers]
 verify_jwt = false

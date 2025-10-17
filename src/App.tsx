@@ -10,6 +10,7 @@ import { CustomerManager } from '@/components/CustomerManager';
 import { POSInterface } from '@/components/pos/POSInterface';
 import { ReportsDashboard } from '@/components/reports/ReportsDashboard';
 import { AccountCustomersManager } from '@/components/AccountCustomersManager';
+import MigrationAdmin from '@/pages/MigrationAdmin';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -76,6 +77,12 @@ function AppContent() {
         return (
           <div className="container mx-auto p-6">
             <ReportsDashboard />
+          </div>
+        );
+      case 'migration':
+        return (
+          <div className="container mx-auto p-6">
+            <MigrationAdmin />
           </div>
         );
       case 'settings':
