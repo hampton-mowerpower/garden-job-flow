@@ -14,41 +14,57 @@ class JobBookingDB {
     if (customer.id && this.isValidUUID(customer.id)) {
       console.log('🔵 [STORAGE] Updating existing customer:', customer.id);
       
-      const { data, error } = await supabase
-        .from('customers_db')
-        .update({
-          name: customer.name,
-          phone: customer.phone,
-          email: customer.email || null,
-          address: customer.address,
-          notes: customer.notes || null,
-          customer_type: customer.customerType || 'domestic',
-          company_name: customer.companyName || null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', customer.id)
-        .select()
-        .single();
+      // Retry logic with exponential backoff
+      let retries = 3;
+      let delay = 1000;
       
-      if (error) {
-        console.error('❌ [STORAGE] Failed to update customer:', error);
-        throw error;
+      while (retries > 0) {
+        const { data, error } = await supabase
+          .from('customers_db')
+          .update({
+            name: customer.name,
+            phone: customer.phone,
+            email: customer.email || null,
+            address: customer.address,
+            notes: customer.notes || null,
+            customer_type: customer.customerType || 'domestic',
+            company_name: customer.companyName || null,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', customer.id)
+          .select()
+          .single();
+        
+        if (!error) {
+          console.log('✅ [STORAGE] Customer updated successfully');
+          
+          return {
+            id: data.id,
+            name: data.name,
+            phone: data.phone,
+            email: data.email || '',
+            address: data.address,
+            notes: data.notes || '',
+            customerType: data.customer_type || 'domestic',
+            companyName: data.company_name || undefined,
+            createdAt: new Date(data.created_at),
+            updatedAt: new Date(data.updated_at)
+          };
+        }
+        
+        // Check for timeout errors
+        if (error.message?.includes('timeout') && retries > 1) {
+          console.warn(`⚠️ [STORAGE] Customer update timeout, retrying... (${retries - 1} attempts left)`);
+          retries--;
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 2; // Exponential backoff
+        } else {
+          console.error('❌ [STORAGE] Failed to update customer:', error);
+          throw error;
+        }
       }
       
-      console.log('✅ [STORAGE] Customer updated successfully');
-      
-      return {
-        id: data.id,
-        name: data.name,
-        phone: data.phone,
-        email: data.email || '',
-        address: data.address,
-        notes: data.notes || '',
-        customerType: data.customer_type || 'domestic',
-        companyName: data.company_name || undefined,
-        createdAt: new Date(data.created_at),
-        updatedAt: new Date(data.updated_at)
-      };
+      throw new Error('Customer update failed after multiple retries');
     }
     
     // For new customers (no ID), check if phone already exists

@@ -1904,7 +1904,7 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                 )}
                 
                 {/* Discount Section */}
-                {(discountType && discountValue > 0) && (
+                {discountValue > 0 ? (
                   <div className="space-y-2 pt-2 pb-2">
                     <div className="flex gap-2">
                       <Select value={discountType} onValueChange={(v: 'PERCENT' | 'AMOUNT') => setDiscountType(v)}>
@@ -1926,6 +1926,15 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                         placeholder="0"
                         className="flex-1 h-8 text-xs"
                       />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setDiscountValue(0)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
                     </div>
                     {calculations.discountAmount > 0 && (
                       <div className="flex justify-between text-sm text-green-600">
@@ -1934,6 +1943,16 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                       </div>
                     )}
                   </div>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setDiscountValue(5)}
+                    className="w-full h-8 text-xs"
+                  >
+                    <Plus className="h-3 w-3 mr-1" /> Add Discount
+                  </Button>
                 )}
                 
                 <Separator className="my-3" />
