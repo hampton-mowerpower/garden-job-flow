@@ -36,17 +36,36 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Get environment variables
+    const oldServiceRoleKey = Deno.env.get('OLD_SUPABASE_SERVICE_ROLE_KEY');
+    const newServiceRoleKey = Deno.env.get('NEW_SUPABASE_SERVICE_ROLE_KEY');
+
+    if (!oldServiceRoleKey) {
+      throw new Error('OLD_SUPABASE_SERVICE_ROLE_KEY environment variable is not set');
+    }
+    if (!newServiceRoleKey) {
+      throw new Error('NEW_SUPABASE_SERVICE_ROLE_KEY environment variable is not set');
+    }
+
+    console.log('✅ Environment variables loaded');
+
     // Create clients for old and new projects
     const oldSupabase = createClient(
       'https://kyiuojjaownbvouffqbm.supabase.co',
-      Deno.env.get('OLD_SUPABASE_SERVICE_ROLE_KEY') || '',
-      { auth: { persistSession: false } }
+      oldServiceRoleKey,
+      { 
+        auth: { persistSession: false },
+        global: { headers: { 'x-client-info': 'migration-script' } }
+      }
     );
 
     const newSupabase = createClient(
       'https://zqujcxgnelnzxzpfykxn.supabase.co',
-      Deno.env.get('NEW_SUPABASE_SERVICE_ROLE_KEY') || '',
-      { auth: { persistSession: false } }
+      newServiceRoleKey,
+      { 
+        auth: { persistSession: false },
+        global: { headers: { 'x-client-info': 'migration-script' } }
+      }
     );
 
     const stats: MigrationStats = {
@@ -215,10 +234,11 @@ Deno.serve(async (req) => {
     );
   } catch (error) {
     console.error('❌ Migration failed:', error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: errorMessage,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
