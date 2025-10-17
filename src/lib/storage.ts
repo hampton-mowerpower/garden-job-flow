@@ -230,8 +230,25 @@ class JobBookingDB {
 
   // Job operations
   async saveJob(job: Job): Promise<Job> {
-    // First save customer and get the returned customer with UUID
-    const savedCustomer = await this.saveCustomer(job.customer);
+    const startTime = performance.now();
+    console.log('[SAVE JOB] Starting save operation', { 
+      jobId: job.id, 
+      jobNumber: job.jobNumber,
+      customerName: job.customer.name,
+      timestamp: new Date().toISOString()
+    });
+
+    try {
+      // First save customer and get the returned customer with UUID
+      console.log('[SAVE JOB] Step 1: Saving customer', { 
+        customerId: job.customer.id,
+        customerName: job.customer.name 
+      });
+      const savedCustomer = await this.saveCustomer(job.customer);
+      console.log('[SAVE JOB] Step 1 Complete: Customer saved', { 
+        customerId: savedCustomer.id,
+        elapsed: `${(performance.now() - startTime).toFixed(0)}ms`
+      });
     
     // If job has an account, upsert a contact and link to it
     let contactId = null;
@@ -331,21 +348,53 @@ class JobBookingDB {
       jobData.created_at = new Date(job.createdAt).toISOString();
     }
     
+    console.log('[SAVE JOB] Step 2: Executing database operation', {
+      operation: job.id ? 'UPDATE' : 'INSERT',
+      jobId: job.id
+    });
+
     const { data, error } = await supabase
       .from('jobs_db')
       .upsert(jobData)
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('[SAVE JOB] Step 2 FAILED: Database error', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        elapsed: `${(performance.now() - startTime).toFixed(0)}ms`
+      });
+      throw error;
+    }
+
+    console.log('[SAVE JOB] Step 2 Complete: Job saved to database', {
+      jobId: data.id,
+      elapsed: `${(performance.now() - startTime).toFixed(0)}ms`
+    });
     
     // Save job parts to junction table
     if (job.parts && job.parts.length > 0) {
+      console.log('[SAVE JOB] Step 3: Saving parts', { 
+        partCount: job.parts.length,
+        jobId: data.id 
+      });
+
       // First, delete existing parts for this job
-      await supabase
+      const { error: deleteError } = await supabase
         .from('job_parts')
         .delete()
         .eq('job_id', data.id);
+
+      if (deleteError) {
+        console.error('[SAVE JOB] Step 3 FAILED: Could not delete old parts', {
+          error: deleteError.message,
+          jobId: data.id
+        });
+        throw deleteError;
+      }
       
       // Process parts and look up UUIDs from parts_catalogue
       const partsToInsert = [];
@@ -386,7 +435,20 @@ class JobBookingDB {
           .from('job_parts')
           .insert(partsToInsert);
         
-        if (partsError) throw partsError;
+        if (partsError) {
+          console.error('[SAVE JOB] Step 3 FAILED: Could not insert parts', {
+            error: partsError.message,
+            code: partsError.code,
+            partsCount: partsToInsert.length,
+            jobId: data.id
+          });
+          throw partsError;
+        }
+
+        console.log('[SAVE JOB] Step 3 Complete: Parts saved', {
+          partCount: partsToInsert.length,
+          elapsed: `${(performance.now() - startTime).toFixed(0)}ms`
+        });
       }
     } else {
       // If no parts, delete any existing parts for this job
@@ -396,7 +458,28 @@ class JobBookingDB {
         .eq('job_id', data.id);
     }
     
+    const totalElapsed = performance.now() - startTime;
+    console.log('[SAVE JOB] ✅ COMPLETE SUCCESS', {
+      jobId: data.id,
+      jobNumber: data.job_number,
+      totalTime: `${totalElapsed.toFixed(0)}ms`,
+      timestamp: new Date().toISOString()
+    });
+    
     return this.mapJobFromDb(data, savedCustomer, job.parts);
+    } catch (error: any) {
+      const totalElapsed = performance.now() - startTime;
+      console.error('[SAVE JOB] ❌ COMPLETE FAILURE', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        stack: error.stack,
+        totalTime: `${totalElapsed.toFixed(0)}ms`,
+        timestamp: new Date().toISOString()
+      });
+      throw error;
+    }
   }
 
   async getJob(id: string): Promise<Job | null> {

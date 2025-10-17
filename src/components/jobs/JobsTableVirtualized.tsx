@@ -38,6 +38,16 @@ export function JobsTableVirtualized({
   
   const handleStatusChange = async (job: Job, newStatus: Job['status']) => {
     const previousStatus = job.status;
+    const startTime = performance.now();
+    
+    console.log('[STATUS UPDATE] Starting', {
+      jobId: job.id,
+      jobNumber: job.jobNumber,
+      from: previousStatus,
+      to: newStatus,
+      timestamp: new Date().toISOString()
+    });
+
     setUpdatingStatus(job.id);
     
     // Optimistic update
@@ -45,49 +55,105 @@ export function JobsTableVirtualized({
       onUpdateJob(job.id, { status: newStatus });
     }
     
-    try {
-      const updates: any = {
-        status: newStatus,
-        updated_at: new Date().toISOString()
-      };
-      
-      // If status is delivered, set delivered_at and schedule reminder
-      if (newStatus === 'delivered') {
-        updates.delivered_at = new Date().toISOString();
+    // Retry logic with exponential backoff for timeout errors
+    const maxRetries = 3;
+    let retryCount = 0;
+    let lastError: any = null;
+
+    while (retryCount < maxRetries) {
+      try {
+        const updates: any = {
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        };
         
-        // Schedule service reminder by calling with the updated job
-        const updatedJob = { ...job, status: newStatus, deliveredAt: new Date() };
-        await scheduleServiceReminder(updatedJob);
+        // If status is delivered, set delivered_at and schedule reminder
+        if (newStatus === 'delivered') {
+          updates.delivered_at = new Date().toISOString();
+          
+          console.log('[STATUS UPDATE] Scheduling service reminder');
+          const updatedJob = { ...job, status: newStatus, deliveredAt: new Date() };
+          await scheduleServiceReminder(updatedJob);
+        }
+        
+        console.log('[STATUS UPDATE] Executing database update (attempt ' + (retryCount + 1) + ')');
+        
+        // Update job status in Supabase with timeout
+        const { error } = await Promise.race([
+          supabase
+            .from('jobs_db')
+            .update(updates)
+            .eq('id', job.id),
+          new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Request timeout after 10s')), 10000)
+          )
+        ]) as any;
+        
+        if (error) throw error;
+        
+        const elapsed = performance.now() - startTime;
+        console.log('[STATUS UPDATE] ✅ SUCCESS', {
+          jobNumber: job.jobNumber,
+          newStatus,
+          elapsed: `${elapsed.toFixed(0)}ms`,
+          attempts: retryCount + 1
+        });
+        
+        toast({
+          title: 'Status Updated',
+          description: `Job ${job.jobNumber} marked as ${newStatus.replace('_', ' ')}`,
+        });
+        
+        setUpdatingStatus(null);
+        return; // Success, exit function
+        
+      } catch (error: any) {
+        lastError = error;
+        retryCount++;
+        
+        console.error('[STATUS UPDATE] Attempt ' + retryCount + ' failed', {
+          error: error.message,
+          jobNumber: job.jobNumber,
+          willRetry: retryCount < maxRetries
+        });
+        
+        // If it's a timeout and we have retries left, wait and try again
+        if (retryCount < maxRetries && 
+            (error.message?.includes('timeout') || error.message?.includes('upstream'))) {
+          const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff: 2s, 4s, 8s
+          console.log('[STATUS UPDATE] Retrying in ' + delay + 'ms...');
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        
+        // Not a timeout or out of retries, give up
+        break;
       }
-      
-      // Update job status in Supabase
-      const { error } = await supabase
-        .from('jobs_db')
-        .update(updates)
-        .eq('id', job.id);
-      
-      if (error) throw error;
-      
-      toast({
-        title: 'Status Updated',
-        description: `Job ${job.jobNumber} marked as ${newStatus.replace('_', ' ')}`,
-      });
-    } catch (error: any) {
-      console.error('Error updating status:', error);
-      
-      // Revert optimistic update on error
-      if (onUpdateJob) {
-        onUpdateJob(job.id, { status: previousStatus });
-      }
-      
-      toast({
-        title: 'Error',
-        description: 'Failed to update job status',
-        variant: 'destructive',
-      });
-    } finally {
-      setUpdatingStatus(null);
     }
+    
+    // All retries failed
+    const elapsed = performance.now() - startTime;
+    console.error('[STATUS UPDATE] ❌ COMPLETE FAILURE after ' + retryCount + ' attempts', {
+      error: lastError?.message,
+      code: lastError?.code,
+      jobNumber: job.jobNumber,
+      elapsed: `${elapsed.toFixed(0)}ms`
+    });
+    
+    // Revert optimistic update on error
+    if (onUpdateJob) {
+      onUpdateJob(job.id, { status: previousStatus });
+    }
+    
+    toast({
+      title: 'Update Failed',
+      description: lastError?.message?.includes('timeout') 
+        ? 'Request timed out. The server may be slow. Please try again.'
+        : 'Failed to update job status. Please check your connection and try again.',
+      variant: 'destructive',
+    });
+    
+    setUpdatingStatus(null);
   };
   
   const getStatusColor = (status: Job['status']) => {
