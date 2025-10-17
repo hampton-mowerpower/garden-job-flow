@@ -89,11 +89,18 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     }
   }, [restoredState]);
 
-  // Initial load
+  // Initial load with cleanup
   useEffect(() => {
+    const abortController = new AbortController();
+    
     if (!restoredState) {
-      loadJobsPage(true);
+      loadJobsPage(true, abortController.signal);
     }
+    
+    // Cleanup: abort pending query on unmount or filter change
+    return () => {
+      abortController.abort();
+    };
   }, [activeFilter]);
 
   // Debounce search query
@@ -104,14 +111,21 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Execute search when debounced value changes
+  // Execute search when debounced value changes with cleanup
   useEffect(() => {
+    const abortController = new AbortController();
+    
     if (debouncedSearch.trim()) {
-      handleSearch(debouncedSearch);
+      handleSearch(debouncedSearch, abortController.signal);
     } else {
       setIsSearchMode(false);
-      loadJobsPage(true);
+      loadJobsPage(true, abortController.signal);
     }
+    
+    // Cleanup: abort pending search on unmount or search change
+    return () => {
+      abortController.abort();
+    };
   }, [debouncedSearch]);
 
   // Convert DB row to Job type - customer data now included in RPC
@@ -148,8 +162,8 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
 
   // Customer data now included in RPC - no need to load separately
 
-  // Main load function with pagination
-  const loadJobsPage = useCallback(async (isInitial = false) => {
+  // Main load function with pagination with abort controller
+  const loadJobsPage = useCallback(async (isInitial = false, signal?: AbortSignal) => {
     if ((isInitial ? isLoading : isLoadingMore) || isSearchMode) return;
 
     const setLoadingState = isInitial ? setIsLoading : setIsLoadingMore;
@@ -157,22 +171,16 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     const startTime = performance.now();
 
     try {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Request timeout')), API_TIMEOUT)
-      );
-
       const statusFilter = activeFilter !== 'all' && 
                           !['today', 'week', 'month', 'year', 'open', 'parts', 'quote'].includes(activeFilter)
         ? activeFilter
         : null;
 
-      const fetchPromise = supabase.rpc('list_jobs_page', {
+      const { data, error } = await supabase.rpc('list_jobs_page', {
         p_limit: PAGE_SIZE,
         p_before: isInitial ? null : cursor,
         p_status: statusFilter
-      });
-
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
+      }).abortSignal(signal || AbortSignal.timeout(API_TIMEOUT));
 
       const loadTime = performance.now() - startTime;
       console.log(`Jobs loaded in ${loadTime.toFixed(0)}ms`);
@@ -222,11 +230,11 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     }
   }, [isLoading, isLoadingMore, cursor, activeFilter, isSearchMode, convertToJob, refreshStats, toast]);
 
-  // Fast search function
-  const handleSearch = useCallback(async (term: string) => {
+  // Fast search function with abort controller
+  const handleSearch = useCallback(async (term: string, signal?: AbortSignal) => {
     if (!term.trim()) {
       setIsSearchMode(false);
-      loadJobsPage(true);
+      loadJobsPage(true, signal);
       return;
     }
 
@@ -242,18 +250,18 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
         result = await supabase.rpc('search_jobs_by_phone', {
           p_phone: term,
           p_limit: 50
-        });
+        }).abortSignal(signal || AbortSignal.timeout(API_TIMEOUT));
       } else if (term.toUpperCase().startsWith('JB')) {
         // Job number search
         result = await supabase.rpc('search_job_by_number', {
           p_job_number: term.toUpperCase()
-        });
+        }).abortSignal(signal || AbortSignal.timeout(API_TIMEOUT));
       } else {
         // Customer name search
         result = await supabase.rpc('search_jobs_by_customer_name', {
           p_name: term,
           p_limit: 50
-        });
+        }).abortSignal(signal || AbortSignal.timeout(API_TIMEOUT));
       }
 
       const searchTime = performance.now() - startTime;
@@ -266,6 +274,10 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
       setHasMore(false);
 
     } catch (err: any) {
+      // Don't show errors for aborted queries
+      if (err?.name === 'AbortError' || signal?.aborted) {
+        return;
+      }
       console.error('Search error:', err);
       toast({
         variant: 'destructive',

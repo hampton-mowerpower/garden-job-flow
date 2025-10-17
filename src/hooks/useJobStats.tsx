@@ -32,10 +32,16 @@ export function useJobStats() {
   });
 
   useEffect(() => {
-    loadStats();
+    const abortController = new AbortController();
+    loadStats(abortController.signal);
+    
+    // Cleanup: abort any pending queries on unmount
+    return () => {
+      abortController.abort();
+    };
   }, []);
 
-  const loadStats = async () => {
+  const loadStats = async (signal?: AbortSignal) => {
     try {
       const now = new Date();
       const todayStart = startOfDay(now).toISOString();
@@ -43,29 +49,27 @@ export function useJobStats() {
       const monthStart = startOfMonth(now).toISOString();
       const yearStart = startOfYear(now).toISOString();
 
-      // Use COUNT queries instead of loading all jobs - MUCH faster!
-      const [
-        todayCount,
-        weekCount,
-        monthCount,
-        yearCount,
-        openCount,
-        partsCount,
-        quoteCount,
-        completedCount,
-        deliveredCount,
-        writeOffCount
-      ] = await Promise.all([
-        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).gte('created_at', todayStart).is('deleted_at', null),
-        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).gte('created_at', weekStart).is('deleted_at', null),
-        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).gte('created_at', monthStart).is('deleted_at', null),
-        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).gte('created_at', yearStart).is('deleted_at', null),
-        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).in('status', ['pending', 'in-progress']).is('deleted_at', null),
-        supabase.from('job_parts').select('job_id', { count: 'exact', head: true }).eq('awaiting_stock', true),
-        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).eq('quotation_status', 'pending').is('deleted_at', null),
-        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).eq('status', 'completed').is('deleted_at', null),
-        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).eq('status', 'delivered').is('deleted_at', null),
-        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).eq('status', 'write_off').is('deleted_at', null)
+      // Batch queries into 3 groups to reduce concurrent connections (10 -> 3-4 max)
+      // Group 1: Date-based counts
+      const [todayCount, weekCount, monthCount, yearCount] = await Promise.all([
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).gte('created_at', todayStart).is('deleted_at', null).abortSignal(signal),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).gte('created_at', weekStart).is('deleted_at', null).abortSignal(signal),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).gte('created_at', monthStart).is('deleted_at', null).abortSignal(signal),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).gte('created_at', yearStart).is('deleted_at', null).abortSignal(signal),
+      ]);
+
+      // Group 2: Status counts
+      const [openCount, completedCount, deliveredCount, writeOffCount] = await Promise.all([
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).in('status', ['pending', 'in-progress']).is('deleted_at', null).abortSignal(signal),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).eq('status', 'completed').is('deleted_at', null).abortSignal(signal),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).eq('status', 'delivered').is('deleted_at', null).abortSignal(signal),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).eq('status', 'write_off').is('deleted_at', null).abortSignal(signal),
+      ]);
+
+      // Group 3: Special conditions (parts & quotes)
+      const [partsCount, quoteCount] = await Promise.all([
+        supabase.from('job_parts').select('job_id', { count: 'exact', head: true }).eq('awaiting_stock', true).abortSignal(signal),
+        supabase.from('jobs_db').select('id', { count: 'exact', head: true }).eq('quotation_status', 'pending').is('deleted_at', null).abortSignal(signal),
       ]);
 
       // Build stats from counts
@@ -84,11 +88,20 @@ export function useJobStats() {
       };
 
       setStats(newStats);
-    } catch (error) {
+    } catch (error: any) {
+      // Don't log aborted queries as errors
+      if (error?.name === 'AbortError' || signal?.aborted) {
+        return;
+      }
       console.error('Error loading job stats:', error);
       setStats(prev => ({ ...prev, loading: false }));
     }
   };
 
-  return { stats, refresh: loadStats };
+  const refresh = () => {
+    const abortController = new AbortController();
+    loadStats(abortController.signal);
+  };
+
+  return { stats, refresh };
 }
