@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.approve-quotation]
 verify_jwt = false
+
+[functions.export-diagnostics]
+verify_jwt = true

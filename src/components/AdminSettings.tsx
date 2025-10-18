@@ -24,6 +24,7 @@ import { QuickProblemsAdmin } from './admin/QuickProblemsAdmin';
 import { TransportSettingsAdmin } from './admin/TransportSettingsAdmin';
 import { EmailHealthMonitor } from './admin/EmailHealthMonitor';
 import { AccountContactManager } from './account/AccountContactManager';
+import { DiagnosticsExport } from './admin/DiagnosticsExport';
 
 // Simple unique ID generator for UI elements
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -339,6 +340,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
             <TabsTrigger value="email-health">Email Health</TabsTrigger>
             <TabsTrigger value="print">Print Settings</TabsTrigger>
             <TabsTrigger value="export">Data Export</TabsTrigger>
+            <TabsTrigger value="help">Help</TabsTrigger>
           </TabsList>
 
           <TabsContent value="categories">
@@ -469,6 +471,10 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="help">
+            <DiagnosticsExport />
           </TabsContent>
         </Tabs>
       </div>
