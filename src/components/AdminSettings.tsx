@@ -25,6 +25,7 @@ import { TransportSettingsAdmin } from './admin/TransportSettingsAdmin';
 import { EmailHealthMonitor } from './admin/EmailHealthMonitor';
 import { AccountContactManager } from './account/AccountContactManager';
 import { DiagnosticsExport } from './admin/DiagnosticsExport';
+import { SystemDoctor } from './admin/SystemDoctor';
 
 // Simple unique ID generator for UI elements
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -471,6 +472,14 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="diagnostics">
+            <SystemDoctor />
+          </TabsContent>
+
+          <TabsContent value="diagnostics">
+            <SystemDoctor />
           </TabsContent>
 
           <TabsContent value="help">

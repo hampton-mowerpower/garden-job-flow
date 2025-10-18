@@ -39,12 +39,12 @@ export const DiagnosticsExport = () => {
       // Create ZIP file
       const zip = new JSZip();
 
-      // Add Supabase diagnostics files
-      if (diagnostics) {
-        // Summary
-        zip.file('00-SUMMARY.txt', `
-Diagnostics Export
-==================
+        // Add Supabase diagnostics files
+        if (diagnostics) {
+          // Summary
+          const summaryText = `
+Hampton Mowerpower Diagnostics Export
+======================================
 Timestamp: ${diagnostics.timestamp}
 Collected by: ${diagnostics.collected_by}
 
@@ -53,27 +53,40 @@ Summary:
 Views: ${diagnostics.summary?.views_count || 0}
 Functions: ${diagnostics.summary?.functions_count || 0}
 Tables: ${diagnostics.summary?.tables_count || 0}
-Indexes: ${diagnostics.summary?.indexes_count || 0}
-RLS Policies: ${diagnostics.summary?.policies_count || 0}
+Grants: ${diagnostics.summary?.grants_count || 0}
 Broken Views: ${diagnostics.summary?.broken_views_count || 0}
-`);
+Known Functions: ${diagnostics.summary?.known_functions_count || 0}
 
-        // Supabase metadata
-        zip.file('supabase/views.json', JSON.stringify(diagnostics.views || [], null, 2));
-        zip.file('supabase/functions.json', JSON.stringify(diagnostics.functions || [], null, 2));
-        zip.file('supabase/tables_columns.json', JSON.stringify(diagnostics.tables_columns || [], null, 2));
-        zip.file('supabase/indexes.json', JSON.stringify(diagnostics.indexes || [], null, 2));
-        zip.file('supabase/rls_policies.json', JSON.stringify(diagnostics.rls_policies || [], null, 2));
-        zip.file('supabase/rls_status.json', JSON.stringify(diagnostics.rls_status || [], null, 2));
-        zip.file('supabase/grants_tables.json', JSON.stringify(diagnostics.grants_tables || [], null, 2));
-        zip.file('supabase/health_check.json', JSON.stringify(diagnostics.health_check || {}, null, 2));
-        
-        if (diagnostics.broken_views && diagnostics.broken_views.length > 0) {
-          zip.file('supabase/broken_views.txt', diagnostics.broken_views.join('\n\n'));
+Sample Table Counts:
+-------------------
+${Object.entries(diagnostics.sample_table_info || {})
+  .map(([table, info]) => `${table}: ${info}`)
+  .join('\n')}
+
+Function Status:
+---------------
+${Object.entries(diagnostics.function_tests || {})
+  .map(([fn, status]) => `${fn}: ${status}`)
+  .join('\n')}
+`;
+          
+          zip.file('00-SUMMARY.txt', summaryText);
+
+          // Supabase metadata
+          zip.file('supabase/views.json', JSON.stringify(diagnostics.views || [], null, 2));
+          zip.file('supabase/functions.json', JSON.stringify(diagnostics.functions || [], null, 2));
+          zip.file('supabase/tables_columns.json', JSON.stringify(diagnostics.tables_columns || [], null, 2));
+          zip.file('supabase/grants_tables.json', JSON.stringify(diagnostics.grants_tables || [], null, 2));
+          zip.file('supabase/health_check.json', JSON.stringify(diagnostics.health_check || {}, null, 2));
+          zip.file('supabase/sample_table_info.json', JSON.stringify(diagnostics.sample_table_info || {}, null, 2));
+          zip.file('supabase/function_tests.json', JSON.stringify(diagnostics.function_tests || {}, null, 2));
+          
+          if (diagnostics.broken_views && diagnostics.broken_views.length > 0) {
+            zip.file('supabase/broken_views.txt', diagnostics.broken_views.join('\n\n'));
+          }
+
+          setSummary(diagnostics.summary);
         }
-
-        setSummary(diagnostics.summary);
-      }
 
       // Add app health info (client-side)
       const appHealth = {
