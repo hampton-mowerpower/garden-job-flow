@@ -189,66 +189,6 @@ export type Database = {
         }
         Relationships: []
       }
-      audit_log: {
-        Row: {
-          changed_at: string | null
-          changed_by: string
-          changed_fields: string[] | null
-          client_ip: unknown | null
-          id: number
-          new_values: Json | null
-          old_values: Json | null
-          operation: string
-          record_id: string
-          request_id: string | null
-          review_at: string | null
-          review_by: string | null
-          review_status: string | null
-          reviewed: boolean | null
-          source: string | null
-          table_name: string
-          user_agent: string | null
-        }
-        Insert: {
-          changed_at?: string | null
-          changed_by: string
-          changed_fields?: string[] | null
-          client_ip?: unknown | null
-          id?: number
-          new_values?: Json | null
-          old_values?: Json | null
-          operation: string
-          record_id: string
-          request_id?: string | null
-          review_at?: string | null
-          review_by?: string | null
-          review_status?: string | null
-          reviewed?: boolean | null
-          source?: string | null
-          table_name: string
-          user_agent?: string | null
-        }
-        Update: {
-          changed_at?: string | null
-          changed_by?: string
-          changed_fields?: string[] | null
-          client_ip?: unknown | null
-          id?: number
-          new_values?: Json | null
-          old_values?: Json | null
-          operation?: string
-          record_id?: string
-          request_id?: string | null
-          review_at?: string | null
-          review_by?: string | null
-          review_status?: string | null
-          reviewed?: boolean | null
-          source?: string | null
-          table_name?: string
-          user_agent?: string | null
-        }
-        Relationships: []
-      }
       audit_logs: {
         Row: {
           action: string
@@ -716,13 +656,6 @@ export type Database = {
             foreignKeyName: "customer_change_audit_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
-            referencedRelation: "job_calculated_totals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "customer_change_audit_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
@@ -739,27 +672,23 @@ export type Database = {
           created_at: string
           customer_type: Database["public"]["Enums"]["customer_type"] | null
           email: string | null
-          email_norm: string | null
           id: string
           is_deleted: boolean | null
           merged_into_id: string | null
           name: string
           name_lower: string | null
-          name_norm: string | null
           normalized_email: string | null
           normalized_phone: string | null
           notes: string | null
           phone: string
-          phone_digits: string | null
           phone_e164: string | null
           phone_local: string | null
           postcode: string | null
           suburb: string | null
           updated_at: string
-          version: number | null
         }
         Insert: {
-          address?: string
+          address: string
           billing_address?: string | null
           company_abn?: string | null
           company_email?: string | null
@@ -768,24 +697,20 @@ export type Database = {
           created_at?: string
           customer_type?: Database["public"]["Enums"]["customer_type"] | null
           email?: string | null
-          email_norm?: string | null
           id?: string
           is_deleted?: boolean | null
           merged_into_id?: string | null
           name: string
           name_lower?: string | null
-          name_norm?: string | null
           normalized_email?: string | null
           normalized_phone?: string | null
           notes?: string | null
           phone: string
-          phone_digits?: string | null
           phone_e164?: string | null
           phone_local?: string | null
           postcode?: string | null
           suburb?: string | null
           updated_at?: string
-          version?: number | null
         }
         Update: {
           address?: string
@@ -797,24 +722,20 @@ export type Database = {
           created_at?: string
           customer_type?: Database["public"]["Enums"]["customer_type"] | null
           email?: string | null
-          email_norm?: string | null
           id?: string
           is_deleted?: boolean | null
           merged_into_id?: string | null
           name?: string
           name_lower?: string | null
-          name_norm?: string | null
           normalized_email?: string | null
           normalized_phone?: string | null
           notes?: string | null
           phone?: string
-          phone_digits?: string | null
           phone_e164?: string | null
           phone_local?: string | null
           postcode?: string | null
           suburb?: string | null
           updated_at?: string
-          version?: number | null
         }
         Relationships: [
           {
@@ -920,13 +841,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "email_outbox_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "job_calculated_totals"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "email_outbox_job_id_fkey"
             columns: ["job_id"]
@@ -1127,13 +1041,6 @@ export type Database = {
             foreignKeyName: "invoices_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
-            referencedRelation: "job_calculated_totals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "invoices_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
@@ -1177,13 +1084,6 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "job_labour_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "job_calculated_totals"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "job_labour_job_id_fkey"
             columns: ["job_id"]
@@ -1235,13 +1135,6 @@ export type Database = {
             foreignKeyName: "job_notes_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
-            referencedRelation: "job_calculated_totals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_notes_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
@@ -1251,7 +1144,7 @@ export type Database = {
         Row: {
           awaiting_stock: boolean | null
           created_at: string
-          description: string
+          description: string | null
           equipment_category: string | null
           id: string
           is_custom: boolean | null
@@ -1269,7 +1162,7 @@ export type Database = {
         Insert: {
           awaiting_stock?: boolean | null
           created_at?: string
-          description: string
+          description?: string | null
           equipment_category?: string | null
           id?: string
           is_custom?: boolean | null
@@ -1281,13 +1174,13 @@ export type Database = {
           quantity?: number
           sku?: string | null
           tax_code?: string | null
-          total_price?: number
-          unit_price?: number
+          total_price: number
+          unit_price: number
         }
         Update: {
           awaiting_stock?: boolean | null
           created_at?: string
-          description?: string
+          description?: string | null
           equipment_category?: string | null
           id?: string
           is_custom?: boolean | null
@@ -1303,13 +1196,6 @@ export type Database = {
           unit_price?: number
         }
         Relationships: [
-          {
-            foreignKeyName: "job_parts_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "job_calculated_totals"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "job_parts_job_id_fkey"
             columns: ["job_id"]
@@ -1366,70 +1252,6 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "job_payments_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "job_calculated_totals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_payments_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "jobs_db"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      job_recovery_staging: {
-        Row: {
-          applied_at: string | null
-          applied_by: string | null
-          created_at: string
-          created_by: string
-          id: string
-          job_id: string
-          job_number: string
-          recovery_data: Json
-          recovery_reason: string
-          reverted_at: string | null
-          reverted_by: string | null
-        }
-        Insert: {
-          applied_at?: string | null
-          applied_by?: string | null
-          created_at?: string
-          created_by: string
-          id?: string
-          job_id: string
-          job_number: string
-          recovery_data: Json
-          recovery_reason: string
-          reverted_at?: string | null
-          reverted_by?: string | null
-        }
-        Update: {
-          applied_at?: string | null
-          applied_by?: string | null
-          created_at?: string
-          created_by?: string
-          id?: string
-          job_id?: string
-          job_number?: string
-          recovery_data?: Json
-          recovery_reason?: string
-          reverted_at?: string | null
-          reverted_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "job_recovery_staging_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
-            referencedRelation: "job_calculated_totals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_recovery_staging_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "jobs_db"
@@ -1492,13 +1314,6 @@ export type Database = {
             foreignKeyName: "job_sales_items_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
-            referencedRelation: "job_calculated_totals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "job_sales_items_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
@@ -1536,8 +1351,6 @@ export type Database = {
           assigned_technician: string | null
           attachments: Json | null
           balance_due: number
-          brand_norm: string | null
-          category_norm: string | null
           completed_at: string | null
           contact_id: string | null
           created_at: string
@@ -1553,8 +1366,6 @@ export type Database = {
           id: string
           job_company_name: string | null
           job_number: string
-          job_number_digits: string | null
-          job_number_norm: string | null
           job_type: string | null
           labour_hours: number
           labour_rate: number
@@ -1563,7 +1374,6 @@ export type Database = {
           machine_category: string
           machine_model: string
           machine_serial: string | null
-          model_norm: string | null
           notes: string | null
           parts_required: string | null
           parts_subtotal: number
@@ -1573,7 +1383,6 @@ export type Database = {
           quotation_status: string | null
           recommendations: string | null
           requested_finish_date: string | null
-          serial_norm: string | null
           service_deposit: number | null
           service_performed: string | null
           sharpen_breakdown: string | null
@@ -1596,7 +1405,6 @@ export type Database = {
           transport_size_tier: string | null
           transport_total_charge: number | null
           updated_at: string
-          version: number | null
         }
         Insert: {
           account_customer_id?: string | null
@@ -1605,8 +1413,6 @@ export type Database = {
           assigned_technician?: string | null
           attachments?: Json | null
           balance_due?: number
-          brand_norm?: string | null
-          category_norm?: string | null
           completed_at?: string | null
           contact_id?: string | null
           created_at?: string
@@ -1622,8 +1428,6 @@ export type Database = {
           id?: string
           job_company_name?: string | null
           job_number: string
-          job_number_digits?: string | null
-          job_number_norm?: string | null
           job_type?: string | null
           labour_hours?: number
           labour_rate?: number
@@ -1632,7 +1436,6 @@ export type Database = {
           machine_category: string
           machine_model: string
           machine_serial?: string | null
-          model_norm?: string | null
           notes?: string | null
           parts_required?: string | null
           parts_subtotal?: number
@@ -1642,7 +1445,6 @@ export type Database = {
           quotation_status?: string | null
           recommendations?: string | null
           requested_finish_date?: string | null
-          serial_norm?: string | null
           service_deposit?: number | null
           service_performed?: string | null
           sharpen_breakdown?: string | null
@@ -1665,7 +1467,6 @@ export type Database = {
           transport_size_tier?: string | null
           transport_total_charge?: number | null
           updated_at?: string
-          version?: number | null
         }
         Update: {
           account_customer_id?: string | null
@@ -1674,8 +1475,6 @@ export type Database = {
           assigned_technician?: string | null
           attachments?: Json | null
           balance_due?: number
-          brand_norm?: string | null
-          category_norm?: string | null
           completed_at?: string | null
           contact_id?: string | null
           created_at?: string
@@ -1691,8 +1490,6 @@ export type Database = {
           id?: string
           job_company_name?: string | null
           job_number?: string
-          job_number_digits?: string | null
-          job_number_norm?: string | null
           job_type?: string | null
           labour_hours?: number
           labour_rate?: number
@@ -1701,7 +1498,6 @@ export type Database = {
           machine_category?: string
           machine_model?: string
           machine_serial?: string | null
-          model_norm?: string | null
           notes?: string | null
           parts_required?: string | null
           parts_subtotal?: number
@@ -1711,7 +1507,6 @@ export type Database = {
           quotation_status?: string | null
           recommendations?: string | null
           requested_finish_date?: string | null
-          serial_norm?: string | null
           service_deposit?: number | null
           service_performed?: string | null
           sharpen_breakdown?: string | null
@@ -1734,7 +1529,6 @@ export type Database = {
           transport_size_tier?: string | null
           transport_total_charge?: number | null
           updated_at?: string
-          version?: number | null
         }
         Relationships: [
           {
@@ -1928,13 +1722,6 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers_db"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "machinery_sales_invoice_id_fkey"
-            columns: ["invoice_id"]
-            isOneToOne: false
-            referencedRelation: "job_calculated_totals"
             referencedColumns: ["id"]
           },
           {
@@ -2192,59 +1979,10 @@ export type Database = {
             foreignKeyName: "payments_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
-            referencedRelation: "job_calculated_totals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "payments_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
         ]
-      }
-      protected_field_changes: {
-        Row: {
-          approved_at: string | null
-          approved_by: string | null
-          change_reason: string
-          changed_at: string
-          changed_by: string
-          field_name: string
-          id: string
-          new_value: string | null
-          old_value: string | null
-          record_id: string
-          table_name: string
-        }
-        Insert: {
-          approved_at?: string | null
-          approved_by?: string | null
-          change_reason: string
-          changed_at?: string
-          changed_by: string
-          field_name: string
-          id?: string
-          new_value?: string | null
-          old_value?: string | null
-          record_id: string
-          table_name: string
-        }
-        Update: {
-          approved_at?: string | null
-          approved_by?: string | null
-          change_reason?: string
-          changed_at?: string
-          changed_by?: string
-          field_name?: string
-          id?: string
-          new_value?: string | null
-          old_value?: string | null
-          record_id?: string
-          table_name?: string
-        }
-        Relationships: []
       }
       quick_problems: {
         Row: {
@@ -2270,33 +2008,6 @@ export type Database = {
           id?: string
           label?: string
           updated_at?: string
-        }
-        Relationships: []
-      }
-      record_locks: {
-        Row: {
-          id: string
-          lock_reason: string | null
-          locked_at: string
-          locked_by: string
-          record_id: string
-          table_name: string
-        }
-        Insert: {
-          id?: string
-          lock_reason?: string | null
-          locked_at?: string
-          locked_by: string
-          record_id: string
-          table_name: string
-        }
-        Update: {
-          id?: string
-          lock_reason?: string | null
-          locked_at?: string
-          locked_by?: string
-          record_id?: string
-          table_name?: string
         }
         Relationships: []
       }
@@ -2373,53 +2084,10 @@ export type Database = {
             foreignKeyName: "service_reminders_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
-            referencedRelation: "job_calculated_totals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "service_reminders_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
         ]
-      }
-      shadow_audit_log: {
-        Row: {
-          audit_type: string
-          details: Json
-          detected_at: string
-          id: string
-          record_id: string
-          resolved_at: string | null
-          resolved_by: string | null
-          severity: string
-          table_name: string
-        }
-        Insert: {
-          audit_type: string
-          details: Json
-          detected_at?: string
-          id?: string
-          record_id: string
-          resolved_at?: string | null
-          resolved_by?: string | null
-          severity: string
-          table_name: string
-        }
-        Update: {
-          audit_type?: string
-          details?: Json
-          detected_at?: string
-          id?: string
-          record_id?: string
-          resolved_at?: string | null
-          resolved_by?: string | null
-          severity?: string
-          table_name?: string
-        }
-        Relationships: []
       }
       staff_job_notes: {
         Row: {
@@ -2454,50 +2122,10 @@ export type Database = {
             foreignKeyName: "staff_job_notes_job_id_fkey"
             columns: ["job_id"]
             isOneToOne: false
-            referencedRelation: "job_calculated_totals"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "staff_job_notes_job_id_fkey"
-            columns: ["job_id"]
-            isOneToOne: false
             referencedRelation: "jobs_db"
             referencedColumns: ["id"]
           },
         ]
-      }
-      system_maintenance_mode: {
-        Row: {
-          affected_tables: string[]
-          disabled_at: string | null
-          enabled_at: string | null
-          enabled_by: string | null
-          excluded_roles: string[]
-          id: string
-          mode_type: string
-          reason: string | null
-        }
-        Insert: {
-          affected_tables: string[]
-          disabled_at?: string | null
-          enabled_at?: string | null
-          enabled_by?: string | null
-          excluded_roles?: string[]
-          id?: string
-          mode_type: string
-          reason?: string | null
-        }
-        Update: {
-          affected_tables?: string[]
-          disabled_at?: string | null
-          enabled_at?: string | null
-          enabled_by?: string | null
-          excluded_roles?: string[]
-          id?: string
-          mode_type?: string
-          reason?: string | null
-        }
-        Relationships: []
       }
       transport_charge_configs: {
         Row: {
@@ -2705,49 +2333,9 @@ export type Database = {
       }
     }
     Views: {
-      job_calculated_totals: {
-        Row: {
-          balance_mismatch: boolean | null
-          calculated_balance_due: number | null
-          calculated_grand_total: number | null
-          calculated_gst: number | null
-          calculated_subtotal: number | null
-          id: string | null
-          job_number: string | null
-          parts_count: number | null
-          parts_total: number | null
-          payment_count: number | null
-          stored_balance_due: number | null
-          stored_deposit: number | null
-          stored_grand_total: number | null
-          total_mismatch: boolean | null
-          total_paid: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
-      compute_job_totals: {
-        Args: { p_job_id: string }
-        Returns: Json
-      }
-      digits_only: {
-        Args: { t: string }
-        Returns: string
-      }
-      find_customer_deterministic: {
-        Args: {
-          p_email?: string
-          p_name?: string
-          p_phone: string
-          p_suburb?: string
-        }
-        Returns: {
-          customer_id: string
-          match_score: number
-          match_type: string
-        }[]
-      }
       find_customer_duplicates: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -2778,52 +2366,6 @@ export type Database = {
           category_names: string[]
           normalized_name: string
           part_count: number
-        }[]
-      }
-      find_jobs_with_calculation_errors: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          balance_diff: number
-          calculated_balance: number
-          calculated_total: number
-          difference: number
-          job_number: string
-          stored_balance: number
-          stored_total: number
-        }[]
-      }
-      find_or_create_customer: {
-        Args: {
-          p_address?: string
-          p_company_name?: string
-          p_customer_type?: Database["public"]["Enums"]["customer_type"]
-          p_email?: string
-          p_name: string
-          p_phone: string
-        }
-        Returns: string
-      }
-      find_rapid_changes: {
-        Args: { minutes?: number; threshold?: number }
-        Returns: {
-          change_count: number
-          first_change: string
-          job_number: string
-          last_change: string
-          record_id: string
-          table_name: string
-          time_span: unknown
-        }[]
-      }
-      find_suspicious_customer_changes: {
-        Args: { days?: number }
-        Returns: {
-          change_reason: string
-          changed_at: string
-          changed_by_user: string
-          job_number: string
-          new_customer: string
-          old_customer: string
         }[]
       }
       fn_search_customers: {
@@ -2874,17 +2416,6 @@ export type Database = {
           date: string
           total_jobs: number
           total_revenue: number
-        }[]
-      }
-      get_job_audit_trail: {
-        Args: { p_job_id: string }
-        Returns: {
-          changed_at: string
-          changed_by: string
-          changed_fields: string[]
-          new_values: Json
-          old_values: Json
-          operation: string
         }[]
       }
       get_job_details: {
@@ -2955,17 +2486,6 @@ export type Database = {
           brand_id: string
           id: string
           name: string
-        }[]
-      }
-      get_null_overwrites: {
-        Args: { days?: number }
-        Returns: {
-          changed_at: string
-          changed_by: string
-          fields_nullified: string[]
-          job_number: string
-          record_id: string
-          table_name: string
         }[]
       }
       get_parts_usage_report: {
@@ -3052,10 +2572,6 @@ export type Database = {
         Args: { duplicate_ids: string[]; primary_id: string }
         Returns: Json
       }
-      norm_text: {
-        Args: { t: string }
-        Returns: string
-      }
       normalize_contact_name: {
         Args: { txt: string }
         Returns: string
@@ -3134,26 +2650,6 @@ export type Database = {
           status: string
         }[]
       }
-      search_jobs_unified: {
-        Args: { p_limit?: number; p_query: string; p_tenant_id?: string }
-        Returns: {
-          balance_due: number
-          created_at: string
-          customer_email: string
-          customer_id: string
-          customer_name: string
-          customer_phone: string
-          grand_total: number
-          id: string
-          job_number: string
-          machine_brand: string
-          machine_category: string
-          machine_model: string
-          machine_serial: string
-          problem_description: string
-          status: string
-        }[]
-      }
       seed_super_admin: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -3189,10 +2685,6 @@ export type Database = {
           job_number: string
           severity: string
         }[]
-      }
-      verify_job_recovery: {
-        Args: { p_job_id: string }
-        Returns: Json
       }
     }
     Enums: {

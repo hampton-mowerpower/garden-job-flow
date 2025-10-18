@@ -20,8 +20,7 @@ import {
   LogOut,
   User,
   CreditCard,
-  TrendingUp,
-  Database
+  TrendingUp
 } from 'lucide-react';
 
 interface NavigationProps {
@@ -41,7 +40,6 @@ export function Navigation({ currentView, setCurrentView }: NavigationProps) {
     { id: 'parts', label: t('nav.parts'), icon: Package, roles: ['admin', 'technician', 'counter'] },
     { id: 'analytics', label: 'Reports & Analytics', icon: TrendingUp, roles: ['admin', 'manager'] },
     { id: 'reports', label: t('nav.reports'), icon: BarChart3, roles: ['admin'] },
-    { id: 'migration', label: 'Migration Admin', icon: Database, roles: ['admin'] },
     { id: 'settings', label: t('nav.settings'), icon: Settings, roles: ['admin'] },
   ];
 
