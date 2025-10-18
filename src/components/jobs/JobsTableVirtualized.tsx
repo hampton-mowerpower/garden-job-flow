@@ -38,6 +38,13 @@ export function JobsTableVirtualized({
   
   const handleStatusChange = async (job: Job, newStatus: Job['status']) => {
     const previousStatus = job.status;
+    
+    // Prevent multiple simultaneous updates
+    if (updatingStatus === job.id) {
+      console.log('Update already in progress for job:', job.id);
+      return;
+    }
+    
     setUpdatingStatus(job.id);
     
     // Optimistic update
@@ -60,20 +67,47 @@ export function JobsTableVirtualized({
         await scheduleServiceReminder(updatedJob);
       }
       
-      // Update job status in Supabase
-      const { error } = await supabase
+      // Update job status in Supabase with error details
+      const { error, data } = await supabase
         .from('jobs_db')
         .update(updates)
-        .eq('id', job.id);
+        .eq('id', job.id)
+        .select('id, status')
+        .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
+        throw error;
+      }
+      
+      // Verify the update succeeded
+      if (!data) {
+        throw new Error('Update succeeded but no data returned');
+      }
+      
+      console.log('Status updated successfully:', {
+        jobId: job.id,
+        jobNumber: job.jobNumber,
+        oldStatus: previousStatus,
+        newStatus: newStatus
+      });
       
       toast({
         title: 'Status Updated',
-        description: `Job ${job.jobNumber} marked as ${newStatus.replace('_', ' ')}`,
+        description: `Job ${job.jobNumber} marked as ${newStatus.replace(/[-_]/g, ' ')}`,
       });
     } catch (error: any) {
-      console.error('Error updating status:', error);
+      console.error('Error updating status:', {
+        jobId: job.id,
+        jobNumber: job.jobNumber,
+        error: error.message,
+        code: error.code
+      });
       
       // Revert optimistic update on error
       if (onUpdateJob) {
@@ -81,8 +115,10 @@ export function JobsTableVirtualized({
       }
       
       toast({
-        title: 'Error',
-        description: 'Failed to update job status',
+        title: 'Update Failed',
+        description: error.code === 'PGRST116' 
+          ? 'Job not found or already deleted'
+          : `Failed to update status: ${error.message || 'Unknown error'}`,
         variant: 'destructive',
       });
     } finally {

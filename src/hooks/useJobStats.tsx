@@ -37,46 +37,40 @@ export function useJobStats() {
 
   const loadStats = async () => {
     try {
-      const now = new Date();
-      const todayStart = startOfDay(now).toISOString();
-      const weekStart = startOfWeek(now, { weekStartsOn: 1 }).toISOString();
-      const monthStart = startOfMonth(now).toISOString();
-      const yearStart = startOfYear(now).toISOString();
+      // Use efficient RPC that counts directly in database
+      // Note: Type will be available after Supabase regenerates types
+      const { data, error } = await (supabase.rpc as any)('get_job_stats_efficient');
 
-      // Get all jobs in one query
-      const { data: jobs, error } = await supabase
-        .from('jobs_db')
-        .select('id, created_at, status, quotation_status')
-        .order('created_at', { ascending: false });
+      if (error) {
+        console.error('Error loading job stats:', error);
+        throw error;
+      }
 
-      if (error) throw error;
+      if (!data) {
+        throw new Error('No data returned from stats query');
+      }
 
-      // Get job parts to check for awaiting stock
-      const { data: jobParts } = await supabase
-        .from('job_parts')
-        .select('job_id, awaiting_stock')
-        .eq('awaiting_stock', true);
-
-      const partsJobIds = new Set(jobParts?.map(p => p.job_id) || []);
-
-      // Calculate stats
       const newStats: JobStats = {
-        today: jobs?.filter(j => j.created_at >= todayStart).length || 0,
-        thisWeek: jobs?.filter(j => j.created_at >= weekStart).length || 0,
-        thisMonth: jobs?.filter(j => j.created_at >= monthStart).length || 0,
-        thisYear: jobs?.filter(j => j.created_at >= yearStart).length || 0,
-        open: jobs?.filter(j => j.status === 'pending' || j.status === 'in-progress').length || 0,
-        waitingForParts: jobs?.filter(j => partsJobIds.has(j.id)).length || 0,
-        waitingForQuote: jobs?.filter(j => j.quotation_status === 'pending').length || 0,
-        completed: jobs?.filter(j => j.status === 'completed').length || 0,
-        delivered: jobs?.filter(j => j.status === 'delivered').length || 0,
-        writeOff: jobs?.filter(j => j.status === 'write_off').length || 0,
+        today: data.today || 0,
+        thisWeek: data.thisWeek || 0,
+        thisMonth: data.thisMonth || 0,
+        thisYear: data.thisYear || 0,
+        open: data.open || 0,
+        waitingForParts: data.waitingForParts || 0,
+        waitingForQuote: data.waitingForQuote || 0,
+        completed: data.completed || 0,
+        delivered: data.delivered || 0,
+        writeOff: data.writeOff || 0,
         loading: false,
       };
 
       setStats(newStats);
-    } catch (error) {
-      console.error('Error loading job stats:', error);
+    } catch (error: any) {
+      console.error('Error loading job stats:', {
+        message: error.message,
+        code: error.code,
+        details: error.details
+      });
       setStats(prev => ({ ...prev, loading: false }));
     }
   };
