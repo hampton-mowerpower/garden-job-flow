@@ -30,6 +30,13 @@ export async function getAllJobs() {
 
     if (error) {
       console.error('Job load error:', error);
+      
+      // If schema cache error, return empty array instead of breaking UI
+      if (error.message?.includes('schema cache') || error.code === 'PGRST002') {
+        console.warn('Schema cache issue detected - returning empty array');
+        return [];
+      }
+      
       throw error;
     }
 
