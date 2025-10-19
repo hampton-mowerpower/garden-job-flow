@@ -200,18 +200,14 @@ export function JobRowActions({ job, onNotifyCustomer, onSendEmail }: JobRowActi
             <Button
               variant="ghost"
               size="sm"
-              onClick={handlePrintLabel}
-              disabled={printingLabel}
+              disabled={true}
+              title="Coming soon"
               className="h-8 w-8 p-0"
             >
-              {printingLabel ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Tag className="h-4 w-4" />
-              )}
+              <Tag className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Service Label</TooltipContent>
+          <TooltipContent>Service Label (Coming soon)</TooltipContent>
         </Tooltip>
 
         {/* Collection Receipt */}
@@ -220,18 +216,14 @@ export function JobRowActions({ job, onNotifyCustomer, onSendEmail }: JobRowActi
             <Button
               variant="ghost"
               size="sm"
-              onClick={handlePrintReceipt}
-              disabled={printingReceipt}
+              disabled={true}
+              title="Coming soon"
               className="h-8 w-8 p-0"
             >
-              {printingReceipt ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Receipt className="h-4 w-4" />
-              )}
+              <Receipt className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent>Collection Receipt</TooltipContent>
+          <TooltipContent>Collection Receipt (Coming soon)</TooltipContent>
         </Tooltip>
       </div>
     </TooltipProvider>

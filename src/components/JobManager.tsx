@@ -29,9 +29,8 @@ export const JobManager = () => {
   };
 
   const handleEditJob = (job: Job, listState: any) => {
-    setEditingJob(job);
-    setListState(listState);
-    setActiveView('create');
+    // Simple redirect to edit view
+    window.location.href = `/?edit=${job.id}`;
   };
 
   const handleReturnToList = () => {

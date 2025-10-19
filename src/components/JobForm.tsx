@@ -857,7 +857,7 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
     }
 
     // Validate that it starts with 0 (Australian format)
-    if (!phoneDigitsOnly.startsWith('0')) {
+    if (!phoneDigitsOnly?.startsWith('0')) {
       toast({
         title: 'Invalid Phone Number',
         description: 'Australian phone numbers must start with 0',
@@ -1494,7 +1494,7 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
           </Card>
 
           {/* Multi-Tool Attachments - Show only for Multi-Tool categories */}
-          {(machineCategory === 'Multi-Tool' || machineCategory.startsWith('Battery Multi-Tool')) && (
+          {(machineCategory === 'Multi-Tool' || machineCategory?.startsWith('Battery Multi-Tool')) && (
             <MultiToolAttachments
               attachments={attachments}
               onChange={setAttachments}
