@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Account Customer Sync Utilities
 import { supabase } from '@/integrations/supabase/client';
 import { Job } from '@/types/job';

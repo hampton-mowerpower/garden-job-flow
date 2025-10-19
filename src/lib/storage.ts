@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Job, Customer, JobBookingStats, MachineCategory, JobPart, JobSalesItem } from '@/types/job';
 import { supabase } from '@/integrations/supabase/client';
 

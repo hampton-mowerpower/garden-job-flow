@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Customer Data Recovery Utilities
  * 

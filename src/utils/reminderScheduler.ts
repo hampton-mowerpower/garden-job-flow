@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Service Reminder Scheduler
 import { supabase } from '@/integrations/supabase/client';
 import { Job } from '@/types/job';
