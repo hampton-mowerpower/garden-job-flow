@@ -148,6 +148,7 @@ export interface Job {
   
   // Status
   status: 'pending' | 'in-progress' | 'completed' | 'delivered' | 'write_off';
+  version?: number; // Optimistic locking version
   createdAt: Date;
   updatedAt: Date;
   completedAt?: Date;

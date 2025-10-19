@@ -53,8 +53,12 @@ export function JobsTableVirtualized({
     }
     
     try {
+      // ✅ CRITICAL: Always increment version for updates
+      const currentVersion = job.version || 1;
+      
       const updates: any = {
         status: newStatus,
+        version: currentVersion + 1,
         updated_at: new Date().toISOString()
       };
       
@@ -67,13 +71,15 @@ export function JobsTableVirtualized({
         await scheduleServiceReminder(updatedJob);
       }
       
-      // Update job status in Supabase with error details
-      const { error, data } = await supabase
+      // Update job status with optimistic locking (version check)
+      // @ts-ignore - Bypass deep type instantiation issue
+      const result = await supabase
         .from('jobs_db')
         .update(updates)
         .eq('id', job.id)
-        .select('id, status')
-        .single();
+        .eq('version', currentVersion);
+      
+      const { error, data } = result;
       
       if (error) {
         console.error('Supabase update error:', {

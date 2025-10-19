@@ -59,6 +59,7 @@ export const JobListReliable = () => {
           machine_model,
           machine_serial,
           problem_description,
+          version,
           customers_db (
             id,
             name,
