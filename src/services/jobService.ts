@@ -43,8 +43,9 @@ export async function getJobByNumber(jobNumber: string) {
 }
 
 export async function updateJobStatus(jobId: string, newStatus: string, currentVersion: number) {
-  // @ts-ignore - Bypass deep type instantiation issue
-  const result = await supabase
+  // First update without select to avoid the "no data returned" issue
+  // @ts-ignore - Bypass TypeScript deep instantiation error
+  const { error } = await supabase
     .from('jobs_db')
     .update({
       status: newStatus,
@@ -53,8 +54,6 @@ export async function updateJobStatus(jobId: string, newStatus: string, currentV
     })
     .eq('id', jobId)
     .eq('version', currentVersion);
-  
-  const { data, error } = result;
 
   if (error) {
     if (error.code === '22P02') {
@@ -66,6 +65,14 @@ export async function updateJobStatus(jobId: string, newStatus: string, currentV
     throw error;
   }
 
+  // Then fetch the updated job separately
+  const { data, error: fetchError } = await supabase
+    .from('jobs_db')
+    .select('id, job_number, status, version')
+    .eq('id', jobId)
+    .single();
+
+  if (fetchError) throw fetchError;
   return data;
 }
 
