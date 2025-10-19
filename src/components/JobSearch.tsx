@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +40,7 @@ const API_TIMEOUT = 10000;
 
 export default function JobSearch({ onSelectJob, onEditJob, restoredState }: JobSearchProps) {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const { stats, refresh: refreshStats } = useJobStats();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -148,7 +150,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
 
   // Customer data now included in RPC - no need to load separately
 
-  // Main load function with pagination
+  // Main load function with pagination - using REST view
   const loadJobsPage = useCallback(async (isInitial = false) => {
     if ((isInitial ? isLoading : isLoadingMore) || isSearchMode) return;
 
@@ -166,12 +168,22 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
         ? activeFilter
         : null;
 
-      const fetchPromise = supabase.rpc('list_jobs_page', {
-        p_limit: PAGE_SIZE,
-        p_before: isInitial ? null : cursor,
-        p_status: statusFilter
-      });
+      // Use REST view instead of RPC
+      let query = supabase
+        .from('v_jobs_list')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(PAGE_SIZE);
 
+      if (!isInitial && cursor) {
+        query = query.lt('created_at', cursor);
+      }
+
+      if (statusFilter) {
+        query = query.eq('status', statusFilter);
+      }
+
+      const fetchPromise = query;
       const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
       const loadTime = performance.now() - startTime;
@@ -454,7 +466,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
             <>
         <JobsTableVirtualized
           jobs={jobs}
-          onSelectJob={onSelectJob}
+          onSelectJob={(job) => navigate(`/jobs/${job.id}`)}
           onEditJob={handleEditClick}
           onDeleteJob={handleDeleteJob}
           onNotifyCustomer={(job) => setNotificationJob(job)}

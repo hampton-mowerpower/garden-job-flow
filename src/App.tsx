@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { LoginPage } from '@/components/auth/LoginPage';
@@ -10,14 +11,24 @@ import { CustomerManager } from '@/components/CustomerManager';
 import { POSInterface } from '@/components/pos/POSInterface';
 import { ReportsDashboard } from '@/components/reports/ReportsDashboard';
 import { AccountCustomersManager } from '@/components/AccountCustomersManager';
+import JobDetails from '@/pages/JobDetails';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
-const { useState } = React;
+const { useState, useEffect } = React;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('jobs');
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Sync navigation with route changes
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (path.startsWith('/jobs/')) {
+      setCurrentView('jobs');
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -34,76 +45,29 @@ function AppContent() {
     return <LoginPage />;
   }
 
-  const renderCurrentView = () => {
-    switch (currentView) {
-      case 'jobs':
-        return (
-          <div className="container mx-auto p-6">
-            <JobManager />
-          </div>
-        );
-      case 'customers':
-        return (
-          <div className="container mx-auto p-6">
-            <CustomerManager />
-          </div>
-        );
-      case 'account-customers':
-        return (
-          <div className="container mx-auto p-6">
-            <AccountCustomersManager />
-          </div>
-        );
-      case 'parts':
-        return (
-          <div className="container mx-auto p-6">
-            <PartsCatalogue />
-          </div>
-        );
-      case 'reports':
-        return (
-          <div className="container mx-auto p-6">
-            <ReportsManager />
-          </div>
-        );
-      case 'pos':
-        return (
-          <div className="container mx-auto p-6">
-            <POSInterface />
-          </div>
-        );
-      case 'analytics':
-        return (
-          <div className="container mx-auto p-6">
-            <ReportsDashboard />
-          </div>
-        );
-      case 'settings':
-        return (
-          <div className="container mx-auto p-6">
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold mb-4">Settings</h2>
-              <p className="text-muted-foreground">Settings functionality coming soon...</p>
-            </div>
-          </div>
-        );
-      default:
-        return (
-          <div className="container mx-auto p-6">
-            <div className="text-center py-12">
-              <h2 className="text-2xl font-bold mb-4">Welcome to Job Manager</h2>
-              <p className="text-muted-foreground">Select an option from the navigation menu.</p>
-            </div>
-          </div>
-        );
-    }
-  };
-
   return (
     <div className="min-h-screen bg-background">
       <Navigation currentView={currentView} setCurrentView={setCurrentView} />
       <main>
-        {renderCurrentView()}
+        <Routes>
+          <Route path="/" element={<Navigate to="/jobs" replace />} />
+          <Route path="/jobs" element={<div className="container mx-auto p-6"><JobManager /></div>} />
+          <Route path="/jobs/:id" element={<JobDetails />} />
+          <Route path="/customers" element={<div className="container mx-auto p-6"><CustomerManager /></div>} />
+          <Route path="/account-customers" element={<div className="container mx-auto p-6"><AccountCustomersManager /></div>} />
+          <Route path="/parts" element={<div className="container mx-auto p-6"><PartsCatalogue /></div>} />
+          <Route path="/reports" element={<div className="container mx-auto p-6"><ReportsManager /></div>} />
+          <Route path="/pos" element={<div className="container mx-auto p-6"><POSInterface /></div>} />
+          <Route path="/analytics" element={<div className="container mx-auto p-6"><ReportsDashboard /></div>} />
+          <Route path="/settings" element={
+            <div className="container mx-auto p-6">
+              <div className="text-center py-12">
+                <h2 className="text-2xl font-bold mb-4">Settings</h2>
+                <p className="text-muted-foreground">Settings functionality coming soon...</p>
+              </div>
+            </div>
+          } />
+        </Routes>
       </main>
     </div>
   );
