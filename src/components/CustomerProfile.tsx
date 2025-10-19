@@ -81,15 +81,37 @@ export const CustomerProfile: React.FC<CustomerProfileProps> = ({
       }
       
       // Step 2: Load ALL jobs for any of these customer IDs
+      // CRITICAL: Use same query structure as Job List for consistency
       const { data: jobsData, error: jobsError } = await supabase
         .from('jobs_db')
-        .select('*')
+        .select(`
+          id,
+          job_number,
+          created_at,
+          status,
+          grand_total,
+          balance_due,
+          customer_id,
+          machine_category,
+          machine_brand,
+          machine_model,
+          machine_serial,
+          problem_description,
+          notes,
+          customers_db (
+            id,
+            name,
+            phone,
+            email
+          )
+        `)
         .in('customer_id', relatedCustomerIds)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (jobsError) throw jobsError;
       
-      // Dedupe by job_id
+      // Dedupe by job_id and transform to include customer data
       const uniqueJobs = Array.from(
         new Map((jobsData || []).map(job => [job.id, job])).values()
       );
