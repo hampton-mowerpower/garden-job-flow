@@ -150,7 +150,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
 
   // Customer data now included in RPC - no need to load separately
 
-  // Main load function with pagination - using REST view
+  // Main load function with pagination - using RPC
   const loadJobsPage = useCallback(async (isInitial = false) => {
     if ((isInitial ? isLoading : isLoadingMore) || isSearchMode) return;
 
@@ -163,33 +163,25 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
         setTimeout(() => reject(new Error('Request timeout')), API_TIMEOUT)
       );
 
-      const statusFilter = activeFilter !== 'all' && 
-                          !['today', 'week', 'month', 'year', 'open', 'parts', 'quote'].includes(activeFilter)
-        ? activeFilter
-        : null;
+      // Use RPC instead of REST view
+      const fetchPromise = supabase.rpc('get_jobs_list_simple', {
+        p_limit: PAGE_SIZE,
+        p_offset: isInitial ? 0 : (cursor ? jobs.length : 0)
+      });
 
-      // Use REST view instead of RPC
-      let query = supabase
-        .from('v_jobs_list')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(PAGE_SIZE);
-
-      if (!isInitial && cursor) {
-        query = query.lt('created_at', cursor);
-      }
-
-      if (statusFilter) {
-        query = query.eq('status', statusFilter);
-      }
-
-      const fetchPromise = query;
       const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
 
       const loadTime = performance.now() - startTime;
       console.log(`Jobs loaded in ${loadTime.toFixed(0)}ms`);
 
-      if (error) throw error;
+      if (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Failed to load jobs',
+          description: error.message || 'Please try again'
+        });
+        throw error;
+      }
 
       if (!data || data.length === 0) {
         setHasMore(false);
@@ -314,58 +306,9 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     });
   };
 
-  // Fetch full job data before editing
-  const handleEditClick = async (job: Job) => {
-    try {
-      setIsLoading(true);
-      console.log('Fetching full job data for editing:', job.id);
-      
-      // Fetch complete job data from database
-      const fullJob = await jobBookingDB.getJob(job.id);
-      
-      if (!fullJob) {
-        toast({
-          title: 'Error',
-          description: 'Job not found',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      console.log('Full job data loaded:', {
-        category: fullJob.machineCategory,
-        brand: fullJob.machineBrand,
-        model: fullJob.machineModel
-      });
-      
-      // Capture current list state
-      const listState = {
-        from: 'jobs_list' as const,
-        filters: {
-          search: searchQuery,
-          status: activeFilter
-        },
-        pagination: {
-          cursor,
-          pageSize: PAGE_SIZE
-        },
-        scrollY: window.scrollY,
-        jobId: job.id
-      };
-      
-      // Pass complete job data and list state to edit handler
-      onEditJob(fullJob, listState);
-      
-    } catch (error: any) {
-      console.error('Error loading job for edit:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load job details',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  // Navigate to edit page directly
+  const handleEditClick = (job: Job) => {
+    navigate(`/jobs/${job.id}/edit`);
   };
 
   const handleDeleteJob = async (job: Job) => {

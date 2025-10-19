@@ -44,7 +44,15 @@ export default function JobDetails() {
         p_job_id: id
       });
 
-      if (error) throw error;
+      if (error) {
+        toast({
+          variant: 'destructive',
+          title: 'Failed to load job',
+          description: error.message
+        });
+        throw error;
+      }
+      
       if (!data || data.length === 0) throw new Error('Job not found');
       
       return data[0];
@@ -196,6 +204,9 @@ export default function JobDetails() {
           Back to Jobs
         </Button>
         <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={() => navigate(`/jobs/${id}/edit`)}>
+            Edit Job
+          </Button>
           <Badge variant={
             job.status === 'completed' ? 'default' :
             job.status === 'in_progress' ? 'secondary' :

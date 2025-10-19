@@ -3152,6 +3152,26 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_jobs_list_simple: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: {
+          balance_due: number
+          created_at: string
+          customer_email: string
+          customer_id: string
+          customer_name: string
+          customer_phone: string
+          grand_total: number
+          id: string
+          job_number: string
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial: string
+          problem_description: string
+          status: string
+        }[]
+      }
       get_machine_brands: {
         Args: { p_category_id?: string }
         Returns: {

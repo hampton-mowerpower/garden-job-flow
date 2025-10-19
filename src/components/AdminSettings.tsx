@@ -27,6 +27,7 @@ import { AccountContactManager } from './account/AccountContactManager';
 import { DiagnosticsExport } from './admin/DiagnosticsExport';
 import { SystemDoctor } from './admin/SystemDoctor';
 import { HealthStatusPanel } from './admin/HealthStatusPanel';
+import { ForensicsPanel } from './admin/ForensicsPanel';
 
 // Simple unique ID generator for UI elements
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -478,6 +479,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
 
           <TabsContent value="diagnostics">
             <div className="space-y-6">
+              <ForensicsPanel />
               <HealthStatusPanel />
               <SystemDoctor />
             </div>
