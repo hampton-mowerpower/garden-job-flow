@@ -1,14 +1,14 @@
 // @ts-nocheck
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { JobForm } from '@/components/JobForm';
+import { useJobDetail, JobDetail } from '@/hooks/useJobDetail';
+import { supabase } from '@/integrations/supabase/client';
+import JobForm from '@/components/JobForm';
 
 export default function JobEdit() {
   const { id } = useParams<{ id: string }>();
@@ -16,42 +16,17 @@ export default function JobEdit() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
-  // Fetch job details using RPC
-  const { data: job, isLoading, error } = useQuery({
-    queryKey: ['job-detail', id],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_job_detail_simple', {
-        p_job_id: id
-      });
+  // Fetch job details using the hook
+  const { data: job, isLoading, error, refetch } = useJobDetail(id);
 
-      if (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Failed to load job',
-          description: error.message
-        });
-        throw error;
-      }
-      
-      if (!data || data.length === 0) {
-        throw new Error('Job not found');
-      }
-      
-      return data[0];
-    },
-    retry: (failureCount, error) => {
-      if (error.message === 'Job not found') return false;
-      return failureCount < 3;
-    },
-  });
-
-  const handleSave = async (updatedJob: any) => {
+  const handleSave = async (patch: Partial<JobDetail>, version: number) => {
     setIsSaving(true);
     try {
-      const { error } = await supabase
-        .from('jobs_db')
-        .update(updatedJob)
-        .eq('id', id);
+      const { data, error } = await supabase.rpc('update_job_simple', {
+        p_job_id: id,
+        p_version: version,
+        p_patch: patch
+      });
 
       if (error) {
         toast({
@@ -59,7 +34,29 @@ export default function JobEdit() {
           title: 'Failed to save job',
           description: error.message
         });
-        throw error;
+        return;
+      }
+
+      if (data?.updated === false) {
+        if (data.error === 'Version conflict') {
+          toast({
+            variant: 'destructive',
+            title: 'Conflict Detected',
+            description: 'This job was changed elsewhere. Reload to continue.',
+            action: (
+              <Button variant="outline" size="sm" onClick={() => refetch()}>
+                Reload
+              </Button>
+            )
+          });
+        } else {
+          toast({
+            variant: 'destructive',
+            title: 'Update failed',
+            description: data.error || 'Unknown error'
+          });
+        }
+        return;
       }
 
       toast({
@@ -70,6 +67,11 @@ export default function JobEdit() {
       navigate(`/jobs/${id}`);
     } catch (error: any) {
       console.error('Error saving job:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'Failed to save job'
+      });
     } finally {
       setIsSaving(false);
     }
@@ -111,31 +113,63 @@ export default function JobEdit() {
           <ArrowLeft className="h-4 w-4" />
           Back to Details
         </Button>
-        <Button onClick={() => handleSave(job)} disabled={isSaving} className="gap-2">
-          {isSaving ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4" />
-          )}
-          Save Changes
-        </Button>
       </div>
 
-      {/* Edit Form Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">
-            Edit Job {job.job_number}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <JobForm 
-            initialJob={job}
-            onSave={handleSave}
-            onCancel={() => navigate(`/jobs/${id}`)}
-          />
-        </CardContent>
-      </Card>
+      {/* Edit Form - JobForm handles its own save button */}
+      <JobForm 
+        job={{
+          ...job,
+          id: job.id,
+          jobNumber: job.job_number,
+          status: job.status,
+          customer: {
+            id: job.customer_id,
+            name: job.customer_name,
+            phone: job.customer_phone,
+            email: job.customer_email,
+            address: job.customer_address
+          },
+          machineCategory: job.machine_category,
+          machineBrand: job.machine_brand,
+          machineModel: job.machine_model,
+          machineSerial: job.machine_serial,
+          problemDescription: job.problem_description,
+          notes: job.notes,
+          servicePerformed: job.service_performed,
+          recommendations: job.recommendations,
+          labourHours: job.labour_hours,
+          labourRate: job.labour_rate,
+          labourTotal: job.labour_total,
+          parts: [],
+          grandTotal: job.grand_total,
+          balanceDue: job.balance_due,
+          subtotal: job.subtotal,
+          gst: job.gst,
+          partsSubtotal: job.parts_subtotal,
+          createdAt: new Date(job.created_at),
+          updatedAt: new Date(job.updated_at),
+          version: 1
+        } as any}
+        onSave={(savedJob) => {
+          // Extract only changed fields
+          const patch: Partial<JobDetail> = {};
+          if (savedJob.notes !== job.notes) patch.notes = savedJob.notes;
+          if (savedJob.problemDescription !== job.problem_description) patch.problem_description = savedJob.problemDescription;
+          if (savedJob.servicePerformed !== job.service_performed) patch.service_performed = savedJob.servicePerformed;
+          if (savedJob.recommendations !== job.recommendations) patch.recommendations = savedJob.recommendations;
+          if (savedJob.machineCategory !== job.machine_category) patch.machine_category = savedJob.machineCategory;
+          if (savedJob.machineBrand !== job.machine_brand) patch.machine_brand = savedJob.machineBrand;
+          if (savedJob.machineModel !== job.machine_model) patch.machine_model = savedJob.machineModel;
+          if (savedJob.machineSerial !== job.machine_serial) patch.machine_serial = savedJob.machineSerial;
+          if (savedJob.status !== job.status) patch.status = savedJob.status;
+          if (savedJob.labourHours !== job.labour_hours) patch.labour_hours = savedJob.labourHours;
+          if (savedJob.labourRate !== job.labour_rate) patch.labour_rate = savedJob.labourRate;
+          if (savedJob.labourTotal !== job.labour_total) patch.labour_total = savedJob.labourTotal;
+          
+          handleSave(patch, savedJob.version || 1);
+        }}
+        onReturnToList={() => navigate(`/jobs/${id}`)}
+      />
     </div>
   );
 }

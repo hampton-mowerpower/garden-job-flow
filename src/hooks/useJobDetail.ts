@@ -29,6 +29,7 @@ export interface JobDetail {
   customer_phone: string;
   customer_email: string;
   customer_address: string;
+  version?: number;
 }
 
 async function fetchJobDetailRest(id: string): Promise<JobDetail> {

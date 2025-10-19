@@ -3105,6 +3105,7 @@ export type Database = {
           status: string
           subtotal: number
           updated_at: string
+          version: number
         }[]
       }
       get_job_details: {
@@ -3409,6 +3410,10 @@ export type Database = {
       show_trgm: {
         Args: { "": string }
         Returns: string[]
+      }
+      update_job_simple: {
+        Args: { p_job_id: string; p_patch: Json; p_version: number }
+        Returns: Json
       }
       upsert_contact: {
         Args: {
