@@ -1,8 +1,8 @@
-// @ts-nocheck
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
+import { getJobDetailSimple } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,34 +36,28 @@ export default function JobDetails() {
   const [noteText, setNoteText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch job details using RPC
+  // Fetch job details using RPC with timeout
   const { data: job, isLoading, error, refetch } = useQuery({
     queryKey: ['job-detail', id],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_job_detail_simple', {
-        p_job_id: id
-      });
-
-      if (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Failed to load job',
-          description: error.message
-        });
-        throw error;
-      }
-      
-      if (!data || data.length === 0) throw new Error('Job not found');
-      
-      return data[0];
+      if (!id) throw new Error('Job ID required');
+      const data = await getJobDetailSimple(id);
+      if (!data) throw new Error('Job not found');
+      return data;
     },
-    retry: (failureCount, error) => {
-      // Don't retry if job not found
-      if (error.message === 'Job not found') return false;
-      return failureCount < 5;
-    },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+    retry: 1,
   });
+
+  // Show error toast
+  useEffect(() => {
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to load job',
+        description: (error as Error).message,
+      });
+    }
+  }, [error, toast]);
 
   // Load notes initially
   useEffect(() => {
@@ -71,14 +65,24 @@ export default function JobDetails() {
     loadNotes();
   }, [id]);
 
-  // Set up realtime subscription for notes only
+  // Set up realtime subscription for job_db and job_notes
   useEffect(() => {
     if (!id) return;
 
-    console.log('Setting up realtime subscription for job notes:', id);
-
     const channel = supabase
-      .channel(`job_notes:${id}`)
+      .channel(`job_detail:${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'jobs_db',
+          filter: `id=eq.${id}`,
+        },
+        () => {
+          refetch();
+        }
+      )
       .on(
         'postgres_changes',
         {
@@ -87,18 +91,16 @@ export default function JobDetails() {
           table: 'job_notes',
           filter: `job_id=eq.${id}`,
         },
-        (payload) => {
-          console.log('Realtime note event:', payload);
+        () => {
           loadNotes();
         }
       )
       .subscribe();
 
     return () => {
-      console.log('Unsubscribing from job notes realtime');
       supabase.removeChannel(channel);
     };
-  }, [id]);
+  }, [id, refetch]);
 
   const loadNotes = async () => {
     if (!id) return;

@@ -2,47 +2,39 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Activity, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { Activity, CheckCircle, AlertCircle, Loader2, Zap } from 'lucide-react';
+import { apiHealth, getJobsListSimple } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 
 export function ForensicsPanel() {
   const { toast } = useToast();
   const [isChecking, setIsChecking] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
   const [lastResult, setLastResult] = useState<{
     status: 'success' | 'error';
     message: string;
+    timestamp: Date;
+  } | null>(null);
+  const [rpcTestResult, setRpcTestResult] = useState<{
+    status: 'success' | 'error';
+    message: string;
+    elapsed: number;
     timestamp: Date;
   } | null>(null);
 
   const runHealthCheck = async () => {
     setIsChecking(true);
     try {
-      const { data, error } = await supabase.rpc('api_health_check');
-
-      if (error) {
-        const errorMessage = error.message || 'Unknown error';
-        setLastResult({
-          status: 'error',
-          message: errorMessage,
-          timestamp: new Date()
-        });
-        toast({
-          variant: 'destructive',
-          title: 'Health Check Failed',
-          description: errorMessage
-        });
-      } else {
-        setLastResult({
-          status: 'success',
-          message: 'REST API healthy',
-          timestamp: new Date()
-        });
-        toast({
-          title: 'Health Check Passed',
-          description: 'REST API is responding normally'
-        });
-      }
+      await apiHealth();
+      setLastResult({
+        status: 'success',
+        message: 'REST API healthy',
+        timestamp: new Date()
+      });
+      toast({
+        title: 'Health Check Passed',
+        description: 'REST API is responding normally'
+      });
     } catch (error: any) {
       const errorMessage = error.message || 'Failed to run health check';
       setLastResult({
@@ -60,6 +52,41 @@ export function ForensicsPanel() {
     }
   };
 
+  const testJobsRPC = async () => {
+    setIsTesting(true);
+    const startTime = performance.now();
+    try {
+      await getJobsListSimple(1, 0);
+      const elapsed = Math.round(performance.now() - startTime);
+      setRpcTestResult({
+        status: 'success',
+        message: 'RPC test passed',
+        elapsed,
+        timestamp: new Date()
+      });
+      toast({
+        title: 'RPC Test Passed',
+        description: `Loaded in ${elapsed}ms`
+      });
+    } catch (error: any) {
+      const elapsed = Math.round(performance.now() - startTime);
+      const errorMessage = error.message || 'Failed to test RPC';
+      setRpcTestResult({
+        status: 'error',
+        message: errorMessage,
+        elapsed,
+        timestamp: new Date()
+      });
+      toast({
+        variant: 'destructive',
+        title: 'RPC Test Failed',
+        description: errorMessage
+      });
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -69,8 +96,8 @@ export function ForensicsPanel() {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Run Health Check Button */}
-        <div className="flex items-center gap-4">
+        {/* Test Buttons */}
+        <div className="flex flex-wrap items-center gap-4">
           <Button 
             onClick={runHealthCheck}
             disabled={isChecking}
@@ -82,6 +109,20 @@ export function ForensicsPanel() {
               <Activity className="h-4 w-4" />
             )}
             Run Health Check
+          </Button>
+
+          <Button 
+            onClick={testJobsRPC}
+            disabled={isTesting}
+            variant="outline"
+            className="gap-2"
+          >
+            {isTesting ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Zap className="h-4 w-4" />
+            )}
+            Test Jobs RPC
           </Button>
           
           {lastResult && (
@@ -101,20 +142,36 @@ export function ForensicsPanel() {
           )}
         </div>
 
-        {/* Last Check Result */}
-        {lastResult && (
-          <div className="border rounded-lg p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold">Last Check Result</span>
-              <span className="text-xs text-muted-foreground">
-                {lastResult.timestamp.toLocaleTimeString()}
-              </span>
+        {/* Test Results */}
+        <div className="grid md:grid-cols-2 gap-4">
+          {lastResult && (
+            <div className="border rounded-lg p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">Health Check</span>
+                <span className="text-xs text-muted-foreground">
+                  {lastResult.timestamp.toLocaleTimeString()}
+                </span>
+              </div>
+              <div className={`text-sm ${lastResult.status === 'error' ? 'text-red-600' : 'text-green-600'}`}>
+                {lastResult.message}
+              </div>
             </div>
-            <div className={`text-sm ${lastResult.status === 'error' ? 'text-red-600' : 'text-green-600'}`}>
-              {lastResult.message}
+          )}
+
+          {rpcTestResult && (
+            <div className="border rounded-lg p-4 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">Jobs RPC Test</span>
+                <span className="text-xs text-muted-foreground">
+                  {rpcTestResult.timestamp.toLocaleTimeString()}
+                </span>
+              </div>
+              <div className={`text-sm ${rpcTestResult.status === 'error' ? 'text-red-600' : 'text-green-600'}`}>
+                {rpcTestResult.message} ({rpcTestResult.elapsed}ms)
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Info Box */}
         <div className="bg-muted p-4 rounded-lg space-y-2">

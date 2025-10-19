@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { Navigation } from '@/components/Navigation';
+import { HAS_ENV } from '@/env';
 import { JobManager } from '@/components/JobManager';
 import { PartsCatalogue } from '@/components/parts/PartsCatalogue';
 import { ReportsManager } from '@/components/reports/ReportsManager';
@@ -31,6 +32,18 @@ function AppContent() {
       setCurrentView('jobs');
     }
   }, []);
+
+  // Environment check
+  if (!HAS_ENV) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="fixed top-0 left-0 right-0 bg-destructive text-destructive-foreground p-4 text-center z-50">
+          <strong>Configuration Error:</strong> Missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY. 
+          Set them in Project Settings → Environment and rebuild.
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

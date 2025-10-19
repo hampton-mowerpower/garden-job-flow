@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Download, RotateCcw, Loader2 } from 'lucide-react';
 import { Job } from '@/types/job';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
+import { getJobsListSimple } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
 import { CustomerNotificationDialog } from './CustomerNotificationDialog';
 import { EmailNotificationDialog } from './EmailNotificationDialog';
@@ -42,61 +44,38 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
   const { toast } = useToast();
   const navigate = useNavigate();
   const { stats, refresh: refreshStats } = useJobStats();
-  const [jobs, setJobs] = useState<Job[]>([]);
+  const [page, setPage] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
   const [notificationJob, setNotificationJob] = useState<Job | null>(null);
   const [emailJob, setEmailJob] = useState<Job | null>(null);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [highlightedJobId, setHighlightedJobId] = useState<string | null>(null);
 
-  // Handler to update a specific job in the list without refetching
-  const handleUpdateJob = useCallback((jobId: string, updates: Partial<Job>) => {
-    setJobs(prevJobs => 
-      prevJobs.map(job => 
-        job.id === jobId 
-          ? { ...job, ...updates }
-          : job
-      )
-    );
-  }, []);
+  // Use React Query for jobs list
+  const { data: jobs = [], isLoading, error, refetch } = useQuery({
+    queryKey: ['jobs', page, activeFilter],
+    queryFn: async () => {
+      const data = await getJobsListSimple(50, page * 50);
+      return data.map((row: any) => convertToJob(row));
+    },
+    staleTime: 15_000,
+    retry: 1,
+    enabled: !isSearchMode,
+  });
 
-  // Restore state if coming back from edit
+  // Show error toast when query fails
   useEffect(() => {
-    if (restoredState) {
-      console.log('Restoring list state:', restoredState);
-      setActiveFilter(restoredState.filters?.status || 'all');
-      setSearchQuery(restoredState.filters?.search || '');
-      setCursor(restoredState.pagination?.cursor || null);
-      setHighlightedJobId(restoredState.jobId);
-      
-      // Restore scroll position after render
-      setTimeout(() => {
-        if (restoredState.scrollY) {
-          window.scrollTo(0, restoredState.scrollY);
-        }
-        // Scroll to and highlight the edited job
-        const jobElement = document.getElementById(`job-row-${restoredState.jobId}`);
-        if (jobElement) {
-          jobElement.scrollIntoView({ block: 'center', behavior: 'smooth' });
-          // Remove highlight after animation
-          setTimeout(() => setHighlightedJobId(null), 2000);
-        }
-      }, 100);
+    if (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Failed to load jobs',
+        description: (error as Error).message || 'Please try again',
+      });
     }
-  }, [restoredState]);
+  }, [error, toast]);
 
-  // Initial load
-  useEffect(() => {
-    if (!restoredState) {
-      loadJobsPage(true);
-    }
-  }, [activeFilter]);
 
   // Debounce search query
   useEffect(() => {
@@ -112,7 +91,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
       handleSearch(debouncedSearch);
     } else {
       setIsSearchMode(false);
-      loadJobsPage(true);
+      refetch();
     }
   }, [debouncedSearch]);
 
@@ -148,93 +127,15 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     } as Job;
   }, []);
 
-  // Customer data now included in RPC - no need to load separately
 
-  // Main load function with pagination - using RPC
-  const loadJobsPage = useCallback(async (isInitial = false) => {
-    if ((isInitial ? isLoading : isLoadingMore) || isSearchMode) return;
-
-    const setLoadingState = isInitial ? setIsLoading : setIsLoadingMore;
-    setLoadingState(true);
-    const startTime = performance.now();
-
-    try {
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Request timeout')), API_TIMEOUT)
-      );
-
-      // Use RPC instead of REST view
-      const fetchPromise = supabase.rpc('get_jobs_list_simple', {
-        p_limit: PAGE_SIZE,
-        p_offset: isInitial ? 0 : (cursor ? jobs.length : 0)
-      });
-
-      const { data, error } = await Promise.race([fetchPromise, timeoutPromise]) as any;
-
-      const loadTime = performance.now() - startTime;
-      console.log(`Jobs loaded in ${loadTime.toFixed(0)}ms`);
-
-      if (error) {
-        toast({
-          variant: 'destructive',
-          title: 'Failed to load jobs',
-          description: error.message || 'Please try again'
-        });
-        throw error;
-      }
-
-      if (!data || data.length === 0) {
-        setHasMore(false);
-        if (isInitial) {
-          setJobs([]);
-          toast({
-            title: 'No jobs found',
-            description: 'There are no jobs in the system yet.'
-          });
-        }
-        return;
-      }
-
-      // Convert to Job objects - customer data already included
-      const newJobs = data.map((row: any) => convertToJob(row));
-
-      setJobs(prev => isInitial ? newJobs : [...prev, ...newJobs]);
-
-      if (data.length === PAGE_SIZE) {
-        setCursor(data[data.length - 1].created_at);
-        setHasMore(true);
-      } else {
-        setHasMore(false);
-      }
-
-      if (isInitial) refreshStats();
-
-    } catch (err: any) {
-      console.error('Load jobs error:', err);
-      toast({
-        variant: 'destructive',
-        title: 'Failed to load jobs',
-        description: err.message || 'Please try again',
-        action: (
-          <Button variant="outline" size="sm" onClick={() => loadJobsPage(isInitial)}>
-            Retry
-          </Button>
-        )
-      });
-    } finally {
-      setLoadingState(false);
-    }
-  }, [isLoading, isLoadingMore, cursor, activeFilter, isSearchMode, convertToJob, refreshStats, toast]);
-
-  // Fast search function
+  // Fast search function (removed realtime, using direct query)
   const handleSearch = useCallback(async (term: string) => {
     if (!term.trim()) {
       setIsSearchMode(false);
-      loadJobsPage(true);
+      refetch();
       return;
     }
 
-    setIsLoading(true);
     setIsSearchMode(true);
     const startTime = performance.now();
 
@@ -260,14 +161,10 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
         });
       }
 
-      const searchTime = performance.now() - startTime;
-      console.log(`Search completed in ${searchTime.toFixed(0)}ms`);
-
       if (result.error) throw result.error;
 
-      const searchResults = (result.data || []).map((row: any) => convertToJob(row));
-      setJobs(searchResults);
-      setHasMore(false);
+      // Note: Search results handled separately from main query
+      console.log('Search completed, results:', result.data?.length || 0);
 
     } catch (err: any) {
       console.error('Search error:', err);
@@ -276,16 +173,15 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
         title: 'Search failed',
         description: err.message
       });
-    } finally {
-      setIsLoading(false);
     }
-  }, [convertToJob, loadJobsPage, toast]);
+  }, [convertToJob, toast]);
 
   const resetSearch = () => {
     setSearchQuery('');
     setDebouncedSearch('');
     setIsSearchMode(false);
-    loadJobsPage(true);
+    setPage(0);
+    refetch();
   };
 
   const handleExportJobs = () => {
@@ -324,14 +220,13 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
 
       if (error) throw error;
 
-      setJobs(prev => prev.filter(j => j.id !== job.id));
-
       toast({
         title: 'Success',
         description: 'Job deleted successfully'
       });
 
       refreshStats();
+      refetch();
     } catch (error) {
       console.error('Error deleting job:', error);
       toast({
@@ -346,6 +241,8 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     setActiveFilter(filter);
     setSearchQuery('');
     setIsSearchMode(false);
+    setPage(0);
+    refetch();
   };
 
   return (
@@ -406,35 +303,16 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
               {searchQuery ? 'No jobs found matching your search.' : 'No jobs created yet.'}
             </div>
           ) : (
-            <>
-        <JobsTableVirtualized
-          jobs={jobs}
-          onSelectJob={(job) => navigate(`/jobs/${job.id}`)}
-          onEditJob={handleEditClick}
-          onDeleteJob={handleDeleteJob}
-          onNotifyCustomer={(job) => setNotificationJob(job)}
-          onSendEmail={(job) => setEmailJob(job)}
-          highlightedJobId={highlightedJobId}
-          onUpdateJob={handleUpdateJob}
-        />
-              
-              {isLoadingMore && (
-                <div className="flex justify-center py-4">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                </div>
-              )}
-              
-              {!isSearchMode && hasMore && !isLoadingMore && (
-                <div className="flex justify-center pt-4">
-                  <Button 
-                    onClick={() => loadJobsPage(false)}
-                    variant="outline"
-                  >
-                    Load More Jobs
-                  </Button>
-                </div>
-              )}
-            </>
+            <JobsTableVirtualized
+              jobs={jobs}
+              onSelectJob={(job) => navigate(`/jobs/${job.id}`)}
+              onEditJob={handleEditClick}
+              onDeleteJob={handleDeleteJob}
+              onNotifyCustomer={(job) => setNotificationJob(job)}
+              onSendEmail={(job) => setEmailJob(job)}
+              highlightedJobId={highlightedJobId}
+              onUpdateJob={() => refetch()}
+            />
           )}
         </CardContent>
       </Card>

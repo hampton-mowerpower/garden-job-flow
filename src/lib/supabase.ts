@@ -1,5 +1,14 @@
-// Use the integrated Supabase client
-export { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+import { SUPABASE_URL, SUPABASE_ANON } from '@/env';
+
+// Single Supabase client for the entire app
+export const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON!, {
+  auth: {
+    storage: localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 // Database types
 export interface Database {
