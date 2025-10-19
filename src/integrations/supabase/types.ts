@@ -77,6 +77,109 @@ export type Database = {
         }
         Relationships: []
       }
+      brands: {
+        Row: {
+          active: boolean | null
+          category_id: string | null
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean | null
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean | null
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "brands_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      categories: {
+        Row: {
+          active: boolean | null
+          created_at: string | null
+          display_order: number | null
+          id: string
+          name: string
+          rate_default: number | null
+        }
+        Insert: {
+          active?: boolean | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          name: string
+          rate_default?: number | null
+        }
+        Update: {
+          active?: boolean | null
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          name?: string
+          rate_default?: number | null
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          account_id: string | null
+          created_at: string | null
+          email: string | null
+          first_name: string | null
+          full_name: string
+          id: string
+          last_name: string | null
+          phone: string | null
+          role: string | null
+        }
+        Insert: {
+          account_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          full_name: string
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          role?: string | null
+        }
+        Update: {
+          account_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          first_name?: string | null
+          full_name?: string
+          id?: string
+          last_name?: string | null
+          phone?: string | null
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "account_customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       customer_change_audit: {
         Row: {
           changed_by: string | null
@@ -319,6 +422,7 @@ export type Database = {
           service_notes: string | null
           staff_notes: string | null
           status: string | null
+          tenant_id: string | null
         }
         Insert: {
           balance_due?: number | null
@@ -337,6 +441,7 @@ export type Database = {
           service_notes?: string | null
           staff_notes?: string | null
           status?: string | null
+          tenant_id?: string | null
         }
         Update: {
           balance_due?: number | null
@@ -355,6 +460,7 @@ export type Database = {
           service_notes?: string | null
           staff_notes?: string | null
           status?: string | null
+          tenant_id?: string | null
         }
         Relationships: [
           {
@@ -362,6 +468,48 @@ export type Database = {
             columns: ["customer_id"]
             isOneToOne: false
             referencedRelation: "customers_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      machinery_models: {
+        Row: {
+          active: boolean | null
+          brand_id: string | null
+          category_id: string | null
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          active?: boolean | null
+          brand_id?: string | null
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          active?: boolean | null
+          brand_id?: string | null
+          category_id?: string | null
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "machinery_models_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "machinery_models_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
             referencedColumns: ["id"]
           },
         ]
@@ -504,6 +652,7 @@ export type Database = {
           service_notes: string | null
           staff_notes: string | null
           status: string | null
+          tenant_id: string | null
         }[]
       }
       search_job_by_number: {
@@ -525,6 +674,7 @@ export type Database = {
           service_notes: string | null
           staff_notes: string | null
           status: string | null
+          tenant_id: string | null
         }[]
       }
       search_jobs_by_customer_name: {
@@ -546,6 +696,7 @@ export type Database = {
           service_notes: string | null
           staff_notes: string | null
           status: string | null
+          tenant_id: string | null
         }[]
       }
       search_jobs_by_phone: {
@@ -567,7 +718,18 @@ export type Database = {
           service_notes: string | null
           staff_notes: string | null
           status: string | null
+          tenant_id: string | null
         }[]
+      }
+      upsert_contact: {
+        Args: {
+          p_account_id: string
+          p_email: string
+          p_full_name: string
+          p_phone: string
+          p_role: string
+        }
+        Returns: string
       }
     }
     Enums: {
