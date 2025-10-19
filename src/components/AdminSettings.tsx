@@ -332,7 +332,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
         </div>
 
         <Tabs defaultValue="categories" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="categories">Categories & Rates</TabsTrigger>
             <TabsTrigger value="parts">Parts Management</TabsTrigger>
             <TabsTrigger value="accounts">Accounts & Contacts</TabsTrigger>
@@ -341,6 +341,7 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
             <TabsTrigger value="email-health">Email Health</TabsTrigger>
             <TabsTrigger value="print">Print Settings</TabsTrigger>
             <TabsTrigger value="export">Data Export</TabsTrigger>
+            <TabsTrigger value="diagnostics">Diagnostics</TabsTrigger>
             <TabsTrigger value="help">Help</TabsTrigger>
           </TabsList>
 
@@ -472,10 +473,6 @@ export const AdminSettings: React.FC<AdminSettingsProps> = ({ onClose }) => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
-
-          <TabsContent value="diagnostics">
-            <SystemDoctor />
           </TabsContent>
 
           <TabsContent value="diagnostics">
