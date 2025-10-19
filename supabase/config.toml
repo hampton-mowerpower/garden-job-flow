@@ -1,13 +1,1 @@
-project_id = "kyiuojjaownbvouffqbm"
-
-[functions.send-reminder]
-verify_jwt = true
-
-[functions.send-email]
-verify_jwt = true
-
-[functions.approve-quotation]
-verify_jwt = false
-
-[functions.export-diagnostics]
-verify_jwt = true
+project_id = "zqujcxgnelnzxzpfykxn"
