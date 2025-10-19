@@ -55,7 +55,6 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
         .from('job_notes')
         .select('*')
         .eq('job_id', jobId)
-        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -100,22 +99,13 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Get tenant_id from job
-      const { data: jobData } = await supabase
-        .from('jobs_db')
-        .select('tenant_id')
-        .eq('id', jobId)
-        .single();
-
-      // Note: created_by will be set automatically by DB trigger, but we still pass user_id
       const { error } = await supabase
         .from('job_notes')
         .insert({
           job_id: jobId,
-          user_id: user.id, // Keep this for TypeScript compatibility
+          user_id: user.id,
           note_text: newNoteText.trim() + (selectedTags.length > 0 ? '\n\nTags: ' + selectedTags.join(', ') : ''),
           visibility: 'internal',
-          tenant_id: jobData?.tenant_id || null
         });
 
       if (error) throw error;

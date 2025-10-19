@@ -48,7 +48,7 @@ export function CustomerManagerTabs() {
         .order('name');
 
       if (error) throw error;
-      setCustomers(data || []);
+      setCustomers(data as any || []);
     } catch (error) {
       console.error('Error loading customers:', error);
       toast({

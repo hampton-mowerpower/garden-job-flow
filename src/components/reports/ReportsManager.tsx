@@ -117,12 +117,12 @@ export function ReportsManager() {
     
     try {
       const { data, error } = await supabase.rpc('get_daily_takings', {
-        start_date: format(dateRange.from, 'yyyy-MM-dd'),
-        end_date: format(dateRange.to, 'yyyy-MM-dd'),
+        p_start_date: format(dateRange.from, 'yyyy-MM-dd'),
+        p_end_date: format(dateRange.to, 'yyyy-MM-dd'),
       });
 
       if (error) throw error;
-      setDailyTakings(data || []);
+      setDailyTakings(data as any || []);
     } catch (error) {
       console.error('Error loading daily takings:', error);
     }
@@ -133,13 +133,12 @@ export function ReportsManager() {
     
     try {
       const { data, error } = await supabase.rpc('get_technician_productivity', {
-        start_date: format(dateRange.from, 'yyyy-MM-dd'),
-        end_date: format(dateRange.to, 'yyyy-MM-dd'),
-        filter_technician_id: selectedTechnician === 'all' ? null : selectedTechnician,
+        p_start_date: format(dateRange.from, 'yyyy-MM-dd'),
+        p_end_date: format(dateRange.to, 'yyyy-MM-dd'),
       });
 
       if (error) throw error;
-      setTechProductivity(data || []);
+      setTechProductivity(data as any || []);
     } catch (error) {
       console.error('Error loading technician productivity:', error);
     }
@@ -150,12 +149,12 @@ export function ReportsManager() {
     
     try {
       const { data, error } = await supabase.rpc('get_parts_usage_report', {
-        start_date: format(dateRange.from, 'yyyy-MM-dd'),
-        end_date: format(dateRange.to, 'yyyy-MM-dd'),
+        p_start_date: format(dateRange.from, 'yyyy-MM-dd'),
+        p_end_date: format(dateRange.to, 'yyyy-MM-dd'),
       });
 
       if (error) throw error;
-      setPartsUsage(data || []);
+      setPartsUsage(data as any || []);
     } catch (error) {
       console.error('Error loading parts usage:', error);
     }

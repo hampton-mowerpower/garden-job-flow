@@ -155,6 +155,7 @@ export function PartsCatalogue() {
     e.preventDefault();
     
     const partData = {
+      part_number: formData.sku, // Use SKU as part number
       sku: formData.sku,
       upc: formData.upc || null,
       name: formData.name,

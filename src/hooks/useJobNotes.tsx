@@ -37,7 +37,6 @@ export const useJobNotes = (jobId: string) => {
           *
         `)
         .eq('job_id', jobId)
-        .is('deleted_at', null)
         .order('created_at', { ascending: false });
 
       // Fetch user profiles separately for each note
@@ -82,22 +81,13 @@ export const useJobNotes = (jobId: string) => {
     try {
       setSubmitting(true);
       
-      // Get tenant_id from JWT or job
-      const { data: jobData } = await supabase
-        .from('jobs_db')
-        .select('tenant_id')
-        .eq('id', jobId)
-        .single();
-      
-      // Note: created_by will be set automatically by DB trigger, but we pass user_id for TypeScript
       const { data, error } = await supabase
         .from('job_notes')
         .insert({
           job_id: jobId,
-          user_id: user.id, // Keep this for TypeScript compatibility
+          user_id: user.id,
           note_text: noteText.trim(),
           visibility: 'internal',
-          tenant_id: jobData?.tenant_id || null,
         })
         .select()
         .single();
