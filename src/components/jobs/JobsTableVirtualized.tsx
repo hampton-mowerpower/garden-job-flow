@@ -42,7 +42,6 @@ export function JobsTableVirtualized({
     
     // Prevent multiple simultaneous updates
     if (updatingStatus === job.id) {
-      console.log('Update already in progress for job:', job.id);
       return;
     }
     
@@ -54,27 +53,8 @@ export function JobsTableVirtualized({
     }
     
     try {
-      console.log('Updating job status:', {
-        jobId: job.id,
-        jobNumber: job.jobNumber,
-        oldStatus: previousStatus,
-        newStatus: newStatus
-      });
-      
-      // Direct database update without version checking
-      // @ts-ignore - Bypass TypeScript type issues
-      const { error } = await supabase
-        .from('jobs_db')
-        .update({
-          status: newStatus,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', job.id);
-      
-      if (error) {
-        console.error('Database update error:', error);
-        throw error;
-      }
+      // Use simple service function
+      await updateJobStatus(job.id, newStatus);
       
       // If status is delivered, schedule reminder
       if (newStatus === 'delivered') {
@@ -82,25 +62,13 @@ export function JobsTableVirtualized({
         await scheduleServiceReminder(updatedJob);
       }
       
-      console.log('Status updated successfully in database:', {
-        jobId: job.id,
-        jobNumber: job.jobNumber,
-        oldStatus: previousStatus,
-        newStatus: newStatus
-      });
-      
       toast({
-        title: 'Status Updated',
-        description: `Job ${job.jobNumber} status changed to ${newStatus.replace(/[-_]/g, ' ')}`,
+        title: '✓ Status Updated',
+        description: `${job.jobNumber} → ${newStatus.replace(/[-_]/g, ' ')}`,
       });
       
     } catch (error: any) {
-      console.error('Error updating status:', {
-        jobId: job.id,
-        jobNumber: job.jobNumber,
-        error: error.message,
-        code: error.code
-      });
+      console.error('Status update failed:', error);
       
       // Revert optimistic update on error
       if (onUpdateJob) {
@@ -109,7 +77,7 @@ export function JobsTableVirtualized({
       
       toast({
         title: 'Update Failed',
-        description: error.message || 'Failed to update status',
+        description: error.message || 'Please try again',
         variant: 'destructive',
       });
     } finally {

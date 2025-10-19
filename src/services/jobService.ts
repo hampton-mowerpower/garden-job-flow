@@ -1,122 +1,130 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * CRITICAL: Always use the 'id' field (UUID), not 'job_number' (TEXT)
- * job_number is for display only (e.g., "JB2025-0071")
- * id is the actual database identifier
+ * CRITICAL: Keep it simple. No version checks, no optimistic locking.
+ * Basic CRUD operations only.
  */
 
+export async function getAllJobs() {
+  try {
+    const { data, error } = await supabase
+      .from('jobs_db')
+      .select(`
+        id,
+        job_number,
+        status,
+        customer_id,
+        grand_total,
+        balance_due,
+        created_at,
+        machine_category,
+        machine_brand,
+        machine_model,
+        machine_serial,
+        problem_description,
+        customers_db(id, name, phone, email)
+      `)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false })
+      .limit(100);
+
+    if (error) {
+      console.error('Job load error:', error);
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('getAllJobs failed:', error);
+    return [];
+  }
+}
+
 export async function getJobById(jobId: string) {
-  const { data, error } = await supabase
-    .from('jobs_db')
-    .select(`
-      id,
-      job_number,
-      status,
-      version,
-      customer_id,
-      grand_total,
-      balance_due,
-      created_at,
-      updated_at,
-      machine_category,
-      machine_brand,
-      machine_model,
-      problem_description
-    `)
-    .eq('id', jobId)
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('jobs_db')
+      .select(`
+        *,
+        customers_db(id, name, phone, email),
+        job_parts(id, description, quantity, unit_price, total_price)
+      `)
+      .eq('id', jobId)
+      .single();
 
-  if (error) throw error;
-  return data;
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('getJobById failed:', error);
+    return null;
+  }
 }
 
-export async function getJobByNumber(jobNumber: string) {
-  const { data, error } = await supabase
-    .from('jobs_db')
-    .select('id, job_number, status, version')
-    .eq('job_number', jobNumber)
-    .single();
+export async function updateJobStatus(jobId: string, newStatus: string) {
+  try {
+    console.log('Updating job status:', { jobId, newStatus });
+    
+    // Simple direct update - NO version checking
+    const { error } = await supabase
+      .from('jobs_db')
+      .update({ 
+        status: newStatus,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', jobId);
 
-  if (error) throw error;
-  return data;
-}
-
-export async function updateJobStatus(jobId: string, newStatus: string, currentVersion: number) {
-  // First update without select to avoid the "no data returned" issue
-  // @ts-ignore - Bypass TypeScript deep instantiation error
-  const { error } = await supabase
-    .from('jobs_db')
-    .update({
-      status: newStatus,
-      version: currentVersion + 1,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', jobId)
-    .eq('version', currentVersion);
-
-  if (error) {
-    if (error.code === '22P02') {
-      throw new Error('Invalid job ID. Please refresh and try again.');
+    if (error) {
+      console.error('Update error:', error);
+      throw error;
     }
-    if (error.code === 'PGRST116') {
-      throw new Error('Job was updated by another user. Please refresh to see latest changes.');
-    }
+    
+    console.log('Status updated successfully');
+    return true;
+  } catch (error) {
+    console.error('updateJobStatus failed:', error);
     throw error;
   }
-
-  // Then fetch the updated job separately
-  const { data, error: fetchError } = await supabase
-    .from('jobs_db')
-    .select('id, job_number, status, version')
-    .eq('id', jobId)
-    .single();
-
-  if (fetchError) throw fetchError;
-  return data;
 }
 
 export async function getCustomerJobs(customerId: string) {
-  const { data, error } = await supabase
-    .from('jobs_db')
-    .select(`
-      id,
-      job_number,
-      status,
-      grand_total,
-      balance_due,
-      created_at
-    `)
-    .eq('customer_id', customerId)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from('jobs_db')
+      .select(`
+        id,
+        job_number,
+        status,
+        grand_total,
+        balance_due,
+        created_at,
+        machine_category,
+        machine_brand,
+        machine_model
+      `)
+      .eq('customer_id', customerId)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
 
-  if (error) throw error;
-  return data || [];
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('getCustomerJobs failed:', error);
+    return [];
+  }
 }
 
-export async function getAllJobs() {
-  const { data, error } = await supabase
-    .from('jobs_db')
-    .select(`
-      id,
-      job_number,
-      status,
-      grand_total,
-      balance_due,
-      created_at,
-      updated_at,
-      version,
-      customer_id,
-      machine_category,
-      machine_brand,
-      machine_model,
-      problem_description
-    `)
-    .is('deleted_at', null)
-    .order('created_at', { ascending: false })
-    .limit(100);
+export async function getJobByNumber(jobNumber: string) {
+  try {
+    const { data, error } = await supabase
+      .from('jobs_db')
+      .select('id, job_number, status')
+      .eq('job_number', jobNumber)
+      .single();
 
-  if (error) throw error;
-  return data || [];
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('getJobByNumber failed:', error);
+    return null;
+  }
 }
