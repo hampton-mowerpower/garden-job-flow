@@ -24,104 +24,113 @@ export const SystemDoctor = () => {
     const newResults: Record<string, HealthResult> = {};
 
     try {
-      // Test 1: Health Check RPC
+      // PHASE 1 CRITICAL TESTS
+      
+      // Test 1: Can anon role read jobs?
       try {
-        const { data, error } = await supabase.rpc('health_check' as any);
+        const { data, error, count } = await supabase
+          .from('jobs_db')
+          .select('id', { count: 'exact', head: false })
+          .limit(1);
+        
         if (error) throw error;
-        newResults.health_check = {
+        newResults.anon_read_jobs = {
           status: 'pass',
-          message: 'Health check passed',
+          message: `OK - Anon can read jobs (${count || 0} total)`,
+          timestamp: new Date().toISOString()
+        };
+      } catch (e: any) {
+        newResults.anon_read_jobs = {
+          status: 'fail',
+          message: `FAIL - ${e.message || e}`,
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      // Test 2: Can anon role read customers?
+      try {
+        const { data, error, count } = await supabase
+          .from('customers_db')
+          .select('id', { count: 'exact', head: false })
+          .limit(1);
+        
+        if (error) throw error;
+        newResults.anon_read_customers = {
+          status: 'pass',
+          message: `OK - Anon can read customers (${count || 0} total)`,
+          timestamp: new Date().toISOString()
+        };
+      } catch (e: any) {
+        newResults.anon_read_customers = {
+          status: 'fail',
+          message: `FAIL - ${e.message || e}`,
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      // Test 3: Can anon role read parts?
+      try {
+        const { data, error, count } = await supabase
+          .from('parts_catalogue')
+          .select('id', { count: 'exact', head: false })
+          .limit(1);
+        
+        if (error) throw error;
+        newResults.anon_read_parts = {
+          status: 'pass',
+          message: `OK - Anon can read parts (${count || 0} total)`,
+          timestamp: new Date().toISOString()
+        };
+      } catch (e: any) {
+        newResults.anon_read_parts = {
+          status: 'fail',
+          message: `FAIL - ${e.message || e}`,
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      // Test 4: RLS Status Check
+      try {
+        const { data, error } = await supabase.rpc('audit_grants_for_role' as any, {
+          p_role: 'authenticated'
+        });
+        
+        const hasBlockingIssues = data?.some((grant: any) => 
+          grant.issue?.includes('NO SELECT') || grant.issue?.includes('BLOCKED')
+        );
+        
+        newResults.rls_status = {
+          status: hasBlockingIssues ? 'fail' : 'pass',
+          message: hasBlockingIssues ? 'BLOCKED - RLS policies blocking access' : 'ACTIVE - RLS policies configured',
           timestamp: new Date().toISOString(),
           details: data
         };
-      } catch (e) {
-        newResults.health_check = {
-          status: 'fail',
-          message: `Health check failed: ${e}`,
+      } catch (e: any) {
+        newResults.rls_status = {
+          status: 'warn',
+          message: `Unable to check RLS: ${e.message || e}`,
           timestamp: new Date().toISOString()
         };
       }
 
-      // Test 2: Sample Query (Jobs List)
+      // Test 5: Sample Job Query with Relations
       try {
         const { data, error } = await supabase
           .from('jobs_db')
-          .select('id, job_number, status, created_at')
-          .limit(5);
+          .select('id, job_number, status, created_at, customers_db(name, phone)')
+          .limit(1)
+          .single();
         
         if (error) throw error;
-        newResults.jobs_query = {
+        newResults.jobs_with_relations = {
           status: 'pass',
-          message: `Successfully queried ${data?.length || 0} jobs`,
+          message: `OK - Jobs query with customer relations works`,
           timestamp: new Date().toISOString()
         };
-      } catch (e) {
-        newResults.jobs_query = {
-          status: 'fail',
-          message: `Jobs query failed: ${e}`,
-          timestamp: new Date().toISOString()
-        };
-      }
-
-      // Test 3: Customers Query
-      try {
-        const { data, error } = await supabase
-          .from('customers_db')
-          .select('id, name, phone')
-          .limit(5);
-        
-        if (error) throw error;
-        newResults.customers_query = {
-          status: 'pass',
-          message: `Successfully queried ${data?.length || 0} customers`,
-          timestamp: new Date().toISOString()
-        };
-      } catch (e) {
-        newResults.customers_query = {
-          status: 'fail',
-          message: `Customers query failed: ${e}`,
-          timestamp: new Date().toISOString()
-        };
-      }
-
-      // Test 4: Parts Query
-      try {
-        const { data, error } = await supabase
-          .from('parts_catalogue')
-          .select('id, name, sell_price')
-          .limit(5);
-        
-        if (error) throw error;
-        newResults.parts_query = {
-          status: 'pass',
-          message: `Successfully queried ${data?.length || 0} parts`,
-          timestamp: new Date().toISOString()
-        };
-      } catch (e) {
-        newResults.parts_query = {
-          status: 'fail',
-          message: `Parts query failed: ${e}`,
-          timestamp: new Date().toISOString()
-        };
-      }
-
-      // Test 5: Email Outbox
-      try {
-        const { data, error } = await supabase
-          .from('email_outbox')
-          .select('id, status, created_at')
-          .limit(5);
-        
-        if (error) throw error;
-        newResults.email_outbox = {
-          status: 'pass',
-          message: `Email outbox accessible (${data?.length || 0} recent)`,
-          timestamp: new Date().toISOString()
-        };
-      } catch (e) {
-        newResults.email_outbox = {
+      } catch (e: any) {
+        newResults.jobs_with_relations = {
           status: 'warn',
-          message: `Email outbox check: ${e}`,
+          message: `Job relations query: ${e.message || e}`,
           timestamp: new Date().toISOString()
         };
       }
@@ -249,12 +258,13 @@ export const SystemDoctor = () => {
         )}
 
         <div className="p-3 bg-muted rounded text-sm">
-          <strong>What this checks:</strong>
+          <strong>PHASE 1 Health Checks:</strong>
           <ul className="list-disc ml-5 mt-2 space-y-1">
-            <li>Database health and connectivity</li>
-            <li>Jobs, Customers, and Parts table access</li>
-            <li>Email queue system status</li>
-            <li>API schema cache status</li>
+            <li>✓ Can anon role read jobs? (OK/FAIL)</li>
+            <li>✓ Can anon role read customers? (OK/FAIL)</li>
+            <li>✓ Can anon role read parts? (OK/FAIL)</li>
+            <li>✓ Is RLS blocking access? (ACTIVE/BLOCKED)</li>
+            <li>✓ Jobs query with customer relations</li>
           </ul>
         </div>
       </CardContent>
