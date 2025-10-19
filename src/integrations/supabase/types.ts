@@ -276,6 +276,7 @@ export type Database = {
           address: string | null
           company: string | null
           created_at: string | null
+          customer_type: string | null
           deleted_at: string | null
           email: string | null
           id: string
@@ -288,6 +289,7 @@ export type Database = {
           address?: string | null
           company?: string | null
           created_at?: string | null
+          customer_type?: string | null
           deleted_at?: string | null
           email?: string | null
           id?: string
@@ -300,6 +302,7 @@ export type Database = {
           address?: string | null
           company?: string | null
           created_at?: string | null
+          customer_type?: string | null
           deleted_at?: string | null
           email?: string | null
           id?: string
@@ -556,6 +559,7 @@ export type Database = {
       jobs_db: {
         Row: {
           balance_due: number | null
+          completed_at: string | null
           created_at: string | null
           customer_id: string | null
           deleted_at: string | null
@@ -579,6 +583,7 @@ export type Database = {
         }
         Insert: {
           balance_due?: number | null
+          completed_at?: string | null
           created_at?: string | null
           customer_id?: string | null
           deleted_at?: string | null
@@ -602,6 +607,7 @@ export type Database = {
         }
         Update: {
           balance_due?: number | null
+          completed_at?: string | null
           created_at?: string | null
           customer_id?: string | null
           deleted_at?: string | null
@@ -660,6 +666,7 @@ export type Database = {
           brand_id: string | null
           category: string | null
           category_id: string | null
+          cost_price: number | null
           created_at: string | null
           default_price: number | null
           description: string | null
@@ -668,7 +675,9 @@ export type Database = {
           name: string
           normalized_name: string | null
           oem_export_required: boolean | null
+          requires_engine_serial: boolean | null
           sku: string | null
+          tax_code: string | null
           updated_at: string | null
           warranty_months: number | null
         }
@@ -677,6 +686,7 @@ export type Database = {
           brand_id?: string | null
           category?: string | null
           category_id?: string | null
+          cost_price?: number | null
           created_at?: string | null
           default_price?: number | null
           description?: string | null
@@ -685,7 +695,9 @@ export type Database = {
           name: string
           normalized_name?: string | null
           oem_export_required?: boolean | null
+          requires_engine_serial?: boolean | null
           sku?: string | null
+          tax_code?: string | null
           updated_at?: string | null
           warranty_months?: number | null
         }
@@ -694,6 +706,7 @@ export type Database = {
           brand_id?: string | null
           category?: string | null
           category_id?: string | null
+          cost_price?: number | null
           created_at?: string | null
           default_price?: number | null
           description?: string | null
@@ -702,7 +715,9 @@ export type Database = {
           name?: string
           normalized_name?: string | null
           oem_export_required?: boolean | null
+          requires_engine_serial?: boolean | null
           sku?: string | null
+          tax_code?: string | null
           updated_at?: string | null
           warranty_months?: number | null
         }
@@ -766,6 +781,7 @@ export type Database = {
           active: boolean | null
           base_price: number | null
           category: string | null
+          competitor_price: number | null
           created_at: string | null
           deleted_at: string | null
           description: string | null
@@ -777,13 +793,17 @@ export type Database = {
           part_number: string
           sell_price: number | null
           sku: string | null
+          source: string | null
           stock_quantity: number | null
+          supplier: string | null
+          upc: string | null
           updated_at: string | null
         }
         Insert: {
           active?: boolean | null
           base_price?: number | null
           category?: string | null
+          competitor_price?: number | null
           created_at?: string | null
           deleted_at?: string | null
           description?: string | null
@@ -795,13 +815,17 @@ export type Database = {
           part_number: string
           sell_price?: number | null
           sku?: string | null
+          source?: string | null
           stock_quantity?: number | null
+          supplier?: string | null
+          upc?: string | null
           updated_at?: string | null
         }
         Update: {
           active?: boolean | null
           base_price?: number | null
           category?: string | null
+          competitor_price?: number | null
           created_at?: string | null
           deleted_at?: string | null
           description?: string | null
@@ -813,7 +837,10 @@ export type Database = {
           part_number?: string
           sell_price?: number | null
           sku?: string | null
+          source?: string | null
           stock_quantity?: number | null
+          supplier?: string | null
+          upc?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -997,6 +1024,54 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_table_layouts: {
+        Row: {
+          column_order: Json | null
+          created_at: string | null
+          id: string
+          table_name: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          column_order?: Json | null
+          created_at?: string | null
+          id?: string
+          table_name: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          column_order?: Json | null
+          created_at?: string | null
+          id?: string
+          table_name?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -1029,6 +1104,7 @@ export type Database = {
           address: string | null
           company: string | null
           created_at: string | null
+          customer_type: string | null
           deleted_at: string | null
           email: string | null
           id: string
@@ -1038,10 +1114,41 @@ export type Database = {
           phone: string
         }[]
       }
+      get_daily_takings: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: {
+          date: string
+          job_count: number
+          total_revenue: number
+        }[]
+      }
+      get_job_stats_efficient: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
+      get_parts_usage_report: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: {
+          part_id: string
+          part_name: string
+          quantity_used: number
+          total_value: number
+        }[]
+      }
+      get_technician_productivity: {
+        Args: { p_end_date: string; p_start_date: string }
+        Returns: {
+          avg_job_value: number
+          jobs_completed: number
+          technician: string
+          total_revenue: number
+        }[]
+      }
       list_jobs_page: {
         Args: { p_before?: string; p_limit?: number; p_status?: string }
         Returns: {
           balance_due: number | null
+          completed_at: string | null
           created_at: string | null
           customer_id: string | null
           deleted_at: string | null
@@ -1076,6 +1183,7 @@ export type Database = {
         Args: { p_job_number: string }
         Returns: {
           balance_due: number | null
+          completed_at: string | null
           created_at: string | null
           customer_id: string | null
           deleted_at: string | null
@@ -1102,6 +1210,7 @@ export type Database = {
         Args: { p_name: string }
         Returns: {
           balance_due: number | null
+          completed_at: string | null
           created_at: string | null
           customer_id: string | null
           deleted_at: string | null
@@ -1128,6 +1237,7 @@ export type Database = {
         Args: { p_phone: string }
         Returns: {
           balance_due: number | null
+          completed_at: string | null
           created_at: string | null
           customer_id: string | null
           deleted_at: string | null
