@@ -7,39 +7,13 @@ import { supabase } from '@/integrations/supabase/client';
 
 export async function getAllJobs() {
   try {
-    const { data, error } = await supabase
-      .from('jobs_db')
-      .select(`
-        id,
-        job_number,
-        status,
-        customer_id,
-        grand_total,
-        balance_due,
-        created_at,
-        machine_category,
-        machine_brand,
-        machine_model,
-        machine_serial,
-        problem_description,
-        customers_db(id, name, phone, email)
-      `)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false })
-      .limit(100);
-
+    const { data, error } = await supabase.rpc('get_all_jobs_simple' as any);
+    
     if (error) {
-      console.error('Job load error:', error);
-      
-      // If schema cache error, return empty array instead of breaking UI
-      if (error.message?.includes('schema cache') || error.code === 'PGRST002') {
-        console.warn('Schema cache issue detected - returning empty array');
-        return [];
-      }
-      
+      console.error('RPC error:', error);
       throw error;
     }
-
+    
     return data || [];
   } catch (error) {
     console.error('getAllJobs failed:', error);
