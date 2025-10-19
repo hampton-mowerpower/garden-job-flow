@@ -24,15 +24,11 @@ export async function getAllJobs() {
   }
 }
 
-export async function getJobById(jobId: string) {
+export async function getJobById(jobId: string): Promise<any> {
   try {
     const { data, error } = await supabase
       .from('jobs_db')
-      .select(`
-        *,
-        customers_db(id, name, phone, email),
-        job_parts(id, description, quantity, unit_price, total_price)
-      `)
+      .select('*')
       .eq('id', jobId)
       .single();
 
@@ -44,7 +40,7 @@ export async function getJobById(jobId: string) {
   }
 }
 
-export async function updateJobStatus(jobId: string, newStatus: string) {
+export async function updateJobStatus(jobId: string, newStatus: string): Promise<boolean> {
   try {
     const { error } = await supabase
       .from('jobs_db')
@@ -63,7 +59,7 @@ export async function updateJobStatus(jobId: string, newStatus: string) {
   }
 }
 
-export async function getCustomerJobs(customerId: string) {
+export async function getCustomerJobs(customerId: string): Promise<any[]> {
   try {
     const { data, error } = await supabase
       .from('jobs_db')
@@ -90,7 +86,7 @@ export async function getCustomerJobs(customerId: string) {
   }
 }
 
-export async function getJobByNumber(jobNumber: string) {
+export async function getJobByNumber(jobNumber: string): Promise<any> {
   try {
     const { data, error } = await supabase
       .from('jobs_db')
