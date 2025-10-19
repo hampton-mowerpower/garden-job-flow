@@ -11,6 +11,7 @@ import { JobInlineNotes } from './JobInlineNotes';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { scheduleServiceReminder } from '@/utils/reminderScheduler';
+import { updateJobStatus } from '@/services/jobService';
 
 interface JobsTableVirtualizedProps {
   jobs: Job[];
@@ -53,48 +54,16 @@ export function JobsTableVirtualized({
     }
     
     try {
-      // ✅ CRITICAL: Always increment version for updates
       const currentVersion = job.version || 1;
       
-      const updates: any = {
-        status: newStatus,
-        version: currentVersion + 1,
-        updated_at: new Date().toISOString()
-      };
-      
-      // If status is delivered, set delivered_at and schedule reminder
+      // If status is delivered, schedule reminder
       if (newStatus === 'delivered') {
-        updates.delivered_at = new Date().toISOString();
-        
-        // Schedule service reminder by calling with the updated job
         const updatedJob = { ...job, status: newStatus, deliveredAt: new Date() };
         await scheduleServiceReminder(updatedJob);
       }
       
-      // Update job status with optimistic locking (version check)
-      // @ts-ignore - Bypass deep type instantiation issue
-      const result = await supabase
-        .from('jobs_db')
-        .update(updates)
-        .eq('id', job.id)
-        .eq('version', currentVersion);
-      
-      const { error, data } = result;
-      
-      if (error) {
-        console.error('Supabase update error:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        });
-        throw error;
-      }
-      
-      // Verify the update succeeded
-      if (!data) {
-        throw new Error('Update succeeded but no data returned');
-      }
+      // Use the job service to update status
+      await updateJobStatus(job.id, newStatus, currentVersion);
       
       console.log('Status updated successfully:', {
         jobId: job.id,
@@ -107,6 +76,12 @@ export function JobsTableVirtualized({
         title: 'Status Updated',
         description: `Job ${job.jobNumber} marked as ${newStatus.replace(/[-_]/g, ' ')}`,
       });
+
+      // CRITICAL: Reload after 1.5 seconds to get fresh data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      
     } catch (error: any) {
       console.error('Error updating status:', {
         jobId: job.id,
@@ -122,9 +97,7 @@ export function JobsTableVirtualized({
       
       toast({
         title: 'Update Failed',
-        description: error.code === 'PGRST116' 
-          ? 'Job not found or already deleted'
-          : `Failed to update status: ${error.message || 'Unknown error'}`,
+        description: error.message || 'Failed to update status',
         variant: 'destructive',
       });
     } finally {
