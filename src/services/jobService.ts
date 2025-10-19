@@ -7,11 +7,14 @@ import { supabase } from '@/integrations/supabase/client';
 
 export async function getAllJobs() {
   try {
-    const { data, error } = await supabase.rpc('get_all_jobs_simple' as any);
+    const { data, error } = await supabase
+      .from('jobs_db')
+      .select('*')
+      .order('created_at', { ascending: false });
     
     if (error) {
-      console.error('RPC error:', error);
-      throw error;
+      console.error('Failed to load jobs:', error);
+      return [];
     }
     
     return data || [];
@@ -43,23 +46,16 @@ export async function getJobById(jobId: string) {
 
 export async function updateJobStatus(jobId: string, newStatus: string) {
   try {
-    console.log('Updating job status:', { jobId, newStatus });
-    
-    // Simple direct update - NO version checking
     const { error } = await supabase
       .from('jobs_db')
-      .update({ 
-        status: newStatus,
-        updated_at: new Date().toISOString()
-      })
+      .update({ status: newStatus })
       .eq('id', jobId);
-
+    
     if (error) {
-      console.error('Update error:', error);
+      console.error('Failed to update job status:', error);
       throw error;
     }
     
-    console.log('Status updated successfully');
     return true;
   } catch (error) {
     console.error('updateJobStatus failed:', error);
