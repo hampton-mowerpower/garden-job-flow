@@ -118,8 +118,7 @@ export const SystemDoctor = () => {
         const { data, error } = await supabase
           .from('jobs_db')
           .select('id, job_number, status, created_at, customers_db(name, phone)')
-          .limit(1)
-          .single();
+          .limit(1);
         
         if (error) throw error;
         newResults.jobs_with_relations = {
@@ -129,8 +128,8 @@ export const SystemDoctor = () => {
         };
       } catch (e: any) {
         newResults.jobs_with_relations = {
-          status: 'warn',
-          message: `Job relations query: ${e.message || e}`,
+          status: 'fail',
+          message: `Job relations query failed: ${e.message || e}`,
           timestamp: new Date().toISOString()
         };
       }
