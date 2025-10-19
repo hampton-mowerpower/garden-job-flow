@@ -14,6 +14,7 @@ import { AccountCustomersManager } from '@/components/AccountCustomersManager';
 import JobDetails from '@/pages/JobDetails';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { HealthBanner } from '@/components/HealthBanner';
 
 const { useState, useEffect } = React;
 
@@ -48,6 +49,9 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation currentView={currentView} setCurrentView={setCurrentView} />
+      <div className="container mx-auto px-4 pt-2">
+        <HealthBanner />
+      </div>
       <main>
         <Routes>
           <Route path="/" element={<Navigate to="/jobs" replace />} />

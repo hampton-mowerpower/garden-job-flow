@@ -731,7 +731,7 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
         ]
       }
@@ -946,7 +946,7 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
         ]
       }
@@ -1156,7 +1156,7 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
         ]
       }
@@ -1217,7 +1217,7 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
         ]
       }
@@ -1278,7 +1278,7 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
         ]
       }
@@ -1357,7 +1357,7 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
           {
             foreignKeyName: "job_parts_part_id_fkey"
@@ -1425,7 +1425,7 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
         ]
       }
@@ -1489,7 +1489,7 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
         ]
       }
@@ -1563,7 +1563,7 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
         ]
       }
@@ -2012,7 +2012,7 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
           {
             foreignKeyName: "machinery_sales_model_id_fkey"
@@ -2277,7 +2277,7 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
         ]
       }
@@ -2465,7 +2465,7 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
         ]
       }
@@ -2553,7 +2553,7 @@ export type Database = {
             columns: ["job_id"]
             isOneToOne: false
             referencedRelation: "v_jobs_list"
-            referencedColumns: ["id"]
+            referencedColumns: ["job_id"]
           },
         ]
       }
@@ -2825,7 +2825,7 @@ export type Database = {
           customer_name: string | null
           customer_phone: string | null
           grand_total: number | null
-          id: string | null
+          job_id: string | null
           job_number: string | null
           machine_brand: string | null
           machine_category: string | null
@@ -2846,6 +2846,64 @@ export type Database = {
       }
     }
     Functions: {
+      _ef_read_job_detail: {
+        Args: { p_job_id: string }
+        Returns: {
+          balance_due: number
+          created_at: string
+          customer_address: string
+          customer_email: string
+          customer_id: string
+          customer_name: string
+          customer_phone: string
+          grand_total: number
+          gst: number
+          id: string
+          job_number: string
+          labour_hours: number
+          labour_rate: number
+          labour_total: number
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial: string
+          notes: string
+          parts_subtotal: number
+          problem_description: string
+          recommendations: string
+          service_performed: string
+          status: string
+          subtotal: number
+          updated_at: string
+        }[]
+      }
+      _ef_read_jobs_list: {
+        Args: { p_limit: number; p_offset: number }
+        Returns: {
+          balance_due: number
+          created_at: string
+          customer_email: string
+          customer_id: string
+          customer_name: string
+          customer_phone: string
+          grand_total: number
+          job_id: string
+          job_number: string
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial: string
+          problem_description: string
+          status: string
+        }[]
+      }
+      api_health_check: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          now: string
+          ok: boolean
+        }[]
+      }
       compute_job_totals: {
         Args: { p_job_id: string }
         Returns: Json
@@ -3023,11 +3081,13 @@ export type Database = {
         Returns: {
           balance_due: number
           created_at: string
+          customer_address: string
           customer_email: string
           customer_id: string
           customer_name: string
           customer_phone: string
           grand_total: number
+          gst: number
           id: string
           job_number: string
           labour_hours: number
@@ -3038,8 +3098,12 @@ export type Database = {
           machine_model: string
           machine_serial: string
           notes: string
+          parts_subtotal: number
           problem_description: string
+          recommendations: string
+          service_performed: string
           status: string
+          subtotal: number
           updated_at: string
         }[]
       }
