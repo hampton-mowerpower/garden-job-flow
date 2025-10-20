@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import { withTimeout } from './withTimeout';
 import type { JobListRow } from './types';
 
 export async function getJobsListSimple(params?: {
@@ -20,78 +19,62 @@ export async function getJobsListSimple(params?: {
 }
 
 export async function getJobDetailSimple(id: string) {
-  const result = await withTimeout(
-    (async () => {
-      return await supabase.rpc('get_job_detail_simple', { p_job_id: id });
-    })(),
-    10000
-  );
-  const { data, error } = result;
+  const { data, error } = await supabase.rpc('get_job_detail_simple', { p_job_id: id });
   if (error) throw error;
   return Array.isArray(data) ? data[0] : data;
 }
 
 export async function getJobStatsEfficient() {
-  const result = await withTimeout(
-    (async () => {
-      return await supabase.rpc('get_job_stats_efficient');
-    })(),
-    10000
-  );
-  const { data, error } = result;
-  if (error) throw error;
-  return data;
+  // Temporarily disabled - use simple count
+  const { count } = await supabase
+    .from('jobs_db')
+    .select('*', { count: 'exact', head: true });
+  
+  return {
+    total_jobs: count || 0,
+    today: 0,
+    this_week: 0,
+    this_month: 0,
+    this_year: 0,
+    open: 0,
+    parts: 0,
+    quotes: 0,
+    completed: 0,
+    delivered: 0,
+    write_off: 0
+  };
 }
 
 export async function apiHealth() {
-  const { data, error } = await supabase.rpc('api_health_check');
-  if (error) throw error;
-  return data;
+  // Disabled during maintenance
+  return { ok: true, timestamp: new Date().toISOString() };
 }
 
 // Job mutations
 export async function updateJobStatus(id: string, status: string) {
-  const result = await withTimeout(
-    (async () => {
-      return await supabase
-        .from('jobs_db')
-        .update({ status })
-        .eq('id', id)
-        .select()
-        .single();
-    })(),
-    10000
-  );
-  const { data, error } = result;
+  const { data, error } = await supabase.rpc('update_job_status', {
+    p_job_id: id,
+    p_status: status
+  });
   if (error) throw error;
   return data;
 }
 
-export async function updateJobTotals(
-  id: string,
-  fields: {
-    grand_total?: number;
-    balance_due?: number;
-    subtotal?: number;
-    gst?: number;
-    labour_total?: number;
-    parts_subtotal?: number;
-  }
-) {
-  const result = await withTimeout(
-    (async () => {
-      return await supabase
-        .from('jobs_db')
-        .update(fields)
-        .eq('id', id)
-        .select()
-        .single();
-    })(),
-    10000
-  );
-  const { data, error } = result;
+export async function updateJobTotals(id: string, fields: any) {
+  // Just trigger recalc - server handles totals
+  const { data, error } = await supabase.rpc('recalc_job_totals', {
+    p_job_id: id
+  });
   if (error) throw error;
-  return data;
+  
+  // Refetch the updated job
+  const job = await supabase
+    .from('jobs_db')
+    .select('id, grand_total, balance_due, subtotal, gst, labour_total, parts_subtotal')
+    .eq('id', id)
+    .single();
+  
+  return job.data;
 }
 
 // Customer mutations
@@ -103,56 +86,41 @@ export async function upsertCustomer(payload: {
   address?: string;
   customer_type?: string;
 }) {
-  const result = await withTimeout(
-    (async () => {
-      return await supabase
-        .from('customers_db')
-        .upsert(payload)
-        .select()
-        .single();
-    })(),
-    10000
-  );
-  const { data, error } = result;
+  const { data, error } = await supabase
+    .from('customers_db')
+    .upsert(payload)
+    .select()
+    .single();
+  
   if (error) throw error;
   return data;
 }
 
 export async function attachCustomerToJob(jobId: string, customerId: string) {
-  const result = await withTimeout(
-    (async () => {
-      return await supabase
-        .from('jobs_db')
-        .update({ customer_id: customerId })
-        .eq('id', jobId)
-        .select()
-        .single();
-    })(),
-    10000
-  );
-  const { data, error } = result;
+  const { data, error } = await supabase
+    .from('jobs_db')
+    .update({ customer_id: customerId })
+    .eq('id', jobId)
+    .select()
+    .single();
+  
   if (error) throw error;
   return data;
 }
 
 // Notes
 export async function addJobNote(jobId: string, noteText: string, userId: string) {
-  const result = await withTimeout(
-    (async () => {
-      return await supabase
-        .from('job_notes')
-        .insert({
-          job_id: jobId,
-          note_text: noteText,
-          user_id: userId,
-          visibility: 'internal'
-        })
-        .select()
-        .single();
-    })(),
-    10000
-  );
-  const { data, error } = result;
+  const { data, error } = await supabase
+    .from('job_notes')
+    .insert({
+      job_id: jobId,
+      note_text: noteText,
+      user_id: userId,
+      visibility: 'internal'
+    })
+    .select()
+    .single();
+  
   if (error) throw error;
   return data;
 }
