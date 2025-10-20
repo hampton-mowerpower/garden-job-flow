@@ -1,7 +1,8 @@
 import { supabase } from './supabase';
 import { withTimeout } from './withTimeout';
+import type { JobListRow } from './types';
 
-export async function getJobsListSimple(limit = 50, offset = 0) {
+export async function getJobsListSimple(limit = 25, offset = 0): Promise<JobListRow[]> {
   const result = await withTimeout(
     (async () => {
       return await supabase.rpc('get_jobs_list_simple', { p_limit: limit, p_offset: offset });
@@ -10,7 +11,7 @@ export async function getJobsListSimple(limit = 50, offset = 0) {
   );
   const { data, error } = result;
   if (error) throw error;
-  return data ?? [];
+  return (data ?? []) as JobListRow[];
 }
 
 export async function getJobDetailSimple(id: string) {

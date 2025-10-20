@@ -228,10 +228,24 @@ export function JobsTableVirtualized({
                 </div>
               </div>
 
-              {/* Inline Staff Notes */}
-              <div className="border-t pt-3">
-                <JobInlineNotes jobId={job.id} />
-              </div>
+              {/* Latest Note Preview */}
+              {(job as any).latestNoteAt && (
+                <div className="border-t pt-3">
+                  <div className="text-xs text-muted-foreground">
+                    <span className="font-medium">
+                      {new Date((job as any).latestNoteAt).toLocaleString('en-AU', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                    {' — '}
+                    <span className="line-clamp-1">{job.notes}</span>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

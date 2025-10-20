@@ -733,6 +733,13 @@ export type Database = {
             referencedRelation: "v_jobs_list"
             referencedColumns: ["job_id"]
           },
+          {
+            foreignKeyName: "customer_change_audit_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
+          },
         ]
       }
       customers_db: {
@@ -948,6 +955,13 @@ export type Database = {
             referencedRelation: "v_jobs_list"
             referencedColumns: ["job_id"]
           },
+          {
+            foreignKeyName: "email_outbox_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
+          },
         ]
       }
       invoice_lines: {
@@ -1158,6 +1172,13 @@ export type Database = {
             referencedRelation: "v_jobs_list"
             referencedColumns: ["job_id"]
           },
+          {
+            foreignKeyName: "invoices_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
+          },
         ]
       }
       job_labour: {
@@ -1219,6 +1240,13 @@ export type Database = {
             referencedRelation: "v_jobs_list"
             referencedColumns: ["job_id"]
           },
+          {
+            foreignKeyName: "job_labour_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
+          },
         ]
       }
       job_notes: {
@@ -1279,6 +1307,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_jobs_list"
             referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "job_notes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1360,6 +1395,13 @@ export type Database = {
             referencedColumns: ["job_id"]
           },
           {
+            foreignKeyName: "job_parts_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "job_parts_part_id_fkey"
             columns: ["part_id"]
             isOneToOne: false
@@ -1427,6 +1469,13 @@ export type Database = {
             referencedRelation: "v_jobs_list"
             referencedColumns: ["job_id"]
           },
+          {
+            foreignKeyName: "job_payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
+          },
         ]
       }
       job_recovery_staging: {
@@ -1490,6 +1539,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_jobs_list"
             referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "job_recovery_staging_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1564,6 +1620,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_jobs_list"
             referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "job_sales_items_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2015,6 +2078,13 @@ export type Database = {
             referencedColumns: ["job_id"]
           },
           {
+            foreignKeyName: "machinery_sales_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "machinery_sales_model_id_fkey"
             columns: ["model_id"]
             isOneToOne: false
@@ -2279,6 +2349,13 @@ export type Database = {
             referencedRelation: "v_jobs_list"
             referencedColumns: ["job_id"]
           },
+          {
+            foreignKeyName: "payments_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
+          },
         ]
       }
       protected_field_changes: {
@@ -2467,6 +2544,13 @@ export type Database = {
             referencedRelation: "v_jobs_list"
             referencedColumns: ["job_id"]
           },
+          {
+            foreignKeyName: "service_reminders_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
+          },
         ]
       }
       shadow_audit_log: {
@@ -2554,6 +2638,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_jobs_list"
             referencedColumns: ["job_id"]
+          },
+          {
+            foreignKeyName: "staff_job_notes_job_id_fkey"
+            columns: ["job_id"]
+            isOneToOne: false
+            referencedRelation: "v_jobs_with_latest_note"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2844,6 +2935,36 @@ export type Database = {
           },
         ]
       }
+      v_jobs_with_latest_note: {
+        Row: {
+          balance_due: number | null
+          created_at: string | null
+          customer_email: string | null
+          customer_id: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          grand_total: number | null
+          id: string | null
+          job_number: string | null
+          latest_note_at: string | null
+          latest_note_text: string | null
+          machine_brand: string | null
+          machine_category: string | null
+          machine_model: string | null
+          machine_serial: string | null
+          problem_description: string | null
+          status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "jobs_db_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers_db"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       _ef_read_job_detail: {
@@ -2900,7 +3021,7 @@ export type Database = {
       api_health_check: {
         Args: Record<PropertyKey, never>
         Returns: {
-          now: string
+          at: string
           ok: boolean
         }[]
       }
@@ -3165,6 +3286,8 @@ export type Database = {
           grand_total: number
           id: string
           job_number: string
+          latest_note_at: string
+          latest_note_text: string
           machine_brand: string
           machine_category: string
           machine_model: string

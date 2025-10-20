@@ -54,16 +54,19 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
   const [highlightedJobId, setHighlightedJobId] = useState<string | null>(null);
 
   // Use React Query for jobs list
-  const { data: jobs = [], isLoading, error, refetch } = useQuery({
+  const { data: rawJobs = [], isLoading, error, refetch } = useQuery({
     queryKey: ['jobs', page, activeFilter],
     queryFn: async () => {
-      const data = await getJobsListSimple(50, page * 50);
-      return data.map((row: any) => convertToJob(row));
+      const data = await getJobsListSimple(25, page * 25);
+      return data;
     },
     staleTime: 15_000,
     retry: 1,
     enabled: !isSearchMode,
   });
+
+  // Convert to Job format
+  const jobs = rawJobs.map((row) => convertToJob(row));
 
   // Show error toast when query fails
   useEffect(() => {
@@ -108,8 +111,11 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
         name: row.customer_name || 'Unknown',
         phone: row.customer_phone || '',
         email: row.customer_email || '',
-        address: ''
+        address: '',
+        createdAt: new Date(),
+        updatedAt: new Date()
       },
+      customerId: row.customer_id || '',
       machineCategory: row.machine_category || '',
       machineBrand: row.machine_brand || '',
       machineModel: row.machine_model || '',
@@ -123,8 +129,10 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
       partsSubtotal: 0,
       subtotal: 0,
       gst: 0,
-      notes: ''
-    } as Job;
+      notes: row.latest_note_text || '',
+      latestNoteAt: row.latest_note_at,
+      updatedAt: new Date(row.created_at)
+    } as Job & { latestNoteAt?: string };
   }, []);
 
 
