@@ -97,7 +97,9 @@ export default function JobDetails() {
       )
       .subscribe();
 
+    // Cleanup: unsubscribe and remove channel
     return () => {
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [id, refetch]);

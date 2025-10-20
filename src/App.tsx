@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { LoginPage } from '@/components/auth/LoginPage';
@@ -17,6 +17,7 @@ import JobEdit from '@/pages/JobEdit';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { HealthBanner } from '@/components/HealthBanner';
+import { cleanupSupabase } from '@/lib/supabase';
 
 const { useState, useEffect } = React;
 
@@ -24,6 +25,14 @@ function AppContent() {
   const [currentView, setCurrentView] = useState('jobs');
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Cleanup realtime channels on route change
+  useEffect(() => {
+    return () => {
+      cleanupSupabase();
+    };
+  }, [location.pathname]);
 
   // Sync navigation with route changes
   useEffect(() => {

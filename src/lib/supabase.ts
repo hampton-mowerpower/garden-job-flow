@@ -7,8 +7,23 @@ export const supabase = createClient(SUPABASE_URL!, SUPABASE_ANON!, {
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-  }
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 2, // Rate limit realtime to prevent connection overload
+    },
+  },
+  global: {
+    headers: {
+      'x-client-info': 'job-manager/1.0',
+    },
+  },
 });
+
+// Cleanup utility - removes all realtime channels
+export const cleanupSupabase = () => {
+  supabase.removeAllChannels();
+};
 
 // Database types
 export interface Database {
