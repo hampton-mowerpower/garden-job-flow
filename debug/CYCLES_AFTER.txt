@@ -1,0 +1,21 @@
+Circular Dependency Check - After Fix
+======================================
+
+Run command: npm run cycles (madge --circular --extensions ts,tsx src)
+
+Result: ✓ No circular dependencies found!
+
+Fix Summary:
+- Created pure mapper module: src/lib/mappers/jobMapper.ts
+- Moved convertToJob function out of component (no runtime imports)
+- Updated useJobsList hook to perform mapping
+- Removed inline convertToJob from JobSearch component
+- Enforced one-way import graph:
+  * lib/supabase.ts → only client
+  * lib/types.ts → only types
+  * lib/mappers/* → only pure functions
+  * lib/api.ts → imports supabase + types
+  * hooks/* → import from lib/api + mappers
+  * components/* → import from hooks
+
+ESLint rule active: "import/no-cycle": "error"

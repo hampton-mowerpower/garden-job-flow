@@ -43,3 +43,111 @@ export async function apiHealth() {
   if (error) throw error;
   return data;
 }
+
+// Job mutations
+export async function updateJobStatus(id: string, status: string) {
+  const result = await withTimeout(
+    (async () => {
+      return await supabase
+        .from('jobs_db')
+        .update({ status })
+        .eq('id', id)
+        .select()
+        .single();
+    })(),
+    10000
+  );
+  const { data, error } = result;
+  if (error) throw error;
+  return data;
+}
+
+export async function updateJobTotals(
+  id: string,
+  fields: {
+    grand_total?: number;
+    balance_due?: number;
+    subtotal?: number;
+    gst?: number;
+    labour_total?: number;
+    parts_subtotal?: number;
+  }
+) {
+  const result = await withTimeout(
+    (async () => {
+      return await supabase
+        .from('jobs_db')
+        .update(fields)
+        .eq('id', id)
+        .select()
+        .single();
+    })(),
+    10000
+  );
+  const { data, error } = result;
+  if (error) throw error;
+  return data;
+}
+
+// Customer mutations
+export async function upsertCustomer(payload: {
+  id?: string;
+  name: string;
+  phone: string;
+  email?: string;
+  address?: string;
+  customer_type?: string;
+}) {
+  const result = await withTimeout(
+    (async () => {
+      return await supabase
+        .from('customers_db')
+        .upsert(payload)
+        .select()
+        .single();
+    })(),
+    10000
+  );
+  const { data, error } = result;
+  if (error) throw error;
+  return data;
+}
+
+export async function attachCustomerToJob(jobId: string, customerId: string) {
+  const result = await withTimeout(
+    (async () => {
+      return await supabase
+        .from('jobs_db')
+        .update({ customer_id: customerId })
+        .eq('id', jobId)
+        .select()
+        .single();
+    })(),
+    10000
+  );
+  const { data, error } = result;
+  if (error) throw error;
+  return data;
+}
+
+// Notes
+export async function addJobNote(jobId: string, noteText: string, userId: string) {
+  const result = await withTimeout(
+    (async () => {
+      return await supabase
+        .from('job_notes')
+        .insert({
+          job_id: jobId,
+          note_text: noteText,
+          user_id: userId,
+          visibility: 'internal'
+        })
+        .select()
+        .single();
+    })(),
+    10000
+  );
+  const { data, error } = result;
+  if (error) throw error;
+  return data;
+}

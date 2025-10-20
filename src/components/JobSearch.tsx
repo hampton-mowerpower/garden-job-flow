@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, Download, RotateCcw, Loader2 } from 'lucide-react';
+import { Search, Download, RotateCcw } from 'lucide-react';
 import { Job } from '@/types/job';
 import { supabase } from '@/lib/supabase';
-import { getJobsListSimple } from '@/lib/api';
+import { useJobsList } from '@/hooks/useJobsList';
 import { useToast } from '@/hooks/use-toast';
 import { CustomerNotificationDialog } from './CustomerNotificationDialog';
 import { EmailNotificationDialog } from './EmailNotificationDialog';
@@ -16,7 +15,6 @@ import { JobFilters } from './jobs/JobFilters';
 import { JobsTableVirtualized } from './jobs/JobsTableVirtualized';
 import { useJobStats } from '@/hooks/useJobStats';
 import { Skeleton } from '@/components/ui/skeleton';
-import { jobBookingDB } from '@/lib/storage';
 
 interface JobSearchProps {
   onSelectJob: (job: Job) => void;
@@ -53,20 +51,11 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [highlightedJobId, setHighlightedJobId] = useState<string | null>(null);
 
-  // Use React Query for jobs list
-  const { data: rawJobs = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['jobs', page, activeFilter],
-    queryFn: async () => {
-      const data = await getJobsListSimple(25, page * 25);
-      return data;
-    },
-    staleTime: 15_000,
-    retry: 1,
-    enabled: !isSearchMode,
+  // Use React Query for jobs list via hook (already mapped)
+  const { data: jobs = [], isLoading, error, refetch } = useJobsList({
+    limit: PAGE_SIZE,
+    offset: page * PAGE_SIZE,
   });
-
-  // Convert to Job format
-  const jobs = rawJobs.map((row) => convertToJob(row));
 
   // Show error toast when query fails
   useEffect(() => {
@@ -98,44 +87,6 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
       refetch();
     }
   }, [debouncedSearch]);
-
-  // Convert DB row to Job type - customer data now included in RPC
-  const convertToJob = useCallback((row: any): Job => {
-    return {
-      id: row.id,
-      jobNumber: row.job_number,
-      status: row.status,
-      createdAt: row.created_at,
-      grandTotal: parseFloat(row.grand_total || 0),
-      customer: {
-        id: row.customer_id,
-        name: row.customer_name || 'Unknown',
-        phone: row.customer_phone || '',
-        email: row.customer_email || '',
-        address: '',
-        createdAt: new Date(),
-        updatedAt: new Date()
-      },
-      customerId: row.customer_id || '',
-      machineCategory: row.machine_category || '',
-      machineBrand: row.machine_brand || '',
-      machineModel: row.machine_model || '',
-      machineSerial: row.machine_serial || '',
-      problemDescription: row.problem_description || '',
-      balanceDue: parseFloat(row.balance_due || 0),
-      parts: [],
-      labourHours: 0,
-      labourRate: 0,
-      labourTotal: 0,
-      partsSubtotal: 0,
-      subtotal: 0,
-      gst: 0,
-      notes: row.latest_note_text || '',
-      latestNoteAt: row.latest_note_at,
-      updatedAt: new Date(row.created_at)
-    } as Job & { latestNoteAt?: string };
-  }, []);
-
 
   // Fast search function (removed realtime, using direct query)
   const handleSearch = useCallback(async (term: string) => {
@@ -183,7 +134,7 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
         description: err.message
       });
     }
-  }, [convertToJob, toast]);
+  }, [toast]);
 
   const resetSearch = () => {
     setSearchQuery('');

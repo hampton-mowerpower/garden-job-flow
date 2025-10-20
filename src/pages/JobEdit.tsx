@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useJobDetail, JobDetail } from '@/hooks/useJobDetail';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 import JobForm from '@/components/JobForm';
 
 export default function JobEdit() {
