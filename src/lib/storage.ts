@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { Job, Customer, JobBookingStats, MachineCategory, JobPart, JobSalesItem } from '@/types/job';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 class JobBookingDB {
   async init(): Promise<void> {

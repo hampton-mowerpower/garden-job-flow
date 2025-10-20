@@ -1,4 +1,4 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from './supabase';
 import { create } from 'zustand';
 
 export type ApiMode = 'rest' | 'edge-fallback';
