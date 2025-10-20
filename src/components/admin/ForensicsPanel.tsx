@@ -56,7 +56,7 @@ export function ForensicsPanel() {
     setIsTesting(true);
     const startTime = performance.now();
     try {
-      await getJobsListSimple(1, 0);
+      await getJobsListSimple({ limit: 1, offset: 0 });
       const elapsed = Math.round(performance.now() - startTime);
       setRpcTestResult({
         status: 'success',

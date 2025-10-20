@@ -13,7 +13,7 @@ export function useJobsList(params: UseJobsListParams = {}) {
   return useQuery({
     queryKey: ['jobs-list', params],
     queryFn: async () => {
-      const rows = await getJobsListSimple(params.limit || 25, params.offset || 0);
+      const rows = await getJobsListSimple(params);
       return rows.map(convertToJob);
     },
     staleTime: 15000,

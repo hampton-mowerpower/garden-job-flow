@@ -2,14 +2,19 @@ import { supabase } from './supabase';
 import { withTimeout } from './withTimeout';
 import type { JobListRow } from './types';
 
-export async function getJobsListSimple(limit = 25, offset = 0): Promise<JobListRow[]> {
-  const result = await withTimeout(
-    (async () => {
-      return await supabase.rpc('get_jobs_list_simple', { p_limit: limit, p_offset: offset });
-    })(),
-    10000
-  );
-  const { data, error } = result;
+export async function getJobsListSimple(params?: {
+  limit?: number;
+  offset?: number;
+  search?: string;
+  status?: string;
+}): Promise<JobListRow[]> {
+  const { data, error } = await supabase.rpc('get_jobs_list_simple', {
+    p_limit: params?.limit ?? 25,
+    p_offset: params?.offset ?? 0,
+    p_search: params?.search ?? null,
+    p_status: params?.status ?? null
+  });
+  
   if (error) throw error;
   return (data ?? []) as JobListRow[];
 }
