@@ -38,7 +38,10 @@ export function PartsAuditLog({ open, onOpenChange, partId }: PartsAuditLogProps
     try {
       let query = supabase
         .from('parts_audit_log')
-        .select('*')
+        .select(`
+          *,
+          user_profile:user_profiles!changed_by(email)
+        `)
         .order('changed_at', { ascending: false });
 
       if (partId) {
@@ -49,19 +52,10 @@ export function PartsAuditLog({ open, onOpenChange, partId }: PartsAuditLogProps
 
       if (error) throw error;
 
-      // Fetch user emails separately
-      const userIds = [...new Set(data?.map(log => log.changed_by).filter(Boolean))];
-      const { data: profiles } = await supabase
-        .from('user_profiles')
-        .select('user_id, email')
-        .in('user_id', userIds.length > 0 ? userIds : ['00000000-0000-0000-0000-000000000000']);
-
-      const userMap = new Map(profiles?.map(p => [p.user_id, p.email]) || []);
-
-      setLogs(data?.map(log => ({
+      setLogs((data?.map(log => ({
         ...log as any,
-        user_email: userMap.get(log.changed_by)
-      })) || []);
+        user_email: (log.user_profile as any)?.email
+      })) || []) as AuditLog[]);
     } catch (error) {
       console.error('Error loading audit logs:', error);
     } finally {

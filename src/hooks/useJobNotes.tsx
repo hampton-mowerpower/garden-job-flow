@@ -34,34 +34,15 @@ export const useJobNotes = (jobId: string) => {
       const { data, error } = await supabase
         .from('job_notes')
         .select(`
-          *
+          *,
+          user_profile:user_profiles!user_id(full_name, email, user_id)
         `)
         .eq('job_id', jobId)
         .order('created_at', { ascending: false });
 
-      // Fetch user profiles separately for each note
-      if (data && data.length > 0) {
-        const userIds = [...new Set(data.map(n => n.user_id))];
-        const { data: profiles } = await supabase
-          .from('user_profiles')
-          .select('user_id, full_name, email')
-          .in('user_id', userIds);
-
-        const profileMap = new Map(profiles?.map(p => [p.user_id, p]) || []);
-        
-        const transformedData = data.map(note => ({
-          ...note,
-          user_profile: profileMap.get(note.user_id)
-        }));
-
-        setNotes(transformedData as JobNote[]);
-        setLoading(false);
-        return;
-      }
-
       if (error) throw error;
 
-      setNotes(data || []);
+      setNotes((data || []) as any as JobNote[]);
     } catch (error: any) {
       console.error('Error loading job notes:', error);
       toast({
@@ -89,22 +70,15 @@ export const useJobNotes = (jobId: string) => {
           note_text: noteText.trim(),
           visibility: 'internal',
         })
-        .select()
+        .select(`
+          *,
+          user_profile:user_profiles!user_id(full_name, email, user_id)
+        `)
         .single();
 
       if (error) throw error;
 
-      // Fetch the user profile for this note
-      const { data: profile } = await supabase
-        .from('user_profiles')
-        .select('user_id, full_name, email')
-        .eq('user_id', user.id)
-        .single();
-
-      const noteWithProfile = {
-        ...data,
-        user_profile: profile || undefined
-      };
+      const noteWithProfile = data as any as JobNote;
 
       // Optimistic update
       setNotes(prev => [noteWithProfile as JobNote, ...prev]);

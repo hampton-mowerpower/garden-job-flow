@@ -53,27 +53,16 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
     try {
       const { data, error } = await supabase
         .from('job_notes')
-        .select('*')
+        .select(`
+          *,
+          user_profiles!user_id(full_name)
+        `)
         .eq('job_id', jobId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
-      // Fetch user profiles separately
-      const userIds = [...new Set((data || []).map(n => n.user_id))];
-      const { data: profiles } = await supabase
-        .from('user_profiles')
-        .select('user_id, full_name')
-        .in('user_id', userIds);
 
-      const profileMap = new Map(profiles?.map(p => [p.user_id, p.full_name]));
-      
-      const notesWithProfiles = (data || []).map(note => ({
-        ...note,
-        user_profiles: { full_name: profileMap.get(note.user_id) || 'Unknown' }
-      }));
-
-      setNotes(notesWithProfiles);
+      setNotes((data || []) as any as StaffNote[]);
     } catch (error) {
       console.error('Error loading staff notes:', error);
       toast({
