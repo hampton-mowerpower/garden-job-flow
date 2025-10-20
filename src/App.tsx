@@ -34,6 +34,19 @@ function AppContent() {
     };
   }, [location.pathname]);
 
+  // Global cleanup on window unload and component unmount
+  useEffect(() => {
+    const handleUnload = () => {
+      cleanupSupabase();
+    };
+    
+    window.addEventListener('beforeunload', handleUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload);
+      cleanupSupabase();
+    };
+  }, []);
+
   // Sync navigation with route changes
   useEffect(() => {
     const path = window.location.pathname;
