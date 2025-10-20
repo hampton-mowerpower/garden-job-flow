@@ -26,6 +26,18 @@ export async function getJobDetailSimple(id: string) {
   return Array.isArray(data) ? data[0] : data;
 }
 
+export async function getJobStatsEfficient() {
+  const result = await withTimeout(
+    (async () => {
+      return await supabase.rpc('get_job_stats_efficient');
+    })(),
+    10000
+  );
+  const { data, error } = result;
+  if (error) throw error;
+  return data;
+}
+
 export async function apiHealth() {
   const { data, error } = await supabase.rpc('api_health_check');
   if (error) throw error;

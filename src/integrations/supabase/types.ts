@@ -3274,6 +3274,21 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_job_stats_efficient: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          completed: number
+          delivered: number
+          open: number
+          parts: number
+          quotes: number
+          this_month: number
+          this_week: number
+          this_year: number
+          today: number
+          write_off: number
+        }[]
+      }
       get_jobs_list_simple: {
         Args: { p_limit?: number; p_offset?: number }
         Returns: {

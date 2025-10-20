@@ -71,10 +71,11 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
   // Show error toast when query fails
   useEffect(() => {
     if (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       toast({
         variant: 'destructive',
         title: 'Failed to load jobs',
-        description: (error as Error).message || 'Please try again',
+        description: errorMsg,
       });
     }
   }, [error, toast]);

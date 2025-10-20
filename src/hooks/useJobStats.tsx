@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { startOfDay, startOfWeek, startOfMonth, startOfYear } from 'date-fns';
+import { getJobStatsEfficient } from '@/lib/api';
 
 export interface JobStats {
   today: number;
@@ -37,14 +36,7 @@ export function useJobStats() {
 
   const loadStats = async () => {
     try {
-      // Use efficient RPC that counts directly in database
-      // Note: Type will be available after Supabase regenerates types
-      const { data, error } = await (supabase.rpc as any)('get_job_stats_efficient');
-
-      if (error) {
-        console.error('Error loading job stats:', error);
-        throw error;
-      }
+      const data = await getJobStatsEfficient();
 
       if (!data) {
         throw new Error('No data returned from stats query');
@@ -52,15 +44,15 @@ export function useJobStats() {
 
       const newStats: JobStats = {
         today: data.today || 0,
-        thisWeek: data.thisWeek || 0,
-        thisMonth: data.thisMonth || 0,
-        thisYear: data.thisYear || 0,
+        thisWeek: data.this_week || 0,
+        thisMonth: data.this_month || 0,
+        thisYear: data.this_year || 0,
         open: data.open || 0,
-        waitingForParts: data.waitingForParts || 0,
-        waitingForQuote: data.waitingForQuote || 0,
+        waitingForParts: data.parts || 0,
+        waitingForQuote: data.quotes || 0,
         completed: data.completed || 0,
         delivered: data.delivered || 0,
-        writeOff: data.writeOff || 0,
+        writeOff: data.write_off || 0,
         loading: false,
       };
 
