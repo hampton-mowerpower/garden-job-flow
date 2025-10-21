@@ -14,6 +14,7 @@ import { ReportsDashboard } from '@/components/reports/ReportsDashboard';
 import { AccountCustomersManager } from '@/components/AccountCustomersManager';
 import JobDetails from '@/pages/JobDetails';
 import JobEdit from '@/pages/JobEdit';
+import JobEditClean from '@/pages/JobEditClean';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { HealthBanner } from '@/components/HealthBanner';
@@ -94,6 +95,7 @@ function AppContent() {
           <Route path="/jobs" element={<div className="container mx-auto p-6"><JobManager /></div>} />
           <Route path="/jobs/:id" element={<JobDetails />} />
           <Route path="/jobs/:id/edit" element={<JobEdit />} />
+          <Route path="/jobs/:id/edit-clean" element={<JobEditClean />} />
           <Route path="/customers" element={<div className="container mx-auto p-6"><CustomerManager /></div>} />
           <Route path="/account-customers" element={<div className="container mx-auto p-6"><AccountCustomersManager /></div>} />
           <Route path="/parts" element={<div className="container mx-auto p-6"><PartsCatalogue /></div>} />
