@@ -16,8 +16,7 @@ import JobDetails from '@/pages/JobDetails';
 import JobEdit from '@/pages/JobEdit';
 import JobEditClean from '@/pages/JobEditClean';
 import JobsSimple from '@/pages/JobsSimple';
-import JobDetailSimple from '@/pages/JobDetailSimple';
-import JobEditSimple from '@/pages/JobEditSimple';
+import JobDetailEdit from '@/pages/JobDetailEdit';
 import NewJobSimple from '@/pages/NewJobSimple';
 import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -100,8 +99,7 @@ function AppContent() {
           <Route path="/jobs/:id/edit-clean" element={<JobEditClean />} />
           <Route path="/jobs-simple" element={<div className="container mx-auto p-6"><JobsSimple /></div>} />
           <Route path="/jobs-simple/new" element={<div className="container mx-auto p-6"><NewJobSimple /></div>} />
-          <Route path="/jobs-simple/:id" element={<div className="container mx-auto p-6"><JobDetailSimple /></div>} />
-          <Route path="/jobs-simple/:id/edit" element={<div className="container mx-auto p-6"><JobEditSimple /></div>} />
+          <Route path="/jobs-simple/:id" element={<JobDetailEdit />} />
           <Route path="/customers" element={<div className="container mx-auto p-6"><CustomerManager /></div>} />
           <Route path="/account-customers" element={<div className="container mx-auto p-6"><AccountCustomersManager /></div>} />
           <Route path="/parts" element={<div className="container mx-auto p-6"><PartsCatalogue /></div>} />
