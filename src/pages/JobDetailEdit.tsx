@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
-import { Pencil, Trash2, Plus } from 'lucide-react';
+import { Pencil, Trash2, Plus, ArrowLeft } from 'lucide-react';
 
 interface JobDetail {
   job: any;
@@ -56,6 +56,7 @@ export default function JobDetailEdit() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [jobVersion, setJobVersion] = useState(1);
 
   // Form state for machine details
   const [machineCategory, setMachineCategory] = useState('');
@@ -67,6 +68,11 @@ export default function JobDetailEdit() {
   // Labour state
   const [labourHours, setLabourHours] = useState('0');
   const [labourRate, setLabourRate] = useState('89');
+
+  // Payment state
+  const [serviceDeposit, setServiceDeposit] = useState('0');
+  const [discountType, setDiscountType] = useState<string>('none');
+  const [discountValue, setDiscountValue] = useState('0');
 
   // Part modal state
   const [isPartModalOpen, setIsPartModalOpen] = useState(false);
@@ -109,6 +115,7 @@ export default function JobDetailEdit() {
 
     // Populate form fields
     const { job } = data;
+    setJobVersion(job.version || 1);
     setMachineCategory(job.machine_category || '');
     setMachineBrand(job.machine_brand || '');
     setMachineModel(job.machine_model || '');
@@ -116,6 +123,9 @@ export default function JobDetailEdit() {
     setProblemDescription(job.problem_description || '');
     setLabourHours(String(job.labour_hours || 0));
     setLabourRate(String(job.labour_rate || 89));
+    setServiceDeposit(String(job.service_deposit || 0));
+    setDiscountType(job.discount_type || 'none');
+    setDiscountValue(String(job.discount_value || 0));
 
     setLoading(false);
   }
@@ -144,22 +154,41 @@ export default function JobDetailEdit() {
     setSaving(true);
 
     try {
-      // Update job details
-      const { error: updateError } = await supabase
-        .from('jobs_db')
-        .update({
-          machine_category: machineCategory,
-          machine_brand: machineBrand,
-          machine_model: machineModel,
-          machine_serial: machineSerial,
-          problem_description: problemDescription,
-          labour_hours: parseFloat(labourHours),
-          labour_rate: parseFloat(labourRate),
-          labour_total: parseFloat(labourHours) * parseFloat(labourRate),
-        })
-        .eq('id', id);
+      // Build patch object with all changed fields
+      const patch = {
+        machine_category: machineCategory,
+        machine_brand: machineBrand,
+        machine_model: machineModel,
+        machine_serial: machineSerial,
+        problem_description: problemDescription,
+        labour_hours: parseFloat(labourHours),
+        labour_rate: parseFloat(labourRate),
+        labour_total: parseFloat(labourHours) * parseFloat(labourRate),
+        service_deposit: parseFloat(serviceDeposit),
+        discount_type: discountType,
+        discount_value: parseFloat(discountValue),
+      };
+
+      console.log('[JobDetailEdit] Calling update_job_simple with:', {
+        p_job_id: id,
+        p_version: jobVersion,
+        p_patch: patch,
+      });
+
+      // Update job using RPC
+      const { data: updateResult, error: updateError } = await supabase.rpc('update_job_simple', {
+        p_job_id: id,
+        p_version: jobVersion,
+        p_patch: patch,
+      });
+
+      console.log('[JobDetailEdit] Update result:', updateResult);
 
       if (updateError) throw updateError;
+
+      if (!updateResult?.updated) {
+        throw new Error(updateResult?.error || 'Update failed');
+      }
 
       // Recalculate totals
       console.log('[JobDetailEdit] Recalculating totals...');
@@ -172,10 +201,16 @@ export default function JobDetailEdit() {
       console.log('[JobDetailEdit] Job saved successfully');
       toast.success('Job updated successfully');
       setIsEditing(false);
+      setJobVersion(updateResult.new_version);
       loadJob();
     } catch (error: any) {
       console.error('[JobDetailEdit] Error saving job:', error);
-      toast.error(`Failed to save: ${error.message}`);
+      if (error.message?.includes('version')) {
+        toast.error('Job was modified by someone else. Please reload and try again.');
+        loadJob(); // Reload to get latest version
+      } else {
+        toast.error(`Failed to save: ${error.message}`);
+      }
     } finally {
       setSaving(false);
     }
@@ -186,7 +221,7 @@ export default function JobDetailEdit() {
       setEditingPart(part);
       setPartForm({
         id: part.id,
-        sku: part.sku,
+        sku: part.sku || '',
         description: part.description,
         quantity: String(part.quantity),
         unit_price: String(part.unit_price),
@@ -209,6 +244,14 @@ export default function JobDetailEdit() {
     try {
       if (editingPart) {
         // Update existing part
+        console.log('[JobDetailEdit] Calling update_job_part with:', {
+          p_part_id: partForm.id,
+          p_sku: partForm.sku,
+          p_desc: partForm.description,
+          p_qty: parseFloat(partForm.quantity),
+          p_unit_price: parseFloat(partForm.unit_price),
+        });
+
         const { error } = await supabase.rpc('update_job_part', {
           p_part_id: partForm.id,
           p_sku: partForm.sku,
@@ -222,6 +265,14 @@ export default function JobDetailEdit() {
         toast.success('Part updated');
       } else {
         // Add new part
+        console.log('[JobDetailEdit] Calling add_job_part with:', {
+          p_job_id: id,
+          p_sku: partForm.sku,
+          p_desc: partForm.description,
+          p_qty: parseFloat(partForm.quantity),
+          p_unit_price: parseFloat(partForm.unit_price),
+        });
+
         const { error } = await supabase.rpc('add_job_part', {
           p_job_id: id,
           p_sku: partForm.sku,
@@ -235,6 +286,14 @@ export default function JobDetailEdit() {
         toast.success('Part added');
       }
 
+      // Recalculate totals after part change
+      console.log('[JobDetailEdit] Recalculating totals after part change...');
+      const { error: calcError } = await supabase.rpc('recalc_job_totals', {
+        p_job_id: id,
+      });
+
+      if (calcError) console.error('Failed to recalc totals:', calcError);
+
       setIsPartModalOpen(false);
       loadJob();
     } catch (error: any) {
@@ -244,7 +303,7 @@ export default function JobDetailEdit() {
   }
 
   async function deletePart(partId: string) {
-    console.log('[JobDetailEdit] Deleting part:', partId);
+    console.log('[JobDetailEdit] Calling delete_job_part with:', { p_part_id: partId });
 
     const { error } = await supabase.rpc('delete_job_part', {
       p_part_id: partId,
@@ -257,6 +316,15 @@ export default function JobDetailEdit() {
     }
 
     console.log('[JobDetailEdit] Part deleted successfully');
+    
+    // Recalculate totals after part deletion
+    console.log('[JobDetailEdit] Recalculating totals after part deletion...');
+    const { error: calcError } = await supabase.rpc('recalc_job_totals', {
+      p_job_id: id,
+    });
+
+    if (calcError) console.error('Failed to recalc totals:', calcError);
+
     toast.success('Part deleted');
     setDeletePartId(null);
     loadJob();
@@ -265,24 +333,21 @@ export default function JobDetailEdit() {
   async function addNote() {
     if (!newNote.trim()) return;
 
-    console.log('[JobDetailEdit] Adding note:', newNote);
+    console.log('[JobDetailEdit] Calling add_job_note with:', {
+      p_job_id: id,
+      p_note_text: newNote,
+    });
     setAddingNote(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-
-      const { error } = await supabase
-        .from('job_notes')
-        .insert({
-          job_id: id,
-          user_id: user.id,
-          note_text: newNote,
-        });
+      const { data: noteId, error } = await supabase.rpc('add_job_note', {
+        p_job_id: id,
+        p_note_text: newNote,
+      });
 
       if (error) throw error;
 
-      console.log('[JobDetailEdit] Note added successfully');
+      console.log('[JobDetailEdit] Note added successfully, ID:', noteId);
       toast.success('Note added');
       setNewNote('');
       loadJob();
@@ -318,11 +383,25 @@ export default function JobDetailEdit() {
   }
 
   const { job, customer, parts, notes } = jobData;
+  
+  // Calculate totals
   const calculatedPartTotal = parts?.reduce((sum: number, p: any) => sum + (p.total_price || 0), 0) || 0;
   const calculatedLabourTotal = parseFloat(labourHours) * parseFloat(labourRate);
   const calculatedSubtotal = calculatedPartTotal + calculatedLabourTotal;
-  const calculatedGST = calculatedSubtotal * 0.1;
-  const calculatedGrandTotal = calculatedSubtotal + calculatedGST;
+  
+  // Calculate discount
+  let discountAmount = 0;
+  if (discountType === 'percentage') {
+    discountAmount = calculatedSubtotal * (parseFloat(discountValue) / 100);
+  } else if (discountType === 'fixed') {
+    discountAmount = parseFloat(discountValue);
+  }
+  
+  const afterDiscount = calculatedSubtotal - discountAmount;
+  const calculatedGST = afterDiscount * 0.1;
+  const calculatedGrandTotal = afterDiscount + calculatedGST;
+  const depositAmount = parseFloat(serviceDeposit);
+  const calculatedBalanceDue = calculatedGrandTotal - depositAmount;
 
   return (
     <div className="container mx-auto p-6 max-w-6xl">
@@ -330,12 +409,14 @@ export default function JobDetailEdit() {
       <div className="flex justify-between items-start mb-6">
         <div>
           <Button variant="ghost" onClick={() => navigate('/jobs-simple')} className="mb-2">
-            ← Back to Jobs
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Jobs
           </Button>
           <h1 className="text-3xl font-bold">Job {job.job_number}</h1>
           <p className="text-sm text-muted-foreground mt-1">
             Created: {new Date(job.created_at).toLocaleDateString()} | 
-            Updated: {new Date(job.updated_at).toLocaleDateString()}
+            Updated: {new Date(job.updated_at).toLocaleDateString()} | 
+            Version: {jobVersion}
           </p>
         </div>
         <div className="flex gap-2">
@@ -377,7 +458,7 @@ export default function JobDetailEdit() {
                 <SelectItem value="waiting-quote">Waiting Quote</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="delivered">Delivered</SelectItem>
-                <SelectItem value="write_off">Write Off</SelectItem>
+                <SelectItem value="write-off">Write Off</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>
@@ -489,7 +570,7 @@ export default function JobDetailEdit() {
                   <tbody>
                     {parts.map((part: any) => (
                       <tr key={part.id} className="border-b">
-                        <td className="py-2">{part.sku}</td>
+                        <td className="py-2">{part.sku || 'N/A'}</td>
                         <td className="py-2">{part.description}</td>
                         <td className="text-right py-2">{part.quantity}</td>
                         <td className="text-right py-2">${part.unit_price.toFixed(2)}</td>
@@ -570,6 +651,58 @@ export default function JobDetailEdit() {
           </CardContent>
         </Card>
 
+        {/* Payment Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Payment Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <Label htmlFor="serviceDeposit">Service Deposit ($)</Label>
+              <Input
+                id="serviceDeposit"
+                type="number"
+                step="0.01"
+                value={serviceDeposit}
+                onChange={(e) => setServiceDeposit(e.target.value)}
+                disabled={!isEditing}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="discountType">Discount Type</Label>
+                <Select
+                  value={discountType}
+                  onValueChange={setDiscountType}
+                  disabled={!isEditing}
+                >
+                  <SelectTrigger id="discountType">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="percentage">Percentage</SelectItem>
+                    <SelectItem value="fixed">Fixed Amount</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="discountValue">
+                  Discount Value {discountType === 'percentage' ? '(%)' : '($)'}
+                </Label>
+                <Input
+                  id="discountValue"
+                  type="number"
+                  step="0.01"
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(e.target.value)}
+                  disabled={!isEditing || discountType === 'none'}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Pricing Summary */}
         <Card>
           <CardHeader>
@@ -589,6 +722,12 @@ export default function JobDetailEdit() {
                 <span>Subtotal:</span>
                 <span>${calculatedSubtotal.toFixed(2)}</span>
               </div>
+              {discountAmount > 0 && (
+                <div className="flex justify-between text-red-600">
+                  <span>Discount:</span>
+                  <span>-${discountAmount.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span>GST (10%):</span>
                 <span>${calculatedGST.toFixed(2)}</span>
@@ -597,9 +736,15 @@ export default function JobDetailEdit() {
                 <span>Grand Total:</span>
                 <span>${calculatedGrandTotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-primary">
+              {depositAmount > 0 && (
+                <div className="flex justify-between text-blue-600">
+                  <span>Service Deposit:</span>
+                  <span>-${depositAmount.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-lg font-bold text-primary border-t pt-2">
                 <span>Balance Due:</span>
-                <span>${(job.balance_due || 0).toFixed(2)}</span>
+                <span>${calculatedBalanceDue.toFixed(2)}</span>
               </div>
             </div>
           </CardContent>
@@ -656,14 +801,16 @@ export default function JobDetailEdit() {
                 id="partSku"
                 value={partForm.sku}
                 onChange={(e) => setPartForm({ ...partForm, sku: e.target.value })}
+                placeholder="Optional"
               />
             </div>
             <div>
-              <Label htmlFor="partDescription">Description</Label>
+              <Label htmlFor="partDescription">Description *</Label>
               <Input
                 id="partDescription"
                 value={partForm.description}
                 onChange={(e) => setPartForm({ ...partForm, description: e.target.value })}
+                required
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -673,6 +820,7 @@ export default function JobDetailEdit() {
                   id="partQuantity"
                   type="number"
                   step="1"
+                  min="1"
                   value={partForm.quantity}
                   onChange={(e) => setPartForm({ ...partForm, quantity: e.target.value })}
                 />
@@ -683,6 +831,7 @@ export default function JobDetailEdit() {
                   id="partUnitPrice"
                   type="number"
                   step="0.01"
+                  min="0"
                   value={partForm.unit_price}
                   onChange={(e) => setPartForm({ ...partForm, unit_price: e.target.value })}
                 />
@@ -690,7 +839,7 @@ export default function JobDetailEdit() {
             </div>
             <div className="bg-muted p-3 rounded">
               <p className="text-sm">
-                Total: ${(parseFloat(partForm.quantity) * parseFloat(partForm.unit_price)).toFixed(2)}
+                Total: ${(parseFloat(partForm.quantity || '0') * parseFloat(partForm.unit_price || '0')).toFixed(2)}
               </p>
             </div>
           </div>
@@ -700,7 +849,7 @@ export default function JobDetailEdit() {
             </Button>
             <Button
               onClick={savePart}
-              disabled={!partForm.sku || !partForm.description}
+              disabled={!partForm.description.trim()}
             >
               {editingPart ? 'Update' : 'Add'} Part
             </Button>

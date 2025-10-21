@@ -3018,6 +3018,37 @@ export type Database = {
           status: string
         }[]
       }
+      add_job_note: {
+        Args: { p_job_id: string; p_note_text: string }
+        Returns: string
+      }
+      add_job_part: {
+        Args: {
+          p_desc: string
+          p_job_id: string
+          p_qty: number
+          p_sku: string
+          p_unit_price: number
+        }
+        Returns: {
+          awaiting_stock: boolean | null
+          created_at: string
+          description: string
+          equipment_category: string | null
+          id: string
+          is_custom: boolean | null
+          job_id: string
+          overridden_price: number | null
+          override_reason: string | null
+          part_group: string | null
+          part_id: string | null
+          quantity: number
+          sku: string | null
+          tax_code: string | null
+          total_price: number
+          unit_price: number
+        }
+      }
       api_health_check: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -3028,6 +3059,89 @@ export type Database = {
       compute_job_totals: {
         Args: { p_job_id: string }
         Returns: Json
+      }
+      create_job: {
+        Args: {
+          p_customer_id: string
+          p_machine_brand?: string
+          p_machine_category: string
+          p_machine_model?: string
+          p_machine_serial?: string
+          p_problem_description?: string
+        }
+        Returns: {
+          account_customer_id: string | null
+          account_id: string | null
+          additional_notes: string | null
+          assigned_technician: string | null
+          attachments: Json | null
+          balance_due: number
+          brand_norm: string | null
+          category_norm: string | null
+          completed_at: string | null
+          contact_id: string | null
+          created_at: string
+          customer_id: string
+          customer_type: Database["public"]["Enums"]["customer_type"] | null
+          deleted_at: string | null
+          deleted_by: string | null
+          delivered_at: string | null
+          discount_type: string | null
+          discount_value: number | null
+          grand_total: number
+          gst: number
+          id: string
+          job_company_name: string | null
+          job_number: string
+          job_number_digits: string | null
+          job_number_norm: string | null
+          job_type: string | null
+          labour_hours: number
+          labour_rate: number
+          labour_total: number
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial: string | null
+          model_norm: string | null
+          notes: string | null
+          parts_required: string | null
+          parts_subtotal: number
+          problem_description: string
+          quotation_amount: number | null
+          quotation_approved_at: string | null
+          quotation_status: string | null
+          recommendations: string | null
+          requested_finish_date: string | null
+          serial_norm: string | null
+          service_deposit: number | null
+          service_performed: string | null
+          sharpen_breakdown: string | null
+          sharpen_items: Json | null
+          sharpen_total_charge: number | null
+          small_repair_details: string | null
+          small_repair_minutes: number | null
+          small_repair_rate: number | null
+          small_repair_total: number | null
+          status: string
+          subtotal: number
+          tenant_id: string | null
+          transport_breakdown: string | null
+          transport_delivery_distance_km: number | null
+          transport_delivery_required: boolean | null
+          transport_distance_km: number | null
+          transport_distance_source: string | null
+          transport_pickup_distance_km: number | null
+          transport_pickup_required: boolean | null
+          transport_size_tier: string | null
+          transport_total_charge: number | null
+          updated_at: string
+          version: number | null
+        }
+      }
+      delete_job_part: {
+        Args: { p_part_id: string }
+        Returns: boolean
       }
       digits_only: {
         Args: { t: string }
@@ -3199,35 +3313,7 @@ export type Database = {
       }
       get_job_detail_simple: {
         Args: { p_job_id: string }
-        Returns: {
-          balance_due: number
-          created_at: string
-          customer_address: string
-          customer_email: string
-          customer_id: string
-          customer_name: string
-          customer_phone: string
-          grand_total: number
-          gst: number
-          id: string
-          job_number: string
-          labour_hours: number
-          labour_rate: number
-          labour_total: number
-          machine_brand: string
-          machine_category: string
-          machine_model: string
-          machine_serial: string
-          notes: string
-          parts_subtotal: number
-          problem_description: string
-          recommendations: string
-          service_performed: string
-          status: string
-          subtotal: number
-          updated_at: string
-          version: number
-        }[]
+        Returns: Json
       }
       get_job_details: {
         Args: { p_job_id: string }
@@ -3290,17 +3376,23 @@ export type Database = {
         }[]
       }
       get_jobs_list_simple: {
-        Args: { p_limit?: number; p_offset?: number }
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_status?: string
+        }
         Returns: {
           balance_due: number
-          created_at: string
           customer_email: string
           customer_id: string
           customer_name: string
           customer_phone: string
           grand_total: number
           id: string
+          job_created_at: string
           job_number: string
+          job_updated_at: string
           latest_note_at: string
           latest_note_text: string
           machine_brand: string
@@ -3451,6 +3543,10 @@ export type Database = {
         Args: { phone_local: string }
         Returns: string
       }
+      recalc_job_totals: {
+        Args: { p_job_id: string }
+        Returns: undefined
+      }
       recover_citywide_contacts: {
         Args: Record<PropertyKey, never>
         Returns: Json
@@ -3549,9 +3645,108 @@ export type Database = {
         Args: { "": string }
         Returns: string[]
       }
+      update_job_part: {
+        Args: {
+          p_desc: string
+          p_part_id: string
+          p_qty: number
+          p_sku: string
+          p_unit_price: number
+        }
+        Returns: {
+          awaiting_stock: boolean | null
+          created_at: string
+          description: string
+          equipment_category: string | null
+          id: string
+          is_custom: boolean | null
+          job_id: string
+          overridden_price: number | null
+          override_reason: string | null
+          part_group: string | null
+          part_id: string | null
+          quantity: number
+          sku: string | null
+          tax_code: string | null
+          total_price: number
+          unit_price: number
+        }
+      }
       update_job_simple: {
         Args: { p_job_id: string; p_patch: Json; p_version: number }
         Returns: Json
+      }
+      update_job_status: {
+        Args: { p_job_id: string; p_status: string }
+        Returns: {
+          account_customer_id: string | null
+          account_id: string | null
+          additional_notes: string | null
+          assigned_technician: string | null
+          attachments: Json | null
+          balance_due: number
+          brand_norm: string | null
+          category_norm: string | null
+          completed_at: string | null
+          contact_id: string | null
+          created_at: string
+          customer_id: string
+          customer_type: Database["public"]["Enums"]["customer_type"] | null
+          deleted_at: string | null
+          deleted_by: string | null
+          delivered_at: string | null
+          discount_type: string | null
+          discount_value: number | null
+          grand_total: number
+          gst: number
+          id: string
+          job_company_name: string | null
+          job_number: string
+          job_number_digits: string | null
+          job_number_norm: string | null
+          job_type: string | null
+          labour_hours: number
+          labour_rate: number
+          labour_total: number
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial: string | null
+          model_norm: string | null
+          notes: string | null
+          parts_required: string | null
+          parts_subtotal: number
+          problem_description: string
+          quotation_amount: number | null
+          quotation_approved_at: string | null
+          quotation_status: string | null
+          recommendations: string | null
+          requested_finish_date: string | null
+          serial_norm: string | null
+          service_deposit: number | null
+          service_performed: string | null
+          sharpen_breakdown: string | null
+          sharpen_items: Json | null
+          sharpen_total_charge: number | null
+          small_repair_details: string | null
+          small_repair_minutes: number | null
+          small_repair_rate: number | null
+          small_repair_total: number | null
+          status: string
+          subtotal: number
+          tenant_id: string | null
+          transport_breakdown: string | null
+          transport_delivery_distance_km: number | null
+          transport_delivery_required: boolean | null
+          transport_distance_km: number | null
+          transport_distance_source: string | null
+          transport_pickup_distance_km: number | null
+          transport_pickup_required: boolean | null
+          transport_size_tier: string | null
+          transport_total_charge: number | null
+          updated_at: string
+          version: number | null
+        }
       }
       upsert_contact: {
         Args: {
