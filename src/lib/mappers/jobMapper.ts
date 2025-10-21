@@ -27,7 +27,7 @@ export function convertToJob(row: JobListRow): Job & { latestNoteAt?: string } {
     id: row.id,
     jobNumber: row.job_number,
     status: row.status as any,
-    createdAt: new Date(row.created_at),
+    createdAt: new Date(row.job_created_at),
     grandTotal: parseFloat(String(row.grand_total || 0)),
     customer: {
       id: row.customer_id || '',
@@ -54,6 +54,6 @@ export function convertToJob(row: JobListRow): Job & { latestNoteAt?: string } {
     gst: 0,
     notes: row.latest_note_text || '',
     latestNoteAt: row.latest_note_at || undefined,
-    updatedAt: new Date(row.created_at)
+    updatedAt: new Date(row.job_updated_at)
   };
 }

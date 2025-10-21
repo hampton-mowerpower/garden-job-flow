@@ -4,7 +4,8 @@ export type JobListRow = {
   id: string;
   job_number: string;
   status: string;
-  created_at: string;
+  job_created_at: string;
+  job_updated_at: string;
   grand_total: number | null;
   balance_due: number | null;
   customer_id: string | null;

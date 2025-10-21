@@ -86,7 +86,7 @@ export const JobListReliable = () => {
       const transformedJobs = data.map((job: any) => ({
         id: job.id,
         job_number: job.job_number,
-        created_at: job.created_at,
+        created_at: job.job_created_at || job.created_at, // Support both field names during migration
         status: job.status,
         grand_total: job.grand_total || 0,
         balance_due: job.balance_due || 0,
