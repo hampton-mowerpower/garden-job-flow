@@ -4,12 +4,12 @@ import type { JobListRow } from './types';
 export async function getJobsListSimple(params?: {
   limit?: number;
   offset?: number;
-  search?: string;
-  status?: string;
+  search?: string | null;
+  status?: string | null;
 }): Promise<JobListRow[]> {
   const { data, error } = await supabase.rpc('get_jobs_list_simple', {
-    p_limit: params?.limit ?? 25,
-    p_offset: params?.offset ?? 0,
+    p_limit: Number(params?.limit ?? 25),
+    p_offset: Number(params?.offset ?? 0),
     p_search: params?.search ?? null,
     p_status: params?.status ?? null
   });
@@ -18,8 +18,8 @@ export async function getJobsListSimple(params?: {
   return (data ?? []) as JobListRow[];
 }
 
-export async function getJobDetailSimple(id: string) {
-  const { data, error } = await supabase.rpc('get_job_detail_simple', { p_job_id: id });
+export async function getJobDetailSimple(jobId: string) {
+  const { data, error } = await supabase.rpc('get_job_detail_simple', { p_job_id: jobId });
   if (error) throw error;
   return Array.isArray(data) ? data[0] : data;
 }
@@ -51,30 +51,64 @@ export async function apiHealth() {
 }
 
 // Job mutations
-export async function updateJobStatus(id: string, status: string) {
+export async function updateJobStatus(jobId: string, status: string) {
   const { data, error } = await supabase.rpc('update_job_status', {
-    p_job_id: id,
+    p_job_id: jobId,
     p_status: status
   });
   if (error) throw error;
   return data;
 }
 
-export async function updateJobTotals(id: string, fields: any) {
-  // Just trigger recalc - server handles totals
+export async function updateJobTotals(jobId: string) {
   const { data, error } = await supabase.rpc('recalc_job_totals', {
-    p_job_id: id
+    p_job_id: jobId
   });
   if (error) throw error;
-  
-  // Refetch the updated job
-  const job = await supabase
-    .from('jobs_db')
-    .select('id, grand_total, balance_due, subtotal, gst, labour_total, parts_subtotal')
-    .eq('id', id)
-    .single();
-  
-  return job.data;
+  return data;
+}
+
+// Parts mutations
+export async function addJobPart(jobId: string, part: { 
+  sku: string; 
+  desc: string; 
+  qty: number; 
+  unit_price: number;
+}) {
+  const { data, error } = await supabase.rpc('add_job_part', {
+    p_job_id: jobId,
+    p_sku: part.sku,
+    p_desc: part.desc,
+    p_qty: part.qty,
+    p_unit_price: part.unit_price,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function updateJobPart(partId: string, part: { 
+  sku: string; 
+  desc: string; 
+  qty: number; 
+  unit_price: number;
+}) {
+  const { data, error } = await supabase.rpc('update_job_part', {
+    p_part_id: partId,
+    p_sku: part.sku,
+    p_desc: part.desc,
+    p_qty: part.qty,
+    p_unit_price: part.unit_price,
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteJobPart(partId: string) {
+  const { data, error } = await supabase.rpc('delete_job_part', { 
+    p_part_id: partId 
+  });
+  if (error) throw error;
+  return data;
 }
 
 // Customer mutations
