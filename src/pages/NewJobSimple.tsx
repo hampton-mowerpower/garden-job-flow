@@ -54,32 +54,33 @@ export default function NewJobSimple() {
 
     console.log('✅ Customer ready:', customerData);
 
-    // Step 2: Create job
-    console.log('🔵 Creating job record...');
-    const { data: jobData, error: jobError } = await supabase
-      .from('jobs_db')
-      .insert({
-        customer_id: customerData.id,
-        machine_category: machineCategory || null,
-        machine_brand: machineBrand || null,
-        machine_model: machineModel || null,
-        machine_serial: machineSerial || null,
-        problem_description: problemDescription || null,
-        status: 'open',
-        grand_total: 0,
-        balance_due: 0,
-      })
-      .select()
-      .single();
+    // Step 2: Create job using RPC
+    console.log('🔵 Calling create_job RPC with params:', {
+      p_customer_id: customerData.id,
+      p_machine_category: machineCategory || null,
+      p_machine_brand: machineBrand || null,
+      p_machine_model: machineModel || null,
+      p_machine_serial: machineSerial || null,
+      p_problem_description: problemDescription || null,
+    });
+
+    const { data: jobData, error: jobError } = await supabase.rpc('create_job', {
+      p_customer_id: customerData.id,
+      p_machine_category: machineCategory || null,
+      p_machine_brand: machineBrand || null,
+      p_machine_model: machineModel || null,
+      p_machine_serial: machineSerial || null,
+      p_problem_description: problemDescription || null,
+    });
 
     if (jobError) {
-      console.error('❌ Error creating job:', jobError);
+      console.error('❌ Error creating job via RPC:', jobError);
       toast.error(`Job creation failed: ${jobError.message}`);
       setSaving(false);
       return;
     }
 
-    console.log('✅ Job created successfully:', jobData);
+    console.log('✅ Job created successfully via RPC:', jobData);
     toast.success(`Job ${jobData.job_number} created`);
     
     setSaving(false);
