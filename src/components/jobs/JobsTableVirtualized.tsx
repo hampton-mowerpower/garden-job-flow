@@ -7,7 +7,6 @@ import { Eye, Edit, Trash2, Package, FileText } from 'lucide-react';
 import { formatCurrency } from '@/lib/calculations';
 import { Job } from '@/types/job';
 import { JobRowActions } from './JobRowActions';
-import { JobInlineNotes } from './JobInlineNotes';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/hooks/use-toast';
 import { scheduleServiceReminder } from '@/utils/reminderScheduler';
