@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/components/auth/AuthProvider';
 import { LanguageProvider } from '@/contexts/LanguageContext';
@@ -23,8 +23,6 @@ import { Toaster } from '@/components/ui/toaster';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { HealthBanner } from '@/components/HealthBanner';
 import { cleanupSupabase } from '@/lib/supabase';
-
-const { useState, useEffect } = React;
 
 function AppContent() {
   const [currentView, setCurrentView] = useState('jobs');
