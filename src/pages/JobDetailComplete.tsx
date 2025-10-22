@@ -111,26 +111,31 @@ export default function JobDetailComplete() {
   const [discountType, setDiscountType] = useState<'none' | 'percentage' | 'fixed'>('none');
   const [discountValue, setDiscountValue] = useState(0);
 
+  // Track if we're already loading to prevent duplicate requests
+  const [isLoadingJob, setIsLoadingJob] = useState(false);
+
   useEffect(() => {
     if (id) {
       loadJob();
     }
-  }, [id]);
+  }, [id]); // Only reload when ID changes
 
+  // Sync form fields when job data loads - but don't trigger on every jobData change
   useEffect(() => {
-    if (jobData) {
+    if (jobData && !editMode) {
       setLabourHours(jobData.job.labour_hours);
       setLabourRate(jobData.job.labour_rate);
       setServiceDeposit(jobData.job.service_deposit || 0);
       setDiscountType((jobData.job.discount_type as any) || 'none');
       setDiscountValue(jobData.job.discount_value || 0);
     }
-  }, [jobData]);
+  }, [jobData?.job.id]); // Only sync when job ID changes, not on every jobData update
 
   const loadJob = async () => {
-    if (!id) return;
+    if (!id || isLoadingJob) return; // Prevent duplicate requests
 
     console.log('[JobDetailComplete] Loading job:', id);
+    setIsLoadingJob(true);
     setLoading(true);
 
     try {
@@ -147,6 +152,7 @@ export default function JobDetailComplete() {
       toast.error(error.message || 'Failed to load job');
     } finally {
       setLoading(false);
+      setIsLoadingJob(false);
     }
   };
 

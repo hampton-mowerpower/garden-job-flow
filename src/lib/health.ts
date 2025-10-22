@@ -77,20 +77,13 @@ export async function checkApiHealth(): Promise<boolean> {
 }
 
 /**
- * Start continuous health monitoring
+ * Start continuous health monitoring - DISABLED to reduce CPU load
+ * Health checks now only happen on-demand when requests fail
  */
 export function startHealthMonitoring(intervalMs = 30000) {
-  if (healthCheckTimer) {
-    clearInterval(healthCheckTimer);
-  }
-  
-  // Initial check
-  checkApiHealth();
-  
-  // Periodic checks
-  healthCheckTimer = window.setInterval(() => {
-    checkApiHealth();
-  }, intervalMs);
+  // DISABLED: Polling causes excessive CPU usage
+  // We'll rely on error handling in individual requests instead
+  console.log('[Health] Continuous monitoring disabled to reduce CPU load');
 }
 
 /**

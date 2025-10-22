@@ -17,69 +17,10 @@ export const useRealtimeParts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
+  // REMOVED: Realtime subscription to reduce CPU load
+  // Parts will update on manual refresh or after operations
   useEffect(() => {
     loadParts();
-
-    // Subscribe to realtime updates
-    const channel = supabase
-      .channel('parts-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'parts_catalogue'
-        },
-        (payload) => {
-          const { eventType, new: newRecord, old: oldRecord } = payload as any;
-
-          setParts(current => {
-            if (eventType === 'INSERT' && newRecord && !newRecord.deleted_at) {
-              const part: Part = {
-                id: newRecord.id,
-                sku: newRecord.sku,
-                name: newRecord.name,
-                category: newRecord.category,
-                base_price: Number(newRecord.base_price),
-                sell_price: Number(newRecord.sell_price),
-                in_stock: Boolean(newRecord.in_stock),
-                active: newRecord.deleted_at === null
-              };
-              return [...current, part].sort((a, b) => a.name.localeCompare(b.name));
-            }
-            
-            if (eventType === 'UPDATE' && newRecord) {
-              if (newRecord.deleted_at) {
-                return current.filter(p => p.id !== newRecord.id);
-              }
-              const part: Part = {
-                id: newRecord.id,
-                sku: newRecord.sku,
-                name: newRecord.name,
-                category: newRecord.category,
-                base_price: Number(newRecord.base_price),
-                sell_price: Number(newRecord.sell_price),
-                in_stock: Boolean(newRecord.in_stock),
-                active: newRecord.deleted_at === null
-              };
-              return current.map(p => 
-                p.id === newRecord.id ? part : p
-              ).sort((a, b) => a.name.localeCompare(b.name));
-            }
-            
-            if (eventType === 'DELETE' && oldRecord) {
-              return current.filter(p => p.id !== oldRecord.id);
-            }
-            
-            return current;
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   const loadParts = async () => {

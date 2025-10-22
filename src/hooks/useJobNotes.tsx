@@ -102,31 +102,11 @@ export const useJobNotes = (jobId: string) => {
     }
   };
 
-  // Set up realtime subscription
+  // Set up realtime subscription - REMOVED to reduce CPU load
+  // Notes will update on manual refresh or after operations
   useEffect(() => {
     if (!jobId) return;
-
     loadNotes();
-
-    const channel = supabase
-      .channel(`job_notes:${jobId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'job_notes',
-          filter: `job_id=eq.${jobId}`,
-        },
-        () => {
-          loadNotes();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, [jobId]);
 
   return {

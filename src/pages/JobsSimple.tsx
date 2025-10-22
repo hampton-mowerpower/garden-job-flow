@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDebounce } from 'use-debounce';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,6 +56,7 @@ const STATUS_COLORS: Record<string, string> = {
 export default function JobsSimple() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -64,25 +66,31 @@ export default function JobsSimple() {
 
   const JOBS_PER_PAGE = 25;
 
+  // Debounce search to prevent request on every keystroke
+  const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
+
   useEffect(() => {
     loadJobs();
-  }, [searchTerm, statusFilter, currentPage]);
+  }, [debouncedSearchTerm, statusFilter, currentPage]); // Use debounced search
 
   async function loadJobs() {
+    if (isLoadingJobs) return; // Prevent duplicate requests
+
     console.log('[JobsSimple] Fetching jobs with:', {
-      search: searchTerm || null,
+      search: debouncedSearchTerm || null,
       status: statusFilter === 'all' ? null : statusFilter,
       limit: JOBS_PER_PAGE,
       offset: (currentPage - 1) * JOBS_PER_PAGE,
     });
     
+    setIsLoadingJobs(true);
     setLoading(true);
     setError(null);
 
     const { data, error: rpcError } = await supabase.rpc('get_jobs_list_simple', {
       p_limit: JOBS_PER_PAGE,
       p_offset: (currentPage - 1) * JOBS_PER_PAGE,
-      p_search: searchTerm || null,
+      p_search: debouncedSearchTerm || null,
       p_status: statusFilter === 'all' ? null : statusFilter,
     });
 
@@ -90,6 +98,7 @@ export default function JobsSimple() {
       console.error('[JobsSimple] Error fetching jobs:', rpcError);
       setError(rpcError.message);
       setLoading(false);
+      setIsLoadingJobs(false);
       return;
     }
 
@@ -97,6 +106,7 @@ export default function JobsSimple() {
     setJobs(data || []);
     setTotalJobs(data?.length || 0); // In production, you'd get this from a count query
     setLoading(false);
+    setIsLoadingJobs(false);
   }
 
   function handleSearch(value: string) {
