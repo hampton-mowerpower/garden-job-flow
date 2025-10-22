@@ -335,6 +335,247 @@ export default function DiagnosticPage() {
       });
     }
 
+    // Test 8: add_job_part
+    try {
+      const start = Date.now();
+      console.log('[TEST 8] Running add_job_part...');
+      const firstJobResponse = await supabase.rpc('get_jobs_list_simple', { 
+        p_limit: 1,
+        p_offset: 0,
+        p_search: null,
+        p_status: null
+      });
+      
+      if (firstJobResponse.data?.[0]) {
+        const jobId = firstJobResponse.data[0].id;
+        console.log('[TEST 8] Testing with job ID:', jobId);
+        
+        const { data, error } = await supabase.rpc('add_job_part', {
+          p_job_id: jobId,
+          p_sku: 'TEST-SKU',
+          p_description: 'Diagnostic Test Part',
+          p_quantity: 1,
+          p_unit_price: 10.00
+        });
+        const duration = Date.now() - start;
+        
+        console.log('[TEST 8] Result:', { data, error, duration });
+        testResults.push({
+          test: 'add_job_part',
+          status: error ? '❌' : '✅',
+          error: error?.message,
+          data: 'Part added',
+          duration
+        });
+      } else {
+        testResults.push({
+          test: 'add_job_part',
+          status: '❌',
+          error: 'No jobs found to test with'
+        });
+      }
+    } catch (e: any) {
+      console.error('[TEST 8] Exception:', e);
+      testResults.push({ 
+        test: 'add_job_part', 
+        status: '❌', 
+        error: e.message 
+      });
+    }
+
+    // Test 9: delete_job_part (using the part we just added)
+    try {
+      const start = Date.now();
+      console.log('[TEST 9] Running delete_job_part...');
+      const firstJobResponse = await supabase.rpc('get_jobs_list_simple', { 
+        p_limit: 1,
+        p_offset: 0,
+        p_search: null,
+        p_status: null
+      });
+      
+      if (firstJobResponse.data?.[0]) {
+        const jobId = firstJobResponse.data[0].id;
+        const partsResponse = await supabase
+          .from('job_parts')
+          .select('id')
+          .eq('job_id', jobId)
+          .eq('sku', 'TEST-SKU')
+          .limit(1)
+          .single();
+        
+        if (partsResponse.data?.id) {
+          const partId = partsResponse.data.id;
+          console.log('[TEST 9] Testing with part ID:', partId);
+          
+          const { error } = await supabase.rpc('delete_job_part', {
+            p_part_id: partId
+          });
+          const duration = Date.now() - start;
+          
+          console.log('[TEST 9] Result:', { error, duration });
+          testResults.push({
+            test: 'delete_job_part',
+            status: error ? '❌' : '✅',
+            error: error?.message,
+            data: 'Part deleted',
+            duration
+          });
+        } else {
+          testResults.push({
+            test: 'delete_job_part',
+            status: '❌',
+            error: 'No test part found to delete'
+          });
+        }
+      } else {
+        testResults.push({
+          test: 'delete_job_part',
+          status: '❌',
+          error: 'No jobs found to test with'
+        });
+      }
+    } catch (e: any) {
+      console.error('[TEST 9] Exception:', e);
+      testResults.push({ 
+        test: 'delete_job_part', 
+        status: '❌', 
+        error: e.message 
+      });
+    }
+
+    // Test 10: api_health_check
+    try {
+      const start = Date.now();
+      console.log('[TEST 10] Running api_health_check...');
+      
+      const { data, error } = await supabase.rpc('api_health_check' as any);
+      const duration = Date.now() - start;
+      
+      console.log('[TEST 10] Result:', { data, error, duration });
+      testResults.push({
+        test: 'api_health_check',
+        status: error ? '❌' : '✅',
+        error: error?.message,
+        data: data?.[0]?.ok ? 'API healthy' : 'API unhealthy',
+        duration
+      });
+    } catch (e: any) {
+      console.error('[TEST 10] Exception:', e);
+      testResults.push({ 
+        test: 'api_health_check', 
+        status: '❌', 
+        error: e.message 
+      });
+    }
+
+    // Test 11: Direct jobs_db update (what JobDetailComplete uses for labour/deposit)
+    try {
+      const start = Date.now();
+      console.log('[TEST 11] Running direct jobs_db update...');
+      const firstJobResponse = await supabase.rpc('get_jobs_list_simple', { 
+        p_limit: 1,
+        p_offset: 0,
+        p_search: null,
+        p_status: null
+      });
+      
+      if (firstJobResponse.data?.[0]) {
+        const jobId = firstJobResponse.data[0].id;
+        const detailResult = await supabase.rpc('get_job_detail_simple', {
+          p_job_id: jobId
+        });
+        
+        if (detailResult.data?.job) {
+          const currentLabourHours = detailResult.data.job.labour_hours;
+          console.log('[TEST 11] Testing with job ID:', jobId);
+          
+          const { error } = await supabase
+            .from('jobs_db')
+            .update({ labour_hours: currentLabourHours })
+            .eq('id', jobId);
+          const duration = Date.now() - start;
+          
+          console.log('[TEST 11] Result:', { error, duration });
+          testResults.push({
+            test: 'direct_jobs_db_update',
+            status: error ? '❌' : '✅',
+            error: error?.message,
+            data: 'Direct update works',
+            duration
+          });
+        } else {
+          testResults.push({
+            test: 'direct_jobs_db_update',
+            status: '❌',
+            error: 'Could not load job details'
+          });
+        }
+      } else {
+        testResults.push({
+          test: 'direct_jobs_db_update',
+          status: '❌',
+          error: 'No jobs found to test with'
+        });
+      }
+    } catch (e: any) {
+      console.error('[TEST 11] Exception:', e);
+      testResults.push({ 
+        test: 'direct_jobs_db_update', 
+        status: '❌', 
+        error: e.message 
+      });
+    }
+
+    // Test 12: Direct job_notes insert (what JobDetailComplete uses)
+    try {
+      const start = Date.now();
+      console.log('[TEST 12] Running direct job_notes insert...');
+      const { data: { user } } = await supabase.auth.getUser();
+      const firstJobResponse = await supabase.rpc('get_jobs_list_simple', { 
+        p_limit: 1,
+        p_offset: 0,
+        p_search: null,
+        p_status: null
+      });
+      
+      if (firstJobResponse.data?.[0] && user) {
+        const jobId = firstJobResponse.data[0].id;
+        console.log('[TEST 12] Testing with job ID:', jobId);
+        
+        const { error } = await supabase
+          .from('job_notes')
+          .insert({
+            job_id: jobId,
+            note_text: '[DIAGNOSTIC TEST] Can be deleted',
+            created_by: user.id
+          });
+        const duration = Date.now() - start;
+        
+        console.log('[TEST 12] Result:', { error, duration });
+        testResults.push({
+          test: 'direct_job_notes_insert',
+          status: error ? '❌' : '✅',
+          error: error?.message,
+          data: 'Direct insert works',
+          duration
+        });
+      } else {
+        testResults.push({
+          test: 'direct_job_notes_insert',
+          status: '❌',
+          error: 'No jobs found or not authenticated'
+        });
+      }
+    } catch (e: any) {
+      console.error('[TEST 12] Exception:', e);
+      testResults.push({ 
+        test: 'direct_job_notes_insert', 
+        status: '❌', 
+        error: e.message 
+      });
+    }
+
     console.log('=== DIAGNOSTIC COMPLETE ===');
     console.table(testResults);
     
