@@ -17,6 +17,7 @@ import JobEdit from '@/pages/JobEdit';
 import JobEditClean from '@/pages/JobEditClean';
 import JobsSimple from '@/pages/JobsSimple';
 import JobDetailEdit from '@/pages/JobDetailEdit';
+import JobDetailComplete from '@/pages/JobDetailComplete';
 import NewJobSimple from '@/pages/NewJobSimple';
 import DiagnosticPage from '@/pages/DiagnosticPage';
 import { Toaster } from '@/components/ui/toaster';
@@ -100,7 +101,7 @@ function AppContent() {
           <Route path="/jobs/:id/edit-clean" element={<JobEditClean />} />
           <Route path="/jobs-simple" element={<div className="container mx-auto p-6"><JobsSimple /></div>} />
           <Route path="/jobs-simple/new" element={<div className="container mx-auto p-6"><NewJobSimple /></div>} />
-          <Route path="/jobs-simple/:id" element={<JobDetailEdit />} />
+          <Route path="/jobs-simple/:id" element={<JobDetailComplete />} />
           <Route path="/diagnostic" element={<DiagnosticPage />} />
           <Route path="/customers" element={<div className="container mx-auto p-6"><CustomerManager /></div>} />
           <Route path="/account-customers" element={<div className="container mx-auto p-6"><AccountCustomersManager /></div>} />
