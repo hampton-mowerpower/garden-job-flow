@@ -56,20 +56,24 @@ export const useCategories = () => {
     };
   }, []);
 
-  const getCategoryByName = (name: string): Category | undefined => {
+  const getCategoryByName = (name: string | null | undefined): Category | undefined => {
+    if (!name) return undefined;
     return categories.find(c => c.name.toLowerCase() === name.toLowerCase());
   };
 
-  const getLabourRate = (categoryName: string): number => {
+  const getLabourRate = (categoryName: string | null | undefined): number => {
+    if (!categoryName) return 95; // Default fallback
     const category = getCategoryByName(categoryName);
     return category?.rate_default || 95; // Default fallback
   };
 
   const ensureCategoryExists = async (
-    categoryName: string, 
+    categoryName: string | null | undefined, 
     labourRate?: number
   ): Promise<Category | null> => {
     try {
+      if (!categoryName) return null;
+      
       // Check if category exists (case-insensitive)
       const existing = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
       if (existing) return existing;
@@ -123,10 +127,12 @@ export const useCategories = () => {
   };
 
   const updateCategoryRateByName = async (
-    categoryName: string,
+    categoryName: string | null | undefined,
     newRate: number
   ): Promise<boolean> => {
     try {
+      if (!categoryName) return false;
+      
       // Find the category case-insensitively first
       const category = categories.find(c => c.name.toLowerCase() === categoryName.toLowerCase());
       if (!category) {

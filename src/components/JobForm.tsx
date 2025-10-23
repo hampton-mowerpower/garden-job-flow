@@ -493,8 +493,8 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
         id: part.id || generateId() // Add ID if missing for backward compatibility
       }));
       setParts(migratedParts);
-      setLabourHours(job.labourHours);
-      setLabourFee(job.labourHours * labourRate);
+      setLabourHours(job.labourHours || 0);
+      setLabourFee((job.labourHours || 0) * labourRate);
       setStatus(job.status);
       setChecklistUniversal(job.checklistUniversal || []);
       setChecklistCategory(job.checklistCategory || []);
