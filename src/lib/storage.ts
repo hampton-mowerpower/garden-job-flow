@@ -290,61 +290,91 @@ class JobBookingDB {
     
     if (error) throw error;
     
-    // Save job parts to junction table
+    // Save job parts using RPCs to ensure totals recalculate
     if (job.parts && job.parts.length > 0) {
-      // First, delete existing parts for this job
-      await supabase
+      console.log(`[saveJob] Saving ${job.parts.length} parts for job ${data.id}`);
+      
+      // First, get existing parts to delete ones that are no longer in the list
+      const { data: existingParts, error: fetchError } = await supabase
         .from('job_parts')
-        .delete()
+        .select('id, description')
         .eq('job_id', data.id);
       
-      // Process parts and look up UUIDs from parts_catalogue
-      const partsToInsert = [];
+      if (fetchError) throw fetchError;
+      
+      const existingPartIds = new Set((existingParts || []).map(p => p.id));
+      
+      // Delete existing parts using RPC (triggers recalc)
+      if (existingPartIds.size > 0) {
+        console.log(`[saveJob] Deleting ${existingPartIds.size} existing parts using RPC`);
+        for (const partId of existingPartIds) {
+          const { error: deleteError } = await supabase.rpc('delete_job_part', {
+            p_part_id: partId
+          });
+          if (deleteError) {
+            console.error(`[saveJob] Failed to delete part ${partId}:`, deleteError);
+            throw deleteError;
+          }
+        }
+      }
+      
+      // Add parts using RPC (triggers recalc automatically)
       for (const part of job.parts) {
         if (!part.partName || part.partName.trim() === '') continue;
         
-        let cataloguePartId = null;
+        let sku = '';
         
-        // If partId looks like a UUID, use it directly
+        // Look up SKU from parts_catalogue if we have a partId
         if (part.partId && this.isValidUUID(part.partId)) {
-          cataloguePartId = part.partId;
-        } else if (part.partId && part.partId !== 'custom') {
-          // Otherwise, look up the part in parts_catalogue by SKU (which matches the old string IDs)
           const { data: cataloguePart } = await supabase
             .from('parts_catalogue')
-            .select('id')
-            .eq('sku', part.partId)
+            .select('sku')
+            .eq('id', part.partId)
             .maybeSingle();
           
           if (cataloguePart) {
-            cataloguePartId = cataloguePart.id;
+            sku = cataloguePart.sku;
           }
+        } else if (part.partId && part.partId !== 'custom') {
+          sku = part.partId; // Use partId as SKU for backward compatibility
         }
-        // For custom parts (partId === 'custom'), cataloguePartId stays null
         
-        partsToInsert.push({
-          job_id: data.id,
-          part_id: cataloguePartId,
-          description: part.partName, // Store part name for custom parts
-          quantity: part.quantity,
-          unit_price: part.unitPrice,
-          total_price: part.totalPrice
+        console.log(`[saveJob] Adding part via RPC: ${part.partName}`);
+        
+        // Use add_job_part RPC which automatically calls recalc_job_totals
+        const { error: addError } = await supabase.rpc('add_job_part', {
+          p_job_id: data.id,
+          p_sku: sku || '',
+          p_desc: part.partName,
+          p_qty: part.quantity,
+          p_unit_price: part.unitPrice
         });
+        
+        if (addError) {
+          console.error(`[saveJob] Failed to add part "${part.partName}":`, addError);
+          throw addError;
+        }
       }
       
-      if (partsToInsert.length > 0) {
-        const { error: partsError } = await supabase
-          .from('job_parts')
-          .insert(partsToInsert);
-        
-        if (partsError) throw partsError;
-      }
+      console.log(`[saveJob] All parts saved via RPC - totals auto-calculated`);
     } else {
-      // If no parts, delete any existing parts for this job
-      await supabase
+      // If no parts, delete any existing parts using RPC
+      const { data: existingParts, error: fetchError } = await supabase
         .from('job_parts')
-        .delete()
+        .select('id')
         .eq('job_id', data.id);
+      
+      if (fetchError) throw fetchError;
+      
+      if (existingParts && existingParts.length > 0) {
+        console.log(`[saveJob] Deleting ${existingParts.length} parts (job has no parts)`);
+        for (const part of existingParts) {
+          const { error: deleteError } = await supabase.rpc('delete_job_part', {
+            p_part_id: part.id
+          });
+          if (deleteError) throw deleteError;
+        }
+      }
     }
     
     return this.mapJobFromDb(data, savedCustomer, job.parts);
