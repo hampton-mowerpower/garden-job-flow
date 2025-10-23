@@ -62,6 +62,7 @@ export const useJobNotes = (jobId: string) => {
     try {
       setSubmitting(true);
       
+      // Direct insert is fine for notes - RLS policies handle security
       const { data, error } = await supabase
         .from('job_notes')
         .insert({

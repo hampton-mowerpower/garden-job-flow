@@ -97,87 +97,49 @@ export const PartsReliableEditor: React.FC<PartsReliableEditorProps> = ({
       console.log('[PartsReliableEditor] Existing IDs:', existingIds);
       console.log('[PartsReliableEditor] Current IDs:', currentIds);
 
-      // Step 2: Delete parts that were removed
+      // Step 2: Delete parts that were removed (using RPC)
       const idsToDelete = existingIds.filter(id => !currentIds.includes(id));
 
       if (idsToDelete.length > 0) {
         console.log('[PartsReliableEditor] Deleting parts:', idsToDelete);
-        const { error: deleteErr } = await supabase
-          .from('job_parts')
-          .delete()
-          .in('id', idsToDelete);
-
-        if (deleteErr) throw deleteErr;
+        for (const partId of idsToDelete) {
+          const { error: deleteErr } = await supabase.rpc('delete_job_part', {
+            p_part_id: partId
+          });
+          if (deleteErr) throw deleteErr;
+        }
+        console.log('[PartsReliableEditor] Parts deleted via RPC');
       }
 
-      // Step 3: Upsert all valid parts
-      if (validParts.length > 0) {
-        const partsToSave = validParts.map(p => ({
-          id: p.id || undefined, // Let DB generate if new
-          job_id: jobId,
-          description: p.description.trim(),
-          quantity: p.quantity || 0,
-          unit_price: p.unit_price || 0,
-          total_price: (p.quantity || 0) * (p.unit_price || 0),
-          is_custom: true, // Mark as custom since no part_id
-        }));
+      // Step 3: Add or update parts (using RPCs)
+      for (const part of validParts) {
+        const partData = {
+          p_sku: '', // No SKU in this editor
+          p_desc: part.description.trim(),
+          p_qty: part.quantity || 0,
+          p_unit_price: part.unit_price || 0,
+        };
 
-        console.log('[PartsReliableEditor] Upserting parts:', partsToSave);
-        
-        const { data: savedParts, error: upsertErr } = await supabase
-          .from('job_parts')
-          .upsert(partsToSave, {
-            onConflict: 'id',
-          })
-          .select();
-
-        if (upsertErr) throw upsertErr;
-        
-        console.log('[PartsReliableEditor] Parts saved:', savedParts);
+        if (part.id) {
+          // Update existing part
+          console.log('[PartsReliableEditor] Updating part:', part.id, partData);
+          const { error: updateErr } = await supabase.rpc('update_job_part', {
+            p_part_id: part.id,
+            ...partData
+          });
+          if (updateErr) throw updateErr;
+        } else {
+          // Add new part
+          console.log('[PartsReliableEditor] Adding new part:', partData);
+          const { error: addErr } = await supabase.rpc('add_job_part', {
+            p_job_id: jobId,
+            ...partData
+          });
+          if (addErr) throw addErr;
+        }
       }
 
-      // Step 4: Recalculate job totals
-      const partsSubtotal = validParts.reduce((sum, p) => sum + p.total_price, 0);
-
-      // Get current job data to preserve other totals
-      const { data: currentJob, error: jobFetchErr } = await supabase
-        .from('jobs_db')
-        .select('labour_total, transport_total_charge, sharpen_total_charge, small_repair_total')
-        .eq('id', jobId)
-        .single();
-
-      if (jobFetchErr) throw jobFetchErr;
-
-      const labourTotal = currentJob?.labour_total || 0;
-      const transportTotal = currentJob?.transport_total_charge || 0;
-      const sharpenTotal = currentJob?.sharpen_total_charge || 0;
-      const smallRepairTotal = currentJob?.small_repair_total || 0;
-
-      const subtotal = partsSubtotal + labourTotal + transportTotal + sharpenTotal + smallRepairTotal;
-      const gst = subtotal * 0.1;
-      const grandTotal = subtotal + gst;
-
-      // Step 5: Update job with new totals
-      console.log('[PartsReliableEditor] Updating job totals:', {
-        parts_subtotal: partsSubtotal,
-        subtotal,
-        gst,
-        grand_total: grandTotal
-      });
-
-      const { error: jobUpdateErr } = await supabase
-        .from('jobs_db')
-        .update({
-          parts_subtotal: partsSubtotal,
-          subtotal: subtotal,
-          gst: gst,
-          grand_total: grandTotal,
-        })
-        .eq('id', jobId);
-
-      if (jobUpdateErr) throw jobUpdateErr;
-
-      console.log('[PartsReliableEditor] Save completed successfully');
+      console.log('[PartsReliableEditor] All parts saved via RPC - totals auto-calculated');
 
       toast({
         title: 'Parts Saved',
