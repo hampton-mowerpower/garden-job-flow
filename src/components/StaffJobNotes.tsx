@@ -58,23 +58,21 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
     try {
       const { data, error } = await supabase
         .from('job_notes')
-        .select(`
-          *,
-          user_profiles!user_id(full_name)
-        `)
+        .select('*')
         .eq('job_id', jobId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[StaffJobNotes] Error loading notes:', error);
+        // Don't show error toast - just log it
+        return;
+      }
 
+      console.log('[StaffJobNotes] Loaded notes:', data);
       setNotes((data || []) as any as StaffNote[]);
     } catch (error) {
-      console.error('Error loading staff notes:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load staff notes',
-        variant: 'destructive'
-      });
+      console.error('[StaffJobNotes] Error loading staff notes:', error);
+      // Don't show error toast - just log it
     }
   };
 
@@ -115,6 +113,8 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
 
       if (error) throw error;
 
+      console.log('[StaffJobNotes] Note saved successfully');
+      
       toast({
         title: 'Success',
         description: 'Staff note saved'
@@ -201,7 +201,7 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
               >
                 <div className="flex justify-between items-start">
                   <p className="text-sm font-medium">
-                    {note.user_profiles?.full_name || 'Staff'}
+                    Staff Member
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {format(new Date(note.created_at), 'dd/MM/yyyy HH:mm')}
