@@ -1758,6 +1758,12 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
             <PartsPicker
               equipmentCategory={machineCategory}
               onAddPart={(part, quantity, overridePrice) => {
+                console.log('[JobForm] onAddPart callback triggered:', {
+                  part: { id: part.id, name: part.name, price: part.sell_price },
+                  quantity,
+                  overridePrice
+                });
+                
                 const newPart: JobPart = {
                   id: generateId(),
                   partId: part.id,
@@ -1767,7 +1773,13 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                   totalPrice: (overridePrice || part.sell_price) * quantity,
                   category: part.category
                 };
+                
+                console.log('[JobForm] Created newPart object:', newPart);
+                console.log('[JobForm] Current parts count:', parts.length);
+                
                 setParts([...parts, newPart]);
+                
+                console.log('[JobForm] Part added to local state, new count:', parts.length + 1);
               }}
             />
           )}

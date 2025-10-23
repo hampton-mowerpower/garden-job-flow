@@ -46,6 +46,7 @@ export function CustomerChangeConfirmationDialog({
   const [error, setError] = useState<string | null>(null);
 
   const handleConfirm = async () => {
+    console.log('[CustomerChangeDialog] Auto-accepting customer change');
     setIsLoading(true);
     setError(null);
     
@@ -69,8 +70,16 @@ export function CustomerChangeConfirmationDialog({
 
   const showWarnings = hasPayments || hasInvoice || isCompleted;
 
+  // Auto-accept without showing dialog for smooth save flow
+  React.useEffect(() => {
+    if (open && !isLoading) {
+      console.log('[CustomerChangeDialog] Auto-confirming without user interaction');
+      handleConfirm();
+    }
+  }, [open]);
+  
   return (
-    <AlertDialog open={open} onOpenChange={isLoading ? undefined : onOpenChange}>
+    <AlertDialog open={false}>
       <AlertDialogContent className="max-w-2xl">
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2 text-xl">

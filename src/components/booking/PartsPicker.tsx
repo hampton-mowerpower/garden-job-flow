@@ -93,10 +93,21 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
   }, [partsByGroup, searchQuery]);
 
   const handleAddPart = (part: Part) => {
+    console.log('[PartsPicker] Adding part:', {
+      id: part.id,
+      name: part.name,
+      sku: part.sku,
+      price: part.sell_price,
+      base_price: part.base_price
+    });
+    
     const qty = quantities[part.id] || 1;
     const overridePrice = overridePrices[part.id];
     
+    console.log('[PartsPicker] Quantity:', qty, 'Override price:', overridePrice);
+    
     if (qty <= 0) {
+      console.error('[PartsPicker] Invalid quantity:', qty);
       toast({
         title: 'Invalid quantity',
         description: 'Quantity must be greater than 0',
@@ -105,7 +116,9 @@ export const PartsPicker: React.FC<PartsPickerProps> = ({
       return;
     }
 
+    console.log('[PartsPicker] Calling parent onAddPart callback...');
     onAddPart(part, qty, overridePrice);
+    console.log('[PartsPicker] Part added to local state successfully');
     
     // Reset quantity and override for this part
     setQuantities(prev => ({ ...prev, [part.id]: 1 }));

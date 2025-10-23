@@ -59,6 +59,11 @@ export default function JobEdit() {
         return;
       }
 
+      console.log('[JobEdit] Job saved successfully, refetching data...');
+      
+      // Refetch job data to get updated parts and totals
+      await refetch();
+      
       toast({
         title: 'Success',
         description: 'Job updated successfully'
