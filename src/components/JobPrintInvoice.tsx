@@ -27,7 +27,13 @@ interface Payment {
 const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Payment[] }>(
   ({ job, payments }, ref) => {
     // Calculate payment due date (30 days if account customer)
-    const issueDateObj = new Date(job.createdAt);
+    // Safely parse the date - handle both Date objects and string timestamps
+    const issueDateObj = job.createdAt instanceof Date 
+      ? job.createdAt 
+      : job.createdAt 
+        ? new Date(job.createdAt)
+        : new Date(); // Fallback to current date if invalid
+    
     const dueDate = job.hasAccount 
       ? new Date(issueDateObj.getTime() + 30 * 24 * 60 * 60 * 1000)
       : issueDateObj;
