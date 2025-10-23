@@ -35,17 +35,41 @@ export default function JobDetails() {
   const [notes, setNotes] = useState<JobNote[]>([]);
   const [noteText, setNoteText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingNotes, setIsLoadingNotes] = useState(false);
+
+  console.log('[JobDetails] Component rendered, job ID:', id);
 
   // Fetch job details using RPC with timeout
   const { data: job, isLoading, error, refetch } = useQuery({
     queryKey: ['job-detail', id],
     queryFn: async () => {
-      if (!id) throw new Error('Job ID required');
+      console.log('[JobDetails] queryFn called for job:', id);
+      if (!id) {
+        console.error('[JobDetails] No job ID provided');
+        throw new Error('Job ID required');
+      }
+      
+      console.log('[JobDetails] Calling getJobDetailSimple...');
       const data = await getJobDetailSimple(id);
-      if (!data) throw new Error('Job not found');
+      console.log('[JobDetails] getJobDetailSimple returned:', data);
+      
+      if (!data) {
+        console.error('[JobDetails] No data returned from RPC');
+        throw new Error('Job not found');
+      }
+      
       return data;
     },
+    enabled: !!id,
     retry: 1,
+    staleTime: 30000, // Cache for 30 seconds
+  });
+
+  console.log('[JobDetails] Query state:', { 
+    hasData: !!job, 
+    isLoading, 
+    hasError: !!error,
+    jobNumber: job?.job_number 
   });
 
   // Show error toast
@@ -67,7 +91,14 @@ export default function JobDetails() {
 
   const loadNotes = async () => {
     if (!id) return;
+    if (isLoadingNotes) {
+      console.log('[JobDetails] Notes already loading, skipping...');
+      return;
+    }
 
+    console.log('[JobDetails] Loading notes for job:', id);
+    setIsLoadingNotes(true);
+    
     try {
       const { data, error } = await supabase
         .from('job_notes')
@@ -79,7 +110,12 @@ export default function JobDetails() {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        console.error('[JobDetails] Error loading notes:', error);
+        throw error;
+      }
+
+      console.log('[JobDetails] Loaded notes:', data?.length || 0);
 
       // Flatten user_profile
       const transformedData = data?.map(note => ({
@@ -89,19 +125,26 @@ export default function JobDetails() {
 
       setNotes(transformedData || []);
     } catch (error: any) {
-      console.error('Error loading notes:', error);
+      console.error('[JobDetails] Error loading notes:', error);
       toast({
         title: 'Error',
         description: 'Failed to load notes',
         variant: 'destructive',
       });
+    } finally {
+      setIsLoadingNotes(false);
     }
   };
 
   const handleAddNote = async () => {
-    if (!user || !noteText.trim()) return;
+    if (!user || !noteText.trim()) {
+      console.log('[JobDetails] Cannot add note - no user or empty text');
+      return;
+    }
 
+    console.log('[JobDetails] Adding note...');
     setIsSubmitting(true);
+    
     try {
       const { error } = await supabase
         .from('job_notes')
@@ -112,20 +155,26 @@ export default function JobDetails() {
           visibility: 'internal',
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[JobDetails] Error inserting note:', error);
+        throw error;
+      }
 
+      console.log('[JobDetails] Note added successfully');
       setNoteText('');
+      
       // Manually reload notes after adding
       await loadNotes();
+      
       toast({
         title: 'Note added',
         description: 'Staff note added successfully',
       });
     } catch (error: any) {
-      console.error('Error adding note:', error);
+      console.error('[JobDetails] Error adding note:', error);
       toast({
         title: 'Error',
-        description: 'Failed to add note. Please try again.',
+        description: `Failed to add note: ${error.message}`,
         variant: 'destructive',
       });
     } finally {
