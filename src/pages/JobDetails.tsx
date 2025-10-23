@@ -215,7 +215,17 @@ export default function JobDetails() {
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button variant="outline" onClick={() => navigate('/jobs')} className="gap-2">
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            try {
+              navigate('/jobs');
+            } catch (err) {
+              console.error('[JobDetails] Navigation error:', err);
+            }
+          }} 
+          className="gap-2"
+        >
           <ArrowLeft className="h-4 w-4" />
           Back to Jobs
         </Button>
@@ -230,7 +240,16 @@ export default function JobDetails() {
           >
             Refresh
           </Button>
-          <Button variant="outline" onClick={() => navigate(`/jobs/${id}/edit`)}>
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              try {
+                navigate(`/jobs/${id}/edit`);
+              } catch (err) {
+                console.error('[JobDetails] Edit navigation error:', err);
+              }
+            }}
+          >
             Edit Job
           </Button>
           <Badge variant={

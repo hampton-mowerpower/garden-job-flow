@@ -2009,8 +2009,8 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
             </CardContent>
           </Card>
           
-          {/* Staff Job Notes */}
-          {job && <StaffJobNotes jobId={job.id} />}
+          {/* Staff Job Notes - only render if job has a valid ID */}
+          {job?.id && <StaffJobNotes jobId={job.id} />}
         </div>
       </div>
 

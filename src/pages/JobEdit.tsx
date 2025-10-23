@@ -105,15 +105,62 @@ export default function JobEdit() {
     );
   }
 
+  // Log the raw API response to debug structure
+  console.log('[JobEdit] Raw API response:', job);
+  console.log('[JobEdit] Response type:', typeof job);
+  console.log('[JobEdit] Response keys:', Object.keys(job || {}));
+  
   // Extract actual job and customer data from the nested response
+  // The get_job_detail_simple RPC returns: {job: {...}, customer: {...}, parts: [...], notes: [...]}
   const actualJob = job.job || job;
   const customerData = job.customer || {};
+  
+  console.log('[JobEdit] Extracted actualJob:', actualJob);
+  console.log('[JobEdit] Extracted customerData:', customerData);
+  console.log('[JobEdit] actualJob keys:', Object.keys(actualJob || {}));
+
+  // Safety check - if actualJob is still empty or doesn't have required fields, show error
+  if (!actualJob || !actualJob.id) {
+    console.error('[JobEdit] CRITICAL: actualJob is invalid:', actualJob);
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <p className="text-xl font-semibold mb-4">Unable to Load Job Data</p>
+            <p className="text-muted-foreground mb-6">
+              The job data structure is invalid. Please try refreshing the page.
+            </p>
+            <div className="flex gap-4">
+              <Button onClick={() => refetch()} variant="outline">
+                Try Again
+              </Button>
+              <Button onClick={() => navigate('/jobs')} className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back to Jobs
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Button variant="outline" onClick={() => navigate(`/jobs/${id}`)} className="gap-2">
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            try {
+              navigate(`/jobs/${id}`);
+            } catch (err) {
+              console.error('[JobEdit] Navigation error:', err);
+              toast({ variant: 'destructive', title: 'Navigation failed', description: 'Please try again' });
+            }
+          }} 
+          className="gap-2"
+        >
           <ArrowLeft className="h-4 w-4" />
           Back to Details
         </Button>
@@ -126,7 +173,7 @@ export default function JobEdit() {
           jobNumber: actualJob.job_number || '',
           status: actualJob.status || 'pending',
           customer: {
-            id: actualJob.customer_id || customerData.id,
+            id: actualJob.customer_id || customerData.id || '',
             name: customerData.name || actualJob.customer_name || '',
             phone: customerData.phone || actualJob.customer_phone || '',
             email: customerData.email || actualJob.customer_email || '',
@@ -140,20 +187,22 @@ export default function JobEdit() {
           notes: actualJob.notes || '',
           servicePerformed: actualJob.service_performed || '',
           recommendations: actualJob.recommendations || '',
-          labourHours: actualJob.labour_hours || 0,
-          labourRate: actualJob.labour_rate || 95,
-          labourTotal: actualJob.labour_total || 0,
+          labourHours: Number(actualJob.labour_hours) || 0,
+          labourRate: Number(actualJob.labour_rate) || 95,
+          labourTotal: Number(actualJob.labour_total) || 0,
           parts: [],
-          grandTotal: actualJob.grand_total || 0,
-          balanceDue: actualJob.balance_due || 0,
-          subtotal: actualJob.subtotal || 0,
-          gst: actualJob.gst || 0,
-          partsSubtotal: actualJob.parts_subtotal || 0,
+          grandTotal: Number(actualJob.grand_total) || 0,
+          balanceDue: Number(actualJob.balance_due) || 0,
+          subtotal: Number(actualJob.subtotal) || 0,
+          gst: Number(actualJob.gst) || 0,
+          partsSubtotal: Number(actualJob.parts_subtotal) || 0,
           createdAt: actualJob.created_at ? new Date(actualJob.created_at) : new Date(),
           updatedAt: actualJob.updated_at ? new Date(actualJob.updated_at) : new Date(),
-          version: actualJob.version || 1
+          version: Number(actualJob.version) || 1
         } as any}
         onSave={(savedJob) => {
+          console.log('[JobEdit] onSave called with:', savedJob);
+          
           // Extract only changed fields
           const patch: Partial<JobDetail> = {};
           if (savedJob.notes !== actualJob.notes) patch.notes = savedJob.notes;
@@ -169,9 +218,17 @@ export default function JobEdit() {
           if (savedJob.labourRate !== actualJob.labour_rate) patch.labour_rate = savedJob.labourRate;
           if (savedJob.labourTotal !== actualJob.labour_total) patch.labour_total = savedJob.labourTotal;
           
+          console.log('[JobEdit] Patch to save:', patch);
           handleSave(patch, savedJob.version || 1);
         }}
-        onReturnToList={() => navigate(`/jobs/${id}`)}
+        onReturnToList={() => {
+          try {
+            navigate(`/jobs/${id}`);
+          } catch (err) {
+            console.error('[JobEdit] Return navigation error:', err);
+            toast({ variant: 'destructive', title: 'Navigation failed', description: 'Please try again' });
+          }
+        }}
       />
     </div>
   );

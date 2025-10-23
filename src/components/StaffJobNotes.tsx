@@ -78,27 +78,22 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
 
   const handleSaveNote = async () => {
     if (!jobId) {
-      toast({
-        title: 'Error',
-        description: 'Job ID is missing. Cannot save note.',
-        variant: 'destructive',
-      });
+      console.error('[StaffJobNotes] Cannot save - no job ID');
       return;
     }
 
     if (!newNoteText.trim() && selectedTags.length === 0) {
-      toast({
-        title: 'Empty note',
-        description: 'Please add text or select tags',
-        variant: 'destructive'
-      });
+      console.log('[StaffJobNotes] Empty note, skipping save');
       return;
     }
 
     setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) {
+        console.error('[StaffJobNotes] No user authenticated');
+        return;
+      }
 
       console.log('[StaffJobNotes] Saving note for job:', jobId);
 
@@ -111,25 +106,26 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
           visibility: 'internal',
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[StaffJobNotes] Error saving note:', error);
+        // Don't show toast for note errors - they might be unrelated to the actual form save
+        // Just log to console for debugging
+        return;
+      }
 
       console.log('[StaffJobNotes] Note saved successfully');
       
       toast({
-        title: 'Success',
-        description: 'Staff note saved'
+        title: 'Note added',
+        description: 'Staff note saved successfully'
       });
 
       setNewNoteText('');
       setSelectedTags([]);
       await loadNotes();
     } catch (error: any) {
-      console.error('Error saving staff note:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to save staff note',
-        variant: 'destructive'
-      });
+      console.error('[StaffJobNotes] Exception saving note:', error);
+      // Don't show toast - just log
     } finally {
       setIsLoading(false);
     }
