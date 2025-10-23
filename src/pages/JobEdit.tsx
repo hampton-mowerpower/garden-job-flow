@@ -105,6 +105,10 @@ export default function JobEdit() {
     );
   }
 
+  // Extract actual job and customer data from the nested response
+  const actualJob = job.job || job;
+  const customerData = job.customer || {};
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
@@ -118,53 +122,52 @@ export default function JobEdit() {
       {/* Edit Form - JobForm handles its own save button */}
       <JobForm 
         job={{
-          ...job,
-          id: job.id,
-          jobNumber: job.job_number,
-          status: job.status,
+          id: actualJob.id || id,
+          jobNumber: actualJob.job_number || '',
+          status: actualJob.status || 'pending',
           customer: {
-            id: job.customer_id,
-            name: job.customer_name,
-            phone: job.customer_phone,
-            email: job.customer_email,
-            address: job.customer_address
+            id: actualJob.customer_id || customerData.id,
+            name: customerData.name || actualJob.customer_name || '',
+            phone: customerData.phone || actualJob.customer_phone || '',
+            email: customerData.email || actualJob.customer_email || '',
+            address: customerData.address || actualJob.customer_address || ''
           },
-          machineCategory: job.machine_category,
-          machineBrand: job.machine_brand,
-          machineModel: job.machine_model,
-          machineSerial: job.machine_serial,
-          problemDescription: job.problem_description,
-          notes: job.notes,
-          servicePerformed: job.service_performed,
-          recommendations: job.recommendations,
-          labourHours: job.labour_hours || 0,
-          labourRate: job.labour_rate || 95,
-          labourTotal: job.labour_total || 0,
+          machineCategory: actualJob.machine_category || '',
+          machineBrand: actualJob.machine_brand || '',
+          machineModel: actualJob.machine_model || '',
+          machineSerial: actualJob.machine_serial || '',
+          problemDescription: actualJob.problem_description || '',
+          notes: actualJob.notes || '',
+          servicePerformed: actualJob.service_performed || '',
+          recommendations: actualJob.recommendations || '',
+          labourHours: actualJob.labour_hours || 0,
+          labourRate: actualJob.labour_rate || 95,
+          labourTotal: actualJob.labour_total || 0,
           parts: [],
-          grandTotal: job.grand_total || 0,
-          balanceDue: job.balance_due || 0,
-          subtotal: job.subtotal || 0,
-          gst: job.gst || 0,
-          partsSubtotal: job.parts_subtotal || 0,
-          createdAt: job.created_at ? new Date(job.created_at) : new Date(),
-          updatedAt: job.updated_at ? new Date(job.updated_at) : new Date(),
-          version: 1
+          grandTotal: actualJob.grand_total || 0,
+          balanceDue: actualJob.balance_due || 0,
+          subtotal: actualJob.subtotal || 0,
+          gst: actualJob.gst || 0,
+          partsSubtotal: actualJob.parts_subtotal || 0,
+          createdAt: actualJob.created_at ? new Date(actualJob.created_at) : new Date(),
+          updatedAt: actualJob.updated_at ? new Date(actualJob.updated_at) : new Date(),
+          version: actualJob.version || 1
         } as any}
         onSave={(savedJob) => {
           // Extract only changed fields
           const patch: Partial<JobDetail> = {};
-          if (savedJob.notes !== job.notes) patch.notes = savedJob.notes;
-          if (savedJob.problemDescription !== job.problem_description) patch.problem_description = savedJob.problemDescription;
-          if (savedJob.servicePerformed !== job.service_performed) patch.service_performed = savedJob.servicePerformed;
-          if (savedJob.recommendations !== job.recommendations) patch.recommendations = savedJob.recommendations;
-          if (savedJob.machineCategory !== job.machine_category) patch.machine_category = savedJob.machineCategory;
-          if (savedJob.machineBrand !== job.machine_brand) patch.machine_brand = savedJob.machineBrand;
-          if (savedJob.machineModel !== job.machine_model) patch.machine_model = savedJob.machineModel;
-          if (savedJob.machineSerial !== job.machine_serial) patch.machine_serial = savedJob.machineSerial;
-          if (savedJob.status !== job.status) patch.status = savedJob.status;
-          if (savedJob.labourHours !== job.labour_hours) patch.labour_hours = savedJob.labourHours;
-          if (savedJob.labourRate !== job.labour_rate) patch.labour_rate = savedJob.labourRate;
-          if (savedJob.labourTotal !== job.labour_total) patch.labour_total = savedJob.labourTotal;
+          if (savedJob.notes !== actualJob.notes) patch.notes = savedJob.notes;
+          if (savedJob.problemDescription !== actualJob.problem_description) patch.problem_description = savedJob.problemDescription;
+          if (savedJob.servicePerformed !== actualJob.service_performed) patch.service_performed = savedJob.servicePerformed;
+          if (savedJob.recommendations !== actualJob.recommendations) patch.recommendations = savedJob.recommendations;
+          if (savedJob.machineCategory !== actualJob.machine_category) patch.machine_category = savedJob.machineCategory;
+          if (savedJob.machineBrand !== actualJob.machine_brand) patch.machine_brand = savedJob.machineBrand;
+          if (savedJob.machineModel !== actualJob.machine_model) patch.machine_model = savedJob.machineModel;
+          if (savedJob.machineSerial !== actualJob.machine_serial) patch.machine_serial = savedJob.machineSerial;
+          if (savedJob.status !== actualJob.status) patch.status = savedJob.status;
+          if (savedJob.labourHours !== actualJob.labour_hours) patch.labour_hours = savedJob.labourHours;
+          if (savedJob.labourRate !== actualJob.labour_rate) patch.labour_rate = savedJob.labourRate;
+          if (savedJob.labourTotal !== actualJob.labour_total) patch.labour_total = savedJob.labourTotal;
           
           handleSave(patch, savedJob.version || 1);
         }}

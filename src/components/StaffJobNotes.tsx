@@ -50,6 +50,11 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
   }, [jobId]);
 
   const loadNotes = async () => {
+    if (!jobId) {
+      console.warn('[StaffJobNotes] No jobId provided, skipping notes load');
+      return;
+    }
+
     try {
       const { data, error } = await supabase
         .from('job_notes')
@@ -74,6 +79,15 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
   };
 
   const handleSaveNote = async () => {
+    if (!jobId) {
+      toast({
+        title: 'Error',
+        description: 'Job ID is missing. Cannot save note.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!newNoteText.trim() && selectedTags.length === 0) {
       toast({
         title: 'Empty note',
@@ -87,6 +101,8 @@ export function StaffJobNotes({ jobId }: StaffJobNotesProps) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
+
+      console.log('[StaffJobNotes] Saving note for job:', jobId);
 
       const { error } = await supabase
         .from('job_notes')
