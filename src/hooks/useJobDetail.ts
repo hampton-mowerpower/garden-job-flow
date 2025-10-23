@@ -33,17 +33,34 @@ export interface JobDetail {
 }
 
 async function fetchJobDetailRest(id: string): Promise<JobDetail> {
+  console.log('[useJobDetail] Fetching job via REST:', id);
+  
   const { data, error } = await supabase.rpc('get_job_detail_simple', {
     p_job_id: id,
   });
 
-  if (error) throw error;
-  if (!data || data.length === 0) throw new Error('Job not found');
+  console.log('[useJobDetail] RPC response:', { data, error });
 
-  return data[0];
+  if (error) {
+    console.error('[useJobDetail] RPC error:', error);
+    throw error;
+  }
+  
+  // Handle both array and object responses
+  const jobData = Array.isArray(data) ? data[0] : data;
+  
+  if (!jobData) {
+    console.error('[useJobDetail] No job data returned');
+    throw new Error('Job not found');
+  }
+
+  console.log('[useJobDetail] Returning job data:', jobData);
+  return jobData;
 }
 
 async function fetchJobDetailEdge(id: string): Promise<JobDetail> {
+  console.log('[useJobDetail] Fetching job via Edge Function:', id);
+  
   const { data: { session } } = await supabase.auth.getSession();
   
   const response = await fetch(
@@ -58,6 +75,8 @@ async function fetchJobDetailEdge(id: string): Promise<JobDetail> {
     }
   );
 
+  console.log('[useJobDetail] Edge function response status:', response.status);
+
   if (!response.ok) {
     if (response.status === 404) {
       throw new Error('Job not found');
@@ -65,7 +84,10 @@ async function fetchJobDetailEdge(id: string): Promise<JobDetail> {
     throw new Error(`Edge function failed: ${response.statusText}`);
   }
 
-  return await response.json();
+  const jobData = await response.json();
+  console.log('[useJobDetail] Edge function returned:', jobData);
+  
+  return jobData;
 }
 
 export function useJobDetail(id: string | undefined) {
