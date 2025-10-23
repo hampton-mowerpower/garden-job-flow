@@ -26,14 +26,21 @@ interface Payment {
 // Invoice Content Component
 const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Payment[] }>(
   ({ job, payments }, ref) => {
+    // Safe date parsing helper
+    const safeParseDate = (dateValue: any): Date => {
+      if (!dateValue) return new Date();
+      if (dateValue instanceof Date && !isNaN(dateValue.getTime())) return dateValue;
+      try {
+        const parsed = new Date(dateValue);
+        if (!isNaN(parsed.getTime())) return parsed;
+      } catch (e) {
+        console.error('[Invoice] Date parse error:', e);
+      }
+      return new Date(); // Fallback to current date
+    };
+
     // Calculate payment due date (30 days if account customer)
-    // Safely parse the date - handle both Date objects and string timestamps
-    const issueDateObj = job.createdAt instanceof Date 
-      ? job.createdAt 
-      : job.createdAt 
-        ? new Date(job.createdAt)
-        : new Date(); // Fallback to current date if invalid
-    
+    const issueDateObj = safeParseDate(job.createdAt);
     const dueDate = job.hasAccount 
       ? new Date(issueDateObj.getTime() + 30 * 24 * 60 * 60 * 1000)
       : issueDateObj;
@@ -176,7 +183,7 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
                   <strong>Job Type:</strong> Service/Repair
                 </div>
                 <div style={styles.panelText}>
-                  <strong>Drop-off:</strong> {format(new Date(job.createdAt), 'dd MMM yyyy, HH:mm')}
+                  <strong>Drop-off:</strong> {format(safeParseDate(job.createdAt), 'dd MMM yyyy, HH:mm')}
                 </div>
                 {job.requestedFinishDate && (
                   <div style={{
@@ -187,7 +194,7 @@ const InvoiceContent = React.forwardRef<HTMLDivElement, { job: Job; payments: Pa
                     marginTop: '8px',
                     fontWeight: 700
                   }}>
-                    <strong>REQUESTED FINISH:</strong> {format(new Date(job.requestedFinishDate), 'dd MMM yyyy')}
+                    <strong>REQUESTED FINISH:</strong> {format(safeParseDate(job.requestedFinishDate), 'dd MMM yyyy')}
                   </div>
                 )}
                 <div style={styles.panelText}>
