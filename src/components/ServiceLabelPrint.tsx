@@ -86,7 +86,7 @@ export const printServiceLabel = async ({ job, template, quantity }: ServiceLabe
         87 Ludstone Street, Hampton VIC 3188<br>
         03-95986741 | ABN: 97 161 289 069<br>
         hamptonmowerpower@gmail.com<br>
-        Created: ${format(new Date(job.createdAt), 'dd/MM/yyyy')}
+        Created: ${job.createdAt ? format(new Date(job.createdAt), 'dd/MM/yyyy') : 'N/A'}
       </div>
     </div>
   `;

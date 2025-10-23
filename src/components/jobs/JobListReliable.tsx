@@ -209,7 +209,7 @@ export const JobListReliable = () => {
               <tr key={job.id} className="border-t hover:bg-muted/30">
                 <td className="p-3 font-medium">{job.job_number}</td>
                 <td className="p-3">
-                  {new Date(job.created_at).toLocaleDateString()}
+                  {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'N/A'}
                 </td>
                 <td className="p-3">
                   <div>{job.customer_name}</div>

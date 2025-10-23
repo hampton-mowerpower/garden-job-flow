@@ -235,7 +235,7 @@ export default function JobsSimple() {
                     ${(job.grand_total || 0).toFixed(2)}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {new Date(job.created_at).toLocaleDateString()}
+                    {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'N/A'}
                   </TableCell>
                 </TableRow>
               ))

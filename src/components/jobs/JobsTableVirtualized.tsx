@@ -182,7 +182,7 @@ export function JobsTableVirtualized({
                     </div>
                     <div>
                       <p className="font-medium text-primary">{formatCurrency(job.grandTotal)}</p>
-                      <p>{new Date(job.createdAt).toLocaleDateString('en-AU')}</p>
+                      <p>{job.createdAt ? new Date(job.createdAt).toLocaleDateString('en-AU') : 'N/A'}</p>
                     </div>
                   </div>
                 </div>

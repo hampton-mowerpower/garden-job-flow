@@ -414,8 +414,8 @@ export default function JobDetailEdit() {
           </Button>
           <h1 className="text-3xl font-bold">Job {job.job_number}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Created: {new Date(job.created_at).toLocaleDateString()} | 
-            Updated: {new Date(job.updated_at).toLocaleDateString()} | 
+            Created: {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'N/A'} | 
+            Updated: {job.updated_at ? new Date(job.updated_at).toLocaleDateString() : 'N/A'} | 
             Version: {jobVersion}
           </p>
         </div>

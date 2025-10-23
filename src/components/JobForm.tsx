@@ -466,7 +466,7 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
         brand: job.machineBrand,
         model: job.machineModel
       });
-      setProblemDescription(job.problemDescription);
+      setProblemDescription(job.problemDescription || '');
       setNotes(job.notes || '');
       setAdditionalNotes(job.additionalNotes || '');
       setServicePerformed(job.servicePerformed || '');
@@ -1530,13 +1530,13 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
               
               <DraggableQuickProblems
                 onSelect={(label) => {
-                  const currentDesc = problemDescription.trim();
+                  const currentDesc = (problemDescription || '').trim();
                   const newDesc = currentDesc 
                     ? `${currentDesc}${currentDesc.endsWith('.') || currentDesc.endsWith(',') ? ' ' : ', '}${label}`
                     : label;
                   setProblemDescription(newDesc);
                 }}
-                selectedProblems={problemDescription.split(',').map(s => s.trim())}
+                selectedProblems={(problemDescription || '').split(',').map(s => s.trim())}
               />
               
               <div>

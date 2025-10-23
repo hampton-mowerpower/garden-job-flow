@@ -146,8 +146,8 @@ export default function JobEdit() {
           subtotal: job.subtotal,
           gst: job.gst,
           partsSubtotal: job.parts_subtotal,
-          createdAt: new Date(job.created_at),
-          updatedAt: new Date(job.updated_at),
+          createdAt: job.created_at ? new Date(job.created_at) : new Date(),
+          updatedAt: job.updated_at ? new Date(job.updated_at) : new Date(),
           version: 1
         } as any}
         onSave={(savedJob) => {

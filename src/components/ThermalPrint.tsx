@@ -334,11 +334,13 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
   </div>
   
   ${job.requestedFinishDate ? `
+  ${job.requestedFinishDate ? `
   <div style="background: #ffeb3b; border: 3px solid #000; padding: 3mm; margin: 3mm 0; text-align: center;">
     <div style="font-weight: 900; font-size: ${width === 79 ? '13px' : '11px'}; letter-spacing: 1px;">
       ⚠️ REQUESTED FINISH: ${format(new Date(job.requestedFinishDate), 'dd MMM yyyy')}
     </div>
   </div>
+  ` : ''}
   ` : ''}
   
   <div class="section">
@@ -438,7 +440,7 @@ const generateServiceLabelHTML = async (job: Job, width: number): Promise<string
     87 Ludstone Street, Hampton VIC 3188<br>
     Phone: 03-9598-6741 | ABN: 97 161 289 069<br>
     www.hamptonmowerpower.com.au<br>
-    Created: ${format(new Date(job.createdAt), 'dd/MM/yyyy HH:mm')}
+    Created: ${job.createdAt ? format(new Date(job.createdAt), 'dd/MM/yyyy HH:mm') : 'N/A'}
   </div>
 </body>
 </html>
