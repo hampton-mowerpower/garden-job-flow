@@ -1771,15 +1771,29 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                   quantity,
                   unitPrice: overridePrice || part.sell_price,
                   totalPrice: (overridePrice || part.sell_price) * quantity,
-                  category: part.category
+                  category: part.category,
+                  sku: part.sku || ''
                 };
                 
                 console.log('[JobForm] Created newPart object:', newPart);
-                console.log('[JobForm] Current parts count:', parts.length);
+                console.log('[JobForm] Current parts count BEFORE:', parts.length);
                 
-                setParts([...parts, newPart]);
+                // Use functional update to ensure we get latest state
+                setParts(currentParts => {
+                  const updated = [...currentParts, newPart];
+                  console.log('[JobForm] Parts updated, new count:', updated.length);
+                  return updated;
+                });
                 
-                console.log('[JobForm] Part added to local state, new count:', parts.length + 1);
+                // Force recalculation trigger
+                setTimeout(() => {
+                  console.log('[JobForm] Part addition complete');
+                }, 0);
+                
+                toast({
+                  title: 'Part added',
+                  description: `${part.name} x${quantity} added to job`
+                });
               }}
             />
           )}

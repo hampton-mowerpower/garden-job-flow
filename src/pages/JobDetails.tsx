@@ -51,34 +51,62 @@ export default function JobDetails() {
       
       console.log('[JobDetails] Calling getJobDetailSimple...');
       const data = await getJobDetailSimple(id);
-      console.log('[JobDetails] getJobDetailSimple returned:', data);
+      console.log('[JobDetails] getJobDetailSimple returned type:', typeof data);
       
       if (!data) {
         console.error('[JobDetails] No data returned from RPC');
         throw new Error('Job not found');
       }
       
-      return data;
+      // Ensure we return a plain object, not an array or nested structure
+      const jobData = Array.isArray(data) ? data[0] : data;
+      
+      if (!jobData || typeof jobData !== 'object') {
+        console.error('[JobDetails] Invalid job data structure:', jobData);
+        throw new Error('Invalid job data received');
+      }
+      
+      console.log('[JobDetails] Returning job with ID:', jobData.id || jobData.job?.id);
+      return jobData;
     },
     enabled: !!id,
     retry: 1,
     staleTime: 30000, // Cache for 30 seconds
   });
 
+  // Safely extract job data to prevent rendering objects as children
+  const safeJob = React.useMemo(() => {
+    if (!job || typeof job !== 'object') return null;
+    
+    // Handle wrapped or direct response
+    if ('job' in job && typeof job.job === 'object') {
+      return job.job;
+    } else if ('id' in job) {
+      return job;
+    }
+    
+    console.warn('[JobDetails] Unexpected job structure:', Object.keys(job));
+    return null;
+  }, [job]);
+  
   console.log('[JobDetails] Query state:', { 
-    hasData: !!job, 
+    hasData: !!safeJob, 
     isLoading, 
     hasError: !!error,
-    jobNumber: job?.job_number 
+    jobNumber: safeJob?.job_number || 'unknown'
   });
 
-  // Show error toast
+  // Show error toast (with safe error message extraction)
   useEffect(() => {
     if (error) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (typeof error === 'string' ? error : 'Unknown error occurred');
+      
       toast({
         variant: 'destructive',
         title: 'Failed to load job',
-        description: (error as Error).message,
+        description: errorMessage,
       });
     }
   }, [error, toast]);
@@ -192,7 +220,7 @@ export default function JobDetails() {
     );
   }
 
-  if (error || !job) {
+  if (error || !safeJob) {
     return (
       <div className="container mx-auto p-6">
         <Card>
@@ -253,11 +281,11 @@ export default function JobDetails() {
             Edit Job
           </Button>
           <Badge variant={
-            job.status === 'completed' ? 'default' :
-            job.status === 'in_progress' ? 'secondary' :
+            safeJob.status === 'completed' ? 'default' :
+            safeJob.status === 'in_progress' ? 'secondary' :
             'outline'
           }>
-            {job.status}
+            {safeJob.status}
           </Badge>
         </div>
       </div>
@@ -266,48 +294,48 @@ export default function JobDetails() {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">
-            Job {job.job_number}
+            Job {safeJob.job_number}
           </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-6 md:grid-cols-2">
           <div>
             <h3 className="font-semibold mb-2">Customer Information</h3>
             <div className="space-y-1 text-sm">
-              <p><strong>Name:</strong> {job.customer_name}</p>
-              <p><strong>Phone:</strong> {job.customer_phone}</p>
-              <p><strong>Email:</strong> {job.customer_email}</p>
+              <p><strong>Name:</strong> {safeJob.customer_name}</p>
+              <p><strong>Phone:</strong> {safeJob.customer_phone}</p>
+              <p><strong>Email:</strong> {safeJob.customer_email || 'N/A'}</p>
             </div>
           </div>
           
           <div>
             <h3 className="font-semibold mb-2">Machine Information</h3>
             <div className="space-y-1 text-sm">
-              <p><strong>Category:</strong> {job.machine_category}</p>
-              <p><strong>Brand:</strong> {job.machine_brand}</p>
-              <p><strong>Model:</strong> {job.machine_model}</p>
-              {job.machine_serial && <p><strong>Serial:</strong> {job.machine_serial}</p>}
+              <p><strong>Category:</strong> {safeJob.machine_category}</p>
+              <p><strong>Brand:</strong> {safeJob.machine_brand}</p>
+              <p><strong>Model:</strong> {safeJob.machine_model}</p>
+              {safeJob.machine_serial && <p><strong>Serial:</strong> {safeJob.machine_serial}</p>}
             </div>
           </div>
 
           <div>
             <h3 className="font-semibold mb-2">Problem Description</h3>
-            <p className="text-sm">{job.problem_description}</p>
+            <p className="text-sm">{safeJob.problem_description}</p>
           </div>
 
           <div>
             <h3 className="font-semibold mb-2">Financial Summary</h3>
             <div className="space-y-1 text-sm">
-              <p><strong>Grand Total:</strong> ${parseFloat(job.grand_total || 0).toFixed(2)}</p>
-              <p><strong>Balance Due:</strong> ${parseFloat(job.balance_due || 0).toFixed(2)}</p>
-              <p><strong>Labour Hours:</strong> {job.labour_hours}</p>
-              <p><strong>Labour Total:</strong> ${parseFloat(job.labour_total || 0).toFixed(2)}</p>
+              <p><strong>Grand Total:</strong> ${parseFloat(safeJob.grand_total || 0).toFixed(2)}</p>
+              <p><strong>Balance Due:</strong> ${parseFloat(safeJob.balance_due || 0).toFixed(2)}</p>
+              <p><strong>Labour Hours:</strong> {safeJob.labour_hours}</p>
+              <p><strong>Labour Total:</strong> ${parseFloat(safeJob.labour_total || 0).toFixed(2)}</p>
             </div>
           </div>
 
-          {job.notes && (
+          {safeJob.notes && (
             <div className="md:col-span-2">
               <h3 className="font-semibold mb-2">Notes</h3>
-              <p className="text-sm whitespace-pre-wrap">{job.notes}</p>
+              <p className="text-sm whitespace-pre-wrap">{safeJob.notes}</p>
             </div>
           )}
         </CardContent>

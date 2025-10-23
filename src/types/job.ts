@@ -45,6 +45,7 @@ export interface JobPart {
   unitPrice: number;
   totalPrice: number;
   category?: string;
+  sku?: string; // Add SKU field for parts catalog integration
 }
 
 // Checklist item for service tasks

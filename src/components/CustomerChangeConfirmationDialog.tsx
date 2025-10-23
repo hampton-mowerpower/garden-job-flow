@@ -74,9 +74,13 @@ export function CustomerChangeConfirmationDialog({
   React.useEffect(() => {
     if (open && !isLoading) {
       console.log('[CustomerChangeDialog] Auto-confirming without user interaction');
-      handleConfirm();
+      // Small delay to ensure parent state is ready
+      const timer = setTimeout(() => {
+        handleConfirm();
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [open]);
+  }, [open, isLoading]);
   
   return (
     <AlertDialog open={false}>

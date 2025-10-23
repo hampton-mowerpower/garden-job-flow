@@ -111,18 +111,37 @@ export default function JobEdit() {
   }
 
   // Log the raw API response to debug structure
-  console.log('[JobEdit] Raw API response:', job);
-  console.log('[JobEdit] Response type:', typeof job);
-  console.log('[JobEdit] Response keys:', Object.keys(job || {}));
+  console.log('[JobEdit] Raw API response type:', typeof job);
   
-  // Extract actual job and customer data from the nested response
-  // The get_job_detail_simple RPC returns: {job: {...}, customer: {...}, parts: [...], notes: [...]}
-  const actualJob = job.job || job;
-  const customerData = job.customer || {};
+  // Handle the response structure properly
+  // The get_job_detail_simple RPC can return either a direct job object or wrapped structure
+  let actualJob;
+  let customerData;
   
-  console.log('[JobEdit] Extracted actualJob:', actualJob);
-  console.log('[JobEdit] Extracted customerData:', customerData);
-  console.log('[JobEdit] actualJob keys:', Object.keys(actualJob || {}));
+  if (job && typeof job === 'object') {
+    // Check if it's a wrapped response
+    if ('job' in job && job.job) {
+      console.log('[JobEdit] Detected wrapped response structure');
+      actualJob = job.job;
+      customerData = job.customer || {};
+    } else if ('id' in job && 'job_number' in job) {
+      // Direct job object
+      console.log('[JobEdit] Detected direct job object');
+      actualJob = job;
+      customerData = {};
+    } else {
+      console.error('[JobEdit] Unknown response structure:', Object.keys(job));
+      actualJob = null;
+      customerData = {};
+    }
+  } else {
+    console.error('[JobEdit] Invalid job data:', job);
+    actualJob = null;
+    customerData = {};
+  }
+  
+  console.log('[JobEdit] Extracted actualJob ID:', actualJob?.id);
+  console.log('[JobEdit] Extracted customer name:', customerData?.name || actualJob?.customer_name);
 
   // Safety check - if actualJob is still empty or doesn't have required fields, show error
   if (!actualJob || !actualJob.id) {
