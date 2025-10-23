@@ -59,50 +59,11 @@ export default function JobDetails() {
     }
   }, [error, toast]);
 
-  // Load notes initially
+  // Load notes initially (no realtime, manual refresh only)
   useEffect(() => {
     if (!id) return;
     loadNotes();
   }, [id]);
-
-  // Set up realtime subscription for job_db and job_notes
-  useEffect(() => {
-    if (!id) return;
-
-    const channel = supabase
-      .channel(`job_detail:${id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'jobs_db',
-          filter: `id=eq.${id}`,
-        },
-        () => {
-          refetch();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'job_notes',
-          filter: `job_id=eq.${id}`,
-        },
-        () => {
-          loadNotes();
-        }
-      )
-      .subscribe();
-
-    // Cleanup: unsubscribe and remove channel
-    return () => {
-      channel.unsubscribe();
-      supabase.removeChannel(channel);
-    };
-  }, [id, refetch]);
 
   const loadNotes = async () => {
     if (!id) return;
@@ -154,6 +115,8 @@ export default function JobDetails() {
       if (error) throw error;
 
       setNoteText('');
+      // Manually reload notes after adding
+      await loadNotes();
       toast({
         title: 'Note added',
         description: 'Staff note added successfully',
@@ -208,6 +171,16 @@ export default function JobDetails() {
           Back to Jobs
         </Button>
         <div className="flex items-center gap-4">
+          <Button 
+            variant="outline" 
+            onClick={() => {
+              refetch();
+              loadNotes();
+              toast({ title: 'Refreshed', description: 'Job data reloaded' });
+            }}
+          >
+            Refresh
+          </Button>
           <Button variant="outline" onClick={() => navigate(`/jobs/${id}/edit`)}>
             Edit Job
           </Button>
