@@ -54,7 +54,7 @@ import { UnpaidSalesSection } from './booking/UnpaidSalesSection';
 import { syncJobToAccountCustomer } from '@/utils/accountCustomerSync';
 import { scheduleServiceReminder, cancelMachineReminders } from '@/utils/reminderScheduler';
 import { useAutoSave } from '@/hooks/useAutoSave';
-import { CustomerChangeConfirmationDialog } from './CustomerChangeConfirmationDialog';
+
 
 // Simple unique ID generator for UI elements (not database records)
 const generateId = () => `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -90,10 +90,8 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
   // Track if form has been initialized to prevent duplicate job numbers
   const initializedRef = React.useRef(false);
   
-  // Track original customer data for change detection
+  // Track original customer data for audit logging
   const [originalCustomer, setOriginalCustomer] = useState<Partial<Customer> | null>(null);
-  const [showCustomerChangeDialog, setShowCustomerChangeDialog] = useState(false);
-  const [pendingSaveData, setPendingSaveData] = useState<{ jobData: Job; savedJob: Job } | null>(null);
   
   // Delete handler
   const handleDeleteJob = async () => {
@@ -282,23 +280,6 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
     setLastEditedField('fee');
   };
   
-  // Debug logging for charge calculations
-  const salesTotal = collectSalesWithJob 
-    ? salesItems.reduce((sum, item) => sum + (item.amount || 0), 0)
-    : 0;
-  
-  console.log('Calculation inputs:', {
-    partsCount: parts.length,
-    labourHours,
-    labourRate,
-    transportCharge: transportData.totalCharge,
-    sharpenCharge: sharpenData.totalCharge,
-    smallRepairCharge: smallRepairData.includeInTotals 
-      ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
-      : 0,
-    salesCharge: salesTotal
-  });
-
   // Reconcile categories on mount
   useEffect(() => {
     reconcileCategories();
@@ -329,7 +310,43 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
     }
   }, [machineCategory]);
 
-  const baseCalculations = calculateJobTotals(
+  // Calculate sales total
+  const salesTotal = collectSalesWithJob 
+    ? salesItems.reduce((sum, item) => sum + (item.amount || 0), 0)
+    : 0;
+
+  // Recalculate totals whenever dependencies change (CRITICAL: uses React.useMemo for efficiency)
+  const baseCalculations = React.useMemo(() => {
+    console.log('🧮 Calculating job totals:', {
+      partsCount: parts.length,
+      partsSubtotal: parts.reduce((sum, p) => sum + p.totalPrice, 0),
+      labourHours,
+      labourRate,
+      transportCharge: transportData.totalCharge,
+      sharpenCharge: sharpenData.totalCharge,
+      smallRepairCharge: smallRepairData.includeInTotals 
+        ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
+        : 0,
+      salesCharge: salesTotal
+    });
+    
+    const result = calculateJobTotals(
+      parts, 
+      labourHours, 
+      labourRate, 
+      discountType, 
+      discountValue,
+      transportData.totalCharge,
+      sharpenData.totalCharge,
+      smallRepairData.includeInTotals 
+        ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
+        : 0,
+      salesTotal
+    );
+    
+    console.log('✅ Calculation result:', result);
+    return result;
+  }, [
     parts, 
     labourHours, 
     labourRate, 
@@ -337,13 +354,11 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
     discountValue,
     transportData.totalCharge,
     sharpenData.totalCharge,
-    smallRepairData.includeInTotals 
-      ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
-      : 0,
-    salesTotal // Add sales total to calculations
-  );
-  
-  console.log('Base calculations result:', baseCalculations);
+    smallRepairData.includeInTotals,
+    smallRepairData.overrideTotal,
+    smallRepairData.calculatedTotal,
+    salesTotal
+  ]);
   
   // Apply service deposit deduction to final total (balance due after deposit)
   const balanceAfterDeposit = Math.max(0, baseCalculations.grandTotal - serviceDeposit);
@@ -866,21 +881,7 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
       return;
     }
 
-    // Check if customer data has changed for existing jobs
-    const isExistingJob = !!(job && job.id);
-    const customerDataChanged = isExistingJob && originalCustomer && (
-      customer.name !== originalCustomer.name ||
-      customer.phone !== originalCustomer.phone ||
-      customer.email !== originalCustomer.email ||
-      jobCompanyName !== originalCustomer.companyName
-    );
-
-    // If customer data changed, show confirmation dialog
-    if (customerDataChanged) {
-      setShowCustomerChangeDialog(true);
-      // handleSave will be called again after confirmation
-      return;
-    }
+    console.log('[handleSave] Validation passed, proceeding with save...');
 
     // Proceed with actual save
     await performSave();
@@ -981,23 +982,23 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
         accountCustomerId: hasAccount ? accountCustomerId : undefined
       };
 
-      console.log('🔵 [SAVE] Calling jobBookingDB.saveJob with jobData:', {
+      console.log('[performSave] Calling storage.saveJob with:', {
         jobNumber: jobData.jobNumber,
         customerId: jobData.customer.id,
         customerName: jobData.customer.name,
-        customerPhone: jobData.customer.phone
+        partsCount: jobData.parts.length,
+        grandTotal: jobData.grandTotal
       });
 
       const savedJob = await jobBookingDB.saveJob(jobData);
       
-      console.log('✅ [SAVE] Job saved successfully:', {
+      console.log('[performSave] ✅ Job saved successfully:', {
         id: savedJob.id,
         jobNumber: savedJob.jobNumber,
-        customerId: savedJob.customerId,
-        customerName: savedJob.customer.name
+        customerId: savedJob.customerId
       });
       
-      // Create audit log if customer data changed for existing job
+      // Create audit log if customer data changed (non-blocking)
       const isExistingJob = !!(job && job.id);
       const customerDataChanged = isExistingJob && originalCustomer && (
         customerData.name !== originalCustomer.name ||
@@ -1007,18 +1008,9 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
       );
 
       if (customerDataChanged && savedJob.id) {
-        console.log('📝 [AUDIT] Customer data changed, creating audit log...');
-        console.log('📝 [AUDIT] Old customer:', originalCustomer);
-        console.log('📝 [AUDIT] New customer:', {
-          name: customerData.name,
-          phone: customerData.phone,
-          email: customerData.email,
-          companyName: jobCompanyName
-        });
-        
         try {
           const { data: userData } = await supabase.auth.getUser();
-          const auditData = {
+          await supabase.from('customer_change_audit').insert({
             job_id: savedJob.id,
             job_number: savedJob.jobNumber,
             old_customer_id: job?.customerId,
@@ -1032,21 +1024,9 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
             old_customer_company: originalCustomer.companyName || null,
             new_customer_company: jobCompanyName || null,
             changed_by: userData?.user?.id || null,
-            change_reason: 'User manually changed customer information'
-          };
+            change_reason: 'Customer information updated'
+          });
           
-          console.log('📝 [AUDIT] Inserting audit log:', auditData);
-          
-          const { error: auditError } = await supabase.from('customer_change_audit').insert(auditData);
-          
-          if (auditError) {
-            console.error('❌ [AUDIT] Failed to create audit log:', auditError);
-            throw auditError;
-          }
-          
-          console.log('✅ [AUDIT] Audit log created successfully');
-          
-          // Update original customer to new values after successful save
           setOriginalCustomer({
             name: customerData.name,
             phone: customerData.phone,
@@ -1054,8 +1034,7 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
             companyName: jobCompanyName
           });
         } catch (auditError) {
-          console.error('Failed to create audit log (non-blocking):', auditError);
-          // Don't block the save flow
+          console.error('[performSave] Audit log failed (non-blocking):', auditError);
         }
       }
       
@@ -2085,34 +2064,6 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
           job={job}
           open={showEmailDialog}
           onOpenChange={setShowEmailDialog}
-        />
-      )}
-
-      {/* Customer Change Confirmation Dialog */}
-      {originalCustomer && (
-        <CustomerChangeConfirmationDialog
-          open={showCustomerChangeDialog}
-          onOpenChange={setShowCustomerChangeDialog}
-          onConfirm={async () => {
-            // Proceed with save after confirmation
-            await performSave();
-          }}
-          jobNumber={jobNumber}
-          oldCustomer={{
-            name: originalCustomer.name || '',
-            phone: originalCustomer.phone || '',
-            email: originalCustomer.email,
-            company: originalCustomer.companyName
-          }}
-          newCustomer={{
-            name: customer.name || '',
-            phone: customer.phone || '',
-            email: customer.email,
-            company: jobCompanyName
-          }}
-          hasPayments={job && job.serviceDeposit > 0}
-          hasInvoice={job && (job.status === 'completed' || job.status === 'delivered')}
-          isCompleted={job && job.status === 'completed'}
         />
       )}
     </div>
