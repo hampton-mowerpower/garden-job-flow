@@ -376,15 +376,18 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
     .map(part => `${part.partName.trim()} × ${part.quantity || 1}`)
     .join(', ');
 
+  // Initialize form ONLY on first mount - never reset state after that
   useEffect(() => {
-    // Prevent re-initialization for new jobs
-    if (!job && initializedRef.current) {
+    // Only initialize once when we first receive a job
+    if (initializedRef.current) {
+      console.log('[JobForm] Skipping re-initialization - form already initialized');
       return;
     }
     
+    console.log('[JobForm] First-time initialization');
     initializeForm();
     initializedRef.current = true;
-  }, [job]);
+  }, [job?.id]); // Only depend on job ID, not entire job object
 
   useEffect(() => {
     loadQuickDescriptions();

@@ -59,16 +59,17 @@ export default function JobEdit() {
         return;
       }
 
-      console.log('[JobEdit] Job saved successfully, refetching data...');
+      console.log('[JobEdit] ✅ Job saved successfully');
       
-      // Refetch job data to get updated parts and totals
-      await refetch();
+      // DO NOT refetch here - it causes form state to reset!
+      // The saved data is already correct, just navigate away
       
       toast({
         title: 'Success',
         description: 'Job updated successfully'
       });
 
+      // Navigate immediately to show the updated job
       navigate(`/jobs/${id}`);
     } catch (error: any) {
       console.error('Error saving job:', error);
