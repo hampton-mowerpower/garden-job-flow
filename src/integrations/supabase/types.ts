@@ -194,7 +194,7 @@ export type Database = {
           changed_at: string | null
           changed_by: string
           changed_fields: string[] | null
-          client_ip: unknown | null
+          client_ip: unknown
           id: number
           new_values: Json | null
           old_values: Json | null
@@ -213,7 +213,7 @@ export type Database = {
           changed_at?: string | null
           changed_by: string
           changed_fields?: string[] | null
-          client_ip?: unknown | null
+          client_ip?: unknown
           id?: number
           new_values?: Json | null
           old_values?: Json | null
@@ -232,7 +232,7 @@ export type Database = {
           changed_at?: string | null
           changed_by?: string
           changed_fields?: string[] | null
-          client_ip?: unknown | null
+          client_ip?: unknown
           id?: number
           new_values?: Json | null
           old_values?: Json | null
@@ -3048,18 +3048,21 @@ export type Database = {
           total_price: number
           unit_price: number
         }
+        SetofOptions: {
+          from: "*"
+          to: "job_parts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       api_health_check: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           at: string
           ok: boolean
         }[]
       }
-      compute_job_totals: {
-        Args: { p_job_id: string }
-        Returns: Json
-      }
+      compute_job_totals: { Args: { p_job_id: string }; Returns: Json }
       create_job: {
         Args: {
           p_customer_id: string
@@ -3138,15 +3141,15 @@ export type Database = {
           updated_at: string
           version: number | null
         }
+        SetofOptions: {
+          from: "*"
+          to: "jobs_db"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
-      delete_job_part: {
-        Args: { p_part_id: string }
-        Returns: boolean
-      }
-      digits_only: {
-        Args: { t: string }
-        Returns: string
-      }
+      delete_job_part: { Args: { p_part_id: string }; Returns: undefined }
+      digits_only: { Args: { t: string }; Returns: string }
       find_customer_deterministic: {
         Args: {
           p_email?: string
@@ -3161,7 +3164,7 @@ export type Database = {
         }[]
       }
       find_customer_duplicates: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           customer_id: string
           duplicate_count: number
@@ -3172,7 +3175,7 @@ export type Database = {
         }[]
       }
       find_duplicate_brands: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           brand_ids: string[]
           brand_names: string[]
@@ -3183,7 +3186,7 @@ export type Database = {
         }[]
       }
       find_duplicate_categories: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           brand_count: number
           category_ids: string[]
@@ -3193,7 +3196,7 @@ export type Database = {
         }[]
       }
       find_jobs_with_calculation_errors: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           balance_diff: number
           calculated_balance: number
@@ -3260,7 +3263,7 @@ export type Database = {
         }[]
       }
       get_all_jobs_simple: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           balance_due: number
           created_at: string
@@ -3271,10 +3274,7 @@ export type Database = {
           status: string
         }[]
       }
-      get_brand_reference_count: {
-        Args: { brand_id: string }
-        Returns: Json
-      }
+      get_brand_reference_count: { Args: { brand_id: string }; Returns: Json }
       get_category_reference_count: {
         Args: { category_id: string }
         Returns: Json
@@ -3311,10 +3311,7 @@ export type Database = {
           operation: string
         }[]
       }
-      get_job_detail_simple: {
-        Args: { p_job_id: string }
-        Returns: Json
-      }
+      get_job_detail_simple: { Args: { p_job_id: string }; Returns: Json }
       get_job_details: {
         Args: { p_job_id: string }
         Returns: {
@@ -3361,7 +3358,7 @@ export type Database = {
         }[]
       }
       get_job_stats_efficient: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           completed: number
           delivered: number
@@ -3412,7 +3409,7 @@ export type Database = {
         }[]
       }
       get_machine_categories: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           display_order: number
           id: string
@@ -3463,38 +3460,12 @@ export type Database = {
           total_revenue: number
         }[]
       }
-      gtrgm_compress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_decompress: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_in: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
-      gtrgm_options: {
-        Args: { "": unknown }
-        Returns: undefined
-      }
-      gtrgm_out: {
-        Args: { "": unknown }
-        Returns: unknown
-      }
       has_any_role: {
         Args: { _roles: string[]; _user_id: string }
         Returns: boolean
       }
-      has_role: {
-        Args: { _role: string; _user_id: string }
-        Returns: boolean
-      }
-      link_jobs_to_contacts: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      has_role: { Args: { _role: string; _user_id: string }; Returns: boolean }
+      link_jobs_to_contacts: { Args: never; Returns: Json }
       list_jobs_page: {
         Args: { p_before?: string; p_limit?: number; p_status?: string }
         Returns: {
@@ -3523,34 +3494,13 @@ export type Database = {
         Args: { duplicate_ids: string[]; primary_id: string }
         Returns: Json
       }
-      norm_text: {
-        Args: { t: string }
-        Returns: string
-      }
-      normalize_contact_name: {
-        Args: { txt: string }
-        Returns: string
-      }
-      normalize_name: {
-        Args: { input_text: string }
-        Returns: string
-      }
-      normalize_phone: {
-        Args: { phone_input: string }
-        Returns: string
-      }
-      normalize_phone_e164: {
-        Args: { phone_local: string }
-        Returns: string
-      }
-      recalc_job_totals: {
-        Args: { p_job_id: string }
-        Returns: undefined
-      }
-      recover_citywide_contacts: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      norm_text: { Args: { t: string }; Returns: string }
+      normalize_contact_name: { Args: { txt: string }; Returns: string }
+      normalize_name: { Args: { input_text: string }; Returns: string }
+      normalize_phone: { Args: { phone_input: string }; Returns: string }
+      normalize_phone_e164: { Args: { phone_local: string }; Returns: string }
+      recalc_job_totals: { Args: { p_job_id: string }; Returns: undefined }
+      recover_citywide_contacts: { Args: never; Returns: Json }
       search_job_by_number: {
         Args: { p_job_number: string }
         Returns: {
@@ -3629,22 +3579,9 @@ export type Database = {
           status: string
         }[]
       }
-      seed_super_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      set_limit: {
-        Args: { "": number }
-        Returns: number
-      }
-      show_limit: {
-        Args: Record<PropertyKey, never>
-        Returns: number
-      }
-      show_trgm: {
-        Args: { "": string }
-        Returns: string[]
-      }
+      seed_super_admin: { Args: never; Returns: undefined }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       update_job_part: {
         Args: {
           p_desc: string
@@ -3671,10 +3608,90 @@ export type Database = {
           total_price: number
           unit_price: number
         }
+        SetofOptions: {
+          from: "*"
+          to: "job_parts"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       update_job_simple: {
         Args: { p_job_id: string; p_patch: Json; p_version: number }
-        Returns: Json
+        Returns: {
+          account_customer_id: string | null
+          account_id: string | null
+          additional_notes: string | null
+          assigned_technician: string | null
+          attachments: Json | null
+          balance_due: number
+          brand_norm: string | null
+          category_norm: string | null
+          completed_at: string | null
+          contact_id: string | null
+          created_at: string
+          customer_id: string
+          customer_type: Database["public"]["Enums"]["customer_type"] | null
+          deleted_at: string | null
+          deleted_by: string | null
+          delivered_at: string | null
+          discount_type: string | null
+          discount_value: number | null
+          grand_total: number
+          gst: number
+          id: string
+          job_company_name: string | null
+          job_number: string
+          job_number_digits: string | null
+          job_number_norm: string | null
+          job_type: string | null
+          labour_hours: number
+          labour_rate: number
+          labour_total: number
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial: string | null
+          model_norm: string | null
+          notes: string | null
+          parts_required: string | null
+          parts_subtotal: number
+          problem_description: string
+          quotation_amount: number | null
+          quotation_approved_at: string | null
+          quotation_status: string | null
+          recommendations: string | null
+          requested_finish_date: string | null
+          serial_norm: string | null
+          service_deposit: number | null
+          service_performed: string | null
+          sharpen_breakdown: string | null
+          sharpen_items: Json | null
+          sharpen_total_charge: number | null
+          small_repair_details: string | null
+          small_repair_minutes: number | null
+          small_repair_rate: number | null
+          small_repair_total: number | null
+          status: string
+          subtotal: number
+          tenant_id: string | null
+          transport_breakdown: string | null
+          transport_delivery_distance_km: number | null
+          transport_delivery_required: boolean | null
+          transport_distance_km: number | null
+          transport_distance_source: string | null
+          transport_pickup_distance_km: number | null
+          transport_pickup_required: boolean | null
+          transport_size_tier: string | null
+          transport_total_charge: number | null
+          updated_at: string
+          version: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "jobs_db"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       update_job_status: {
         Args: { p_job_id: string; p_status: string }
@@ -3747,6 +3764,12 @@ export type Database = {
           updated_at: string
           version: number | null
         }
+        SetofOptions: {
+          from: "*"
+          to: "jobs_db"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       upsert_contact: {
         Args: {
@@ -3759,8 +3782,9 @@ export type Database = {
         }
         Returns: string
       }
+      validate_job_calculations: { Args: { p_job_id: string }; Returns: Json }
       validate_job_customer_links: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           customer_id: string
           issue: string
@@ -3768,10 +3792,7 @@ export type Database = {
           severity: string
         }[]
       }
-      verify_job_recovery: {
-        Args: { p_job_id: string }
-        Returns: Json
-      }
+      verify_job_recovery: { Args: { p_job_id: string }; Returns: Json }
     }
     Enums: {
       app_role: "admin" | "manager" | "technician" | "clerk" | "cashier"
