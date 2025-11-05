@@ -28,6 +28,7 @@ import { printThermal } from './ThermalPrint';
 import { useCategories } from '@/hooks/useCategories';
 import { useCategorySync } from '@/hooks/useCategorySync';
 import { supabase } from '@/integrations/supabase/client';
+import { addJobPart, updateJobTotals } from '@/lib/api';
 
 import { ThermalPrintButton } from './ThermalPrintButton';
 import { PrintPromptDialog } from './PrintPromptDialog';
@@ -714,8 +715,78 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
     }));
   };
 
+  // Handle saving part to database (for existing jobs)
+  const savePartToDatabase = async (part: JobPart) => {
+    if (!job?.id) return; // Only save for existing jobs
+    
+    console.log('[savePartToDatabase] Attempting to save part:', part);
+    
+    try {
+      // Call API to add part
+      await addJobPart(job.id, {
+        sku: part.sku || 'CUSTOM',
+        desc: part.partName,
+        qty: part.quantity,
+        unit_price: part.unitPrice,
+        part_id: part.partId || null // Pass catalogue ID or NULL for custom parts
+      });
+      
+      console.log('[savePartToDatabase] ✅ Part saved successfully');
+      
+      // Trigger recalculation on server
+      await updateJobTotals(job.id);
+      
+      return true;
+    } catch (error) {
+      console.error('[savePartToDatabase] ❌ Failed to save part:', error);
+      throw error;
+    }
+  };
+
+  // Add part with optimistic UI update
+  const addPartOptimistic = async (newPart: JobPart) => {
+    console.log('[addPartOptimistic] Adding part:', newPart);
+    
+    // 1. OPTIMISTIC UPDATE: Add to UI immediately
+    const optimisticParts = [...parts, newPart];
+    setParts(optimisticParts);
+    
+    // Show success toast immediately
+    toast({
+      title: '✓ Part added',
+      description: `${newPart.partName} x${newPart.quantity}`,
+      duration: 2000
+    });
+    
+    // 2. If existing job, save to database in background
+    if (job?.id) {
+      try {
+        await savePartToDatabase(newPart);
+        console.log('[addPartOptimistic] ✅ Part persisted to database');
+      } catch (error: any) {
+        console.error('[addPartOptimistic] ❌ Database save failed:', error);
+        
+        // ROLLBACK: Remove from UI
+        setParts(parts);
+        
+        // Show error toast
+        toast({
+          variant: 'destructive',
+          title: 'Error Saving Job',
+          description: error.message || 'Failed to add part. Please try again.',
+          duration: 5000
+        });
+      }
+    }
+  };
+
   const removePart = (id: string) => {
     setParts(prev => prev.filter(part => part.id !== id));
+    
+    toast({
+      title: 'Part removed',
+      duration: 2000
+    });
   };
 
   const selectPresetPart = (partId: string, rowId: string) => {
@@ -1739,7 +1810,7 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
           {machineCategory && (
             <PartsPicker
               equipmentCategory={machineCategory}
-              onAddPart={(part, quantity, overridePrice) => {
+              onAddPart={async (part, quantity, overridePrice) => {
                 console.log('[JobForm] onAddPart callback triggered:', {
                   part: { id: part.id, name: part.name, price: part.sell_price },
                   quantity,
@@ -1748,7 +1819,7 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                 
                 const newPart: JobPart = {
                   id: generateId(),
-                  partId: part.id,
+                  partId: part.id, // Catalogue part ID for foreign key
                   partName: part.name,
                   quantity,
                   unitPrice: overridePrice || part.sell_price,
@@ -1758,24 +1829,9 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
                 };
                 
                 console.log('[JobForm] Created newPart object:', newPart);
-                console.log('[JobForm] Current parts count BEFORE:', parts.length);
                 
-                // Use functional update to ensure we get latest state
-                setParts(currentParts => {
-                  const updated = [...currentParts, newPart];
-                  console.log('[JobForm] Parts updated, new count:', updated.length);
-                  return updated;
-                });
-                
-                // Force recalculation trigger
-                setTimeout(() => {
-                  console.log('[JobForm] Part addition complete');
-                }, 0);
-                
-                toast({
-                  title: 'Part added',
-                  description: `${part.name} x${quantity} added to job`
-                });
+                // Use optimistic update with automatic rollback on error
+                await addPartOptimistic(newPart);
               }}
             />
           )}

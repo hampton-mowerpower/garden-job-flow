@@ -3026,6 +3026,7 @@ export type Database = {
         Args: {
           p_desc: string
           p_job_id: string
+          p_part_id?: string
           p_qty: number
           p_sku: string
           p_unit_price: number

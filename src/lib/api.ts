@@ -74,6 +74,7 @@ export async function addJobPart(jobId: string, part: {
   desc: string; 
   qty: number; 
   unit_price: number;
+  part_id?: string | null; // Optional catalogue part ID
 }) {
   const { data, error } = await supabase.rpc('add_job_part', {
     p_job_id: jobId,
@@ -81,6 +82,7 @@ export async function addJobPart(jobId: string, part: {
     p_desc: part.desc,
     p_qty: part.qty,
     p_unit_price: part.unit_price,
+    p_part_id: part.part_id || null, // Pass NULL for custom parts
   });
   if (error) throw error;
   return data;
