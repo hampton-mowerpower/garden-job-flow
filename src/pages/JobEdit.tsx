@@ -110,14 +110,10 @@ export default function JobEdit() {
     );
   }
 
-  // Log the raw API response to debug structure
-  console.log('[JobEdit] Raw API response type:', typeof job);
-  
-  // Handle the response structure properly
-  // The get_job_detail_simple RPC can return either a direct job object or wrapped structure
-  // JobDetail is always a flat structure with customer fields
-  const actualJob = job;
-  const customerData = {
+  // Handle the nested response structure from get_job_detail_simple RPC
+  // Response format: { job: {...}, customer: {...}, parts: [], notes: [] }
+  const actualJob = (job as any)?.job || job;
+  const customerData = (job as any)?.customer || {
     id: job.customer_id,
     name: job.customer_name,
     phone: job.customer_phone,
@@ -125,8 +121,8 @@ export default function JobEdit() {
     address: job.customer_address
   };
   
-  console.log('[JobEdit] Extracted actualJob ID:', actualJob?.id);
-  console.log('[JobEdit] Extracted customer name:', customerData?.name || actualJob?.customer_name);
+  console.log('[JobEdit] Extracted job:', actualJob?.job_number);
+  console.log('[JobEdit] Extracted customer:', customerData?.name);
 
   // Safety check - if actualJob is still empty or doesn't have required fields, show error
   if (!actualJob || !actualJob.id) {
