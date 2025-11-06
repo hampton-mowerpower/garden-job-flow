@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -116,30 +115,15 @@ export default function JobEdit() {
   
   // Handle the response structure properly
   // The get_job_detail_simple RPC can return either a direct job object or wrapped structure
-  let actualJob;
-  let customerData;
-  
-  if (job && typeof job === 'object') {
-    // Check if it's a wrapped response
-    if ('job' in job && job.job) {
-      console.log('[JobEdit] Detected wrapped response structure');
-      actualJob = job.job;
-      customerData = job.customer || {};
-    } else if ('id' in job && 'job_number' in job) {
-      // Direct job object
-      console.log('[JobEdit] Detected direct job object');
-      actualJob = job;
-      customerData = {};
-    } else {
-      console.error('[JobEdit] Unknown response structure:', Object.keys(job));
-      actualJob = null;
-      customerData = {};
-    }
-  } else {
-    console.error('[JobEdit] Invalid job data:', job);
-    actualJob = null;
-    customerData = {};
-  }
+  // JobDetail is always a flat structure with customer fields
+  const actualJob = job;
+  const customerData = {
+    id: job.customer_id,
+    name: job.customer_name,
+    phone: job.customer_phone,
+    email: job.customer_email,
+    address: job.customer_address
+  };
   
   console.log('[JobEdit] Extracted actualJob ID:', actualJob?.id);
   console.log('[JobEdit] Extracted customer name:', customerData?.name || actualJob?.customer_name);
