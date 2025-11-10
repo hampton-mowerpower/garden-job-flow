@@ -2,6 +2,57 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useHealthStore } from '@/lib/health';
 
+// Response structure from get_job_detail_simple RPC
+export interface JobDetailResponse {
+  job: {
+    id: string;
+    job_number: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    notes: string;
+    grand_total: number;
+    balance_due: number;
+    subtotal: number;
+    gst: number;
+    parts_subtotal: number;
+    labour_total: number;
+    labour_hours: number;
+    labour_rate: number;
+    machine_category: string;
+    machine_brand: string;
+    machine_model: string;
+    machine_serial: string;
+    problem_description: string;
+    service_performed: string;
+    recommendations: string;
+    customer_id: string;
+    version?: number;
+  };
+  customer: {
+    id: string;
+    name: string;
+    phone: string;
+    email: string;
+    address: string;
+  };
+  parts: Array<{
+    id: string;
+    sku: string;
+    description: string;
+    quantity: number;
+    unit_price: number;
+    total_price: number;
+  }>;
+  notes: Array<{
+    id: string;
+    note_text: string;
+    created_at: string;
+    user_id: string;
+  }>;
+}
+
+// Flat structure for easy consumption
 export interface JobDetail {
   id: string;
   job_number: string;
@@ -46,16 +97,30 @@ async function fetchJobDetailRest(id: string): Promise<JobDetail> {
     throw error;
   }
   
-  // Handle both array and object responses
-  const jobData = Array.isArray(data) ? data[0] : data;
-  
-  if (!jobData) {
+  if (!data) {
     console.error('[useJobDetail] No job data returned');
     throw new Error('Job not found');
   }
 
-  console.log('[useJobDetail] Returning job data:', jobData);
-  return jobData;
+  // Type the response properly
+  const response = data as JobDetailResponse;
+  
+  if (!response.job) {
+    console.error('[useJobDetail] Invalid response structure');
+    throw new Error('Invalid job data structure');
+  }
+
+  // Flatten the nested structure into JobDetail format
+  const flattenedJob: JobDetail = {
+    ...response.job,
+    customer_name: response.customer?.name || '',
+    customer_phone: response.customer?.phone || '',
+    customer_email: response.customer?.email || '',
+    customer_address: response.customer?.address || '',
+  };
+
+  console.log('[useJobDetail] Flattened job data:', flattenedJob);
+  return flattenedJob;
 }
 
 async function fetchJobDetailEdge(id: string): Promise<JobDetail> {
