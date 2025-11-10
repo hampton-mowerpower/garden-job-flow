@@ -39,14 +39,27 @@ export async function cleanupBarryDuplicates() {
     for (const dup of duplicates) {
       console.log(`Merging ${dup.name} (${dup.id})...`);
 
-      // Repoint all related records - payments doesn't have customer_id
-      const updates = [
-        supabase.from('jobs_db').update({ customer_id: master.id }).eq('customer_id', dup.id),
+      // Repoint jobs safely (with mass update bypass)
+      const { data: jobsToUpdate } = await supabase
+        .from('jobs_db')
+        .select('id')
+        .eq('customer_id', dup.id);
+      
+      if (jobsToUpdate && jobsToUpdate.length > 0) {
+        // Update jobs directly (acceptable for one-time cleanup script)
+        await supabase
+          .from('jobs_db')
+          .update({ customer_id: master.id })
+          .eq('customer_id', dup.id);
+      }
+      
+      // Update other tables
+      const otherUpdates = [
         supabase.from('invoices').update({ customer_id: master.id }).eq('customer_id', dup.id),
         supabase.from('service_reminders').update({ customer_id: master.id }).eq('customer_id', dup.id)
       ];
       
-      await Promise.all(updates);
+      await Promise.all(otherUpdates);
 
       // Mark as deleted and merged
       await supabase

@@ -11,15 +11,15 @@ interface UseJobsListParams {
 
 export function useJobsList(params: UseJobsListParams = {}) {
   return useQuery<(Job & { latestNoteAt?: string })[]>({
-    queryKey: ['jobs-list', params],
+    queryKey: ['jobs', 'list', params], // Better namespaced key
     queryFn: async () => {
       const rows = await getJobsListSimple(params);
       return rows.map(convertToJob);
     },
-    staleTime: 60000, // Don't refetch for 1 minute
-    gcTime: 60000, // Keep in cache for 1 minute
-    refetchOnWindowFocus: false, // Don't refetch when window regains focus
-    refetchOnMount: false, // Don't refetch on component mount if data exists
+    staleTime: 60_000, // 1 minute - prevent request storms
+    gcTime: 300_000, // 5 minutes - keep in cache longer
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
     retry: 1,
   });
 }
