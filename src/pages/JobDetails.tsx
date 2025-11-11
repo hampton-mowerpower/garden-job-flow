@@ -128,30 +128,33 @@ export default function JobDetails() {
     setIsLoadingNotes(true);
     
     try {
-      const { data, error } = await supabase
-        .from('job_notes')
-        .select(`
-          *,
-          user_profile:user_profiles(full_name, email)
-        `)
-        .eq('job_id', id)
-        .order('created_at', { ascending: false })
-        .limit(50);
+      const { data, error } = await supabase.rpc('get_job_notes', {
+        p_job_id: id
+      });
 
       if (error) {
         console.error('[JobDetails] Error loading notes:', error);
         throw error;
       }
 
-      console.log('[JobDetails] Loaded notes:', data?.length || 0);
+      console.log('[JobDetails] Loaded notes:', Array.isArray(data) ? data.length : 0);
 
-      // Flatten user_profile
-      const transformedData = data?.map(note => ({
-        ...note,
-        user_profile: Array.isArray(note.user_profile) ? note.user_profile[0] : note.user_profile
-      }));
+      // RPC returns array with user info embedded
+      const transformedData = Array.isArray(data) ? data.map((note: any) => ({
+        id: note.id,
+        job_id: note.job_id,
+        note_text: note.note_text,
+        text: note.note_text,
+        created_at: note.created_at,
+        visibility: note.visibility,
+        user_id: note.user_id,
+        user_profile: {
+          full_name: note.user_name,
+          email: note.user_email
+        }
+      })) : [];
 
-      setNotes(transformedData || []);
+      setNotes(transformedData);
     } catch (error: any) {
       console.error('[JobDetails] Error loading notes:', error);
       toast({

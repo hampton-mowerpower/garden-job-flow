@@ -113,21 +113,47 @@ export async function deleteJobPart(partId: string) {
   return data;
 }
 
-// Customer mutations
+// Customer mutations (RPC-only)
 export async function upsertCustomer(payload: {
   id?: string;
   name: string;
   phone: string;
   email?: string;
   address?: string;
+  suburb?: string;
+  postcode?: string;
+  company_name?: string;
   customer_type?: string;
 }) {
-  const { data, error } = await supabase
-    .from('customers_db')
-    .upsert(payload)
-    .select()
-    .single();
+  const { data, error } = await supabase.rpc('upsert_customer_rpc', {
+    p_id: payload.id || null,
+    p_name: payload.name,
+    p_phone: payload.phone,
+    p_email: payload.email || null,
+    p_address: payload.address || null,
+    p_suburb: payload.suburb || null,
+    p_postcode: payload.postcode || null,
+    p_company_name: payload.company_name || null,
+    p_customer_type: payload.customer_type || 'domestic',
+  });
   
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteCustomer(customerId: string) {
+  const { data, error } = await supabase.rpc('delete_customer_rpc', {
+    p_customer_id: customerId
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function searchCustomers(search: string = '', limit: number = 50) {
+  const { data, error } = await supabase.rpc('search_customers_rpc', {
+    p_search: search,
+    p_limit: limit
+  });
   if (error) throw error;
   return data;
 }
@@ -144,19 +170,72 @@ export async function attachCustomerToJob(jobId: string, customerId: string) {
   return data;
 }
 
-// Notes
+// Notes (RPC-only)
+export async function getJobNotes(jobId: string) {
+  const { data, error } = await supabase.rpc('get_job_notes', {
+    p_job_id: jobId
+  });
+  if (error) throw error;
+  return data;
+}
+
 export async function addJobNote(jobId: string, noteText: string, userId: string) {
-  const { data, error } = await supabase
-    .from('job_notes')
-    .insert({
-      job_id: jobId,
-      note_text: noteText,
-      user_id: userId,
-      visibility: 'internal'
-    })
-    .select()
-    .single();
-  
+  const { data, error } = await supabase.rpc('add_job_note_rpc', {
+    p_job_id: jobId,
+    p_note_text: noteText,
+    p_user_id: userId
+  });
+  if (error) throw error;
+  return data;
+}
+
+// Parts Catalogue (RPC-only)
+export async function getPartsCatalogue(params?: {
+  category?: string;
+  search?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  const { data, error } = await supabase.rpc('get_parts_catalogue_rpc', {
+    p_category: params?.category || null,
+    p_search: params?.search || '',
+    p_limit: params?.limit || 100,
+    p_offset: params?.offset || 0
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function upsertPartCatalogue(part: {
+  id?: string;
+  name: string;
+  sku: string;
+  category: string;
+  sell_price: number;
+  cost_price?: number;
+  stock_qty?: number;
+  description?: string;
+  active?: boolean;
+}) {
+  const { data, error } = await supabase.rpc('upsert_part_catalogue_rpc', {
+    p_id: part.id || null,
+    p_name: part.name,
+    p_sku: part.sku,
+    p_category: part.category,
+    p_sell_price: part.sell_price,
+    p_cost_price: part.cost_price || null,
+    p_stock_qty: part.stock_qty || null,
+    p_description: part.description || null,
+    p_active: part.active ?? true
+  });
+  if (error) throw error;
+  return data;
+}
+
+export async function deletePartCatalogue(partId: string) {
+  const { data, error } = await supabase.rpc('delete_part_catalogue_rpc', {
+    p_part_id: partId
+  });
   if (error) throw error;
   return data;
 }

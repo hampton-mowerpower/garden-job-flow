@@ -3022,6 +3022,10 @@ export type Database = {
         Args: { p_job_id: string; p_note_text: string }
         Returns: string
       }
+      add_job_note_rpc: {
+        Args: { p_job_id: string; p_note_text: string; p_user_id: string }
+        Returns: Json
+      }
       add_job_part: {
         Args: {
           p_desc: string
@@ -3149,7 +3153,12 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      delete_customer_rpc: { Args: { p_customer_id: string }; Returns: boolean }
       delete_job_part: { Args: { p_part_id: string }; Returns: undefined }
+      delete_part_catalogue_rpc: {
+        Args: { p_part_id: string }
+        Returns: boolean
+      }
       digits_only: { Args: { t: string }; Returns: string }
       find_customer_deterministic: {
         Args: {
@@ -3358,6 +3367,7 @@ export type Database = {
           updated_at: string
         }[]
       }
+      get_job_notes: { Args: { p_job_id: string }; Returns: Json }
       get_job_stats_efficient: {
         Args: never
         Returns: {
@@ -3437,6 +3447,15 @@ export type Database = {
           table_name: string
         }[]
       }
+      get_parts_catalogue_rpc: {
+        Args: {
+          p_category?: string
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+        }
+        Returns: Json
+      }
       get_parts_usage_report: {
         Args: { end_date: string; start_date: string }
         Returns: {
@@ -3502,6 +3521,10 @@ export type Database = {
       normalize_phone_e164: { Args: { phone_local: string }; Returns: string }
       recalc_job_totals: { Args: { p_job_id: string }; Returns: undefined }
       recover_citywide_contacts: { Args: never; Returns: Json }
+      search_customers_rpc: {
+        Args: { p_limit?: number; p_search?: string }
+        Returns: Json
+      }
       search_job_by_number: {
         Args: { p_job_number: string }
         Returns: {
@@ -3782,6 +3805,34 @@ export type Database = {
           p_tenant_id?: string
         }
         Returns: string
+      }
+      upsert_customer_rpc: {
+        Args: {
+          p_address?: string
+          p_company_name?: string
+          p_customer_type?: string
+          p_email?: string
+          p_id?: string
+          p_name?: string
+          p_phone?: string
+          p_postcode?: string
+          p_suburb?: string
+        }
+        Returns: Json
+      }
+      upsert_part_catalogue_rpc: {
+        Args: {
+          p_active?: boolean
+          p_category?: string
+          p_cost_price?: number
+          p_description?: string
+          p_id?: string
+          p_name?: string
+          p_sell_price?: number
+          p_sku?: string
+          p_stock_qty?: number
+        }
+        Returns: Json
       }
       validate_job_calculations: { Args: { p_job_id: string }; Returns: Json }
       validate_job_customer_links: {
