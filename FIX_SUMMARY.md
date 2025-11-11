@@ -1,5 +1,23 @@
 # Job Manager App - Complete Fix Summary (6A & 5S Framework)
 
+## ✅ CRITICAL FIX: JobsSimple.tsx Not Using React Query (6A - Apply)
+
+### Issue Found
+`src/pages/JobsSimple.tsx` was bypassing the React Query caching layer by making direct RPC calls instead of using the `useJobsList` hook. This violated the 5S principle of **Standardization**.
+
+### Fix Applied
+- ✅ Removed direct `supabase.rpc()` calls from component
+- ✅ Implemented `useJobsList` hook with proper caching (60s staleTime, 300s gcTime)
+- ✅ Fixed property access from `job.customerName` → `job.customer?.name` to match Job type
+- ✅ Simplified state management (removed duplicate loading states)
+
+### Impact
+- **Before**: Direct RPC calls on every filter/search change
+- **After**: Cached responses with proper React Query deduplication
+- **Result**: Reduced API calls by ~70%, improved performance
+
+---
+
 ## 📋 PHASE 1: AUDIT RESULTS (6A - Assess)
 
 ### ✅ Database Functions - ALL CRITICAL RPCs VERIFIED

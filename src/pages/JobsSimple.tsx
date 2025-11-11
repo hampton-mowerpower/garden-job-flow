@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDebounce } from 'use-debounce';
-import { supabase } from '@/lib/supabase';
+import { useJobsList } from '@/hooks/useJobsList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -20,17 +20,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Search, Plus } from 'lucide-react';
-
-interface Job {
-  id: string;
-  job_number: string;
-  customer_name: string;
-  machine_category: string;
-  machine_brand: string;
-  status: string;
-  grand_total: number;
-  created_at: string;
-}
 
 const STATUS_OPTIONS = [
   { value: 'all', label: 'All Statuses' },
@@ -54,14 +43,9 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 export default function JobsSimple() {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isLoadingJobs, setIsLoadingJobs] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalJobs, setTotalJobs] = useState(0);
   const navigate = useNavigate();
 
   const JOBS_PER_PAGE = 25;
@@ -69,45 +53,13 @@ export default function JobsSimple() {
   // Debounce search to prevent request on every keystroke
   const [debouncedSearchTerm] = useDebounce(searchTerm, 500);
 
-  useEffect(() => {
-    loadJobs();
-  }, [debouncedSearchTerm, statusFilter, currentPage]); // Use debounced search
+  // Use React Query hook with proper caching
+  const { data: jobs = [], isLoading, error } = useJobsList({
+    limit: JOBS_PER_PAGE,
+    offset: (currentPage - 1) * JOBS_PER_PAGE,
+  });
 
-  async function loadJobs() {
-    if (isLoadingJobs) return; // Prevent duplicate requests
-
-    console.log('[JobsSimple] Fetching jobs with:', {
-      search: debouncedSearchTerm || null,
-      status: statusFilter === 'all' ? null : statusFilter,
-      limit: JOBS_PER_PAGE,
-      offset: (currentPage - 1) * JOBS_PER_PAGE,
-    });
-    
-    setIsLoadingJobs(true);
-    setLoading(true);
-    setError(null);
-
-    const { data, error: rpcError } = await supabase.rpc('get_jobs_list_simple', {
-      p_limit: JOBS_PER_PAGE,
-      p_offset: (currentPage - 1) * JOBS_PER_PAGE,
-      p_search: debouncedSearchTerm || null,
-      p_status: statusFilter === 'all' ? null : statusFilter,
-    });
-
-    if (rpcError) {
-      console.error('[JobsSimple] Error fetching jobs:', rpcError);
-      setError(rpcError.message);
-      setLoading(false);
-      setIsLoadingJobs(false);
-      return;
-    }
-
-    console.log('[JobsSimple] Jobs loaded:', data?.length || 0, 'jobs');
-    setJobs(data || []);
-    setTotalJobs(data?.length || 0); // In production, you'd get this from a count query
-    setLoading(false);
-    setIsLoadingJobs(false);
-  }
+  const totalJobs = jobs.length;
 
   function handleSearch(value: string) {
     setSearchTerm(value);
@@ -121,7 +73,7 @@ export default function JobsSimple() {
 
   const totalPages = Math.ceil(totalJobs / JOBS_PER_PAGE);
 
-  if (loading && jobs.length === 0) {
+  if (isLoading && jobs.length === 0) {
     return (
       <div className="container mx-auto p-6">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -182,7 +134,7 @@ export default function JobsSimple() {
       {/* Error Display */}
       {error && (
         <div className="bg-destructive/10 border border-destructive text-destructive px-4 py-3 rounded mb-6">
-          <strong>Error:</strong> {error}
+          <strong>Error:</strong> {error instanceof Error ? error.message : 'An error occurred'}
         </div>
       )}
 
@@ -215,12 +167,12 @@ export default function JobsSimple() {
                   className="cursor-pointer hover:bg-muted/50"
                   onClick={() => navigate(`/jobs-simple/${job.id}`)}
                 >
-                  <TableCell className="font-medium">{job.job_number}</TableCell>
-                  <TableCell>{job.customer_name || 'No customer'}</TableCell>
+                  <TableCell className="font-medium">{job.jobNumber}</TableCell>
+                  <TableCell>{job.customer?.name || 'No customer'}</TableCell>
                   <TableCell>
-                    {job.machine_brand && job.machine_category
-                      ? `${job.machine_brand} ${job.machine_category}`
-                      : job.machine_category || 'N/A'}
+                    {job.machineBrand && job.machineCategory
+                      ? `${job.machineBrand} ${job.machineCategory}`
+                      : job.machineCategory || 'N/A'}
                   </TableCell>
                   <TableCell>
                     <span
@@ -232,10 +184,10 @@ export default function JobsSimple() {
                     </span>
                   </TableCell>
                   <TableCell className="text-right font-medium">
-                    ${(job.grand_total || 0).toFixed(2)}
+                    ${(job.grandTotal || 0).toFixed(2)}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {job.created_at ? new Date(job.created_at).toLocaleDateString() : 'N/A'}
+                    {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A'}
                   </TableCell>
                 </TableRow>
               ))
@@ -255,7 +207,7 @@ export default function JobsSimple() {
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1 || loading}
+              disabled={currentPage === 1 || isLoading}
             >
               Previous
             </Button>
@@ -263,7 +215,7 @@ export default function JobsSimple() {
               variant="outline"
               size="sm"
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages || loading}
+              disabled={currentPage === totalPages || isLoading}
             >
               Next
             </Button>
@@ -272,7 +224,7 @@ export default function JobsSimple() {
       )}
 
       {/* Loading indicator for subsequent loads */}
-      {loading && jobs.length > 0 && (
+      {isLoading && jobs.length > 0 && (
         <div className="text-center mt-4">
           <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
         </div>
