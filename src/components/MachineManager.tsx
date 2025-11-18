@@ -5,7 +5,7 @@ import { SearchableBrandSelect } from '@/components/machinery/SearchableBrandSel
 import { SearchableModelSelect } from '@/components/machinery/SearchableModelSelect';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useAutoSave } from '@/hooks/useAutoSave';
+// Removed: import { useAutoSave } from '@/hooks/useAutoSave'; - No auto-saving in job editing
 
 interface MachineManagerProps {
   machineCategory: string;
@@ -26,16 +26,7 @@ export const MachineManager: React.FC<MachineManagerProps> = ({
 }) => {
   const { toast } = useToast();
 
-  // Auto-save machine data when selections change
-  useAutoSave({
-    data: { machineCategory, machineBrand, machineModel },
-    onSave: async () => {
-      // Data is automatically saved via the searchable select components
-      console.log('[MachineManager] Auto-saved:', { machineCategory, machineBrand, machineModel });
-    },
-    delay: 600,
-    enabled: !!(machineCategory || machineBrand || machineModel)
-  });
+  // REMOVED: Auto-save logic - machine data now saves ONLY when user clicks "Save" button
 
   // Handle category change and clear dependent fields
   const handleCategoryChange = (value: string) => {

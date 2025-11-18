@@ -54,7 +54,7 @@ import { PartsPicker } from './booking/PartsPicker';
 import { UnpaidSalesSection } from './booking/UnpaidSalesSection';
 import { syncJobToAccountCustomer } from '@/utils/accountCustomerSync';
 import { scheduleServiceReminder, cancelMachineReminders } from '@/utils/reminderScheduler';
-import { useAutoSave } from '@/hooks/useAutoSave';
+// Removed: import { useAutoSave } from '@/hooks/useAutoSave'; - No auto-saving, only manual saves
 
 
 // Simple unique ID generator for UI elements (not database records)
@@ -394,50 +394,8 @@ export default function JobForm({ job, jobType = 'service', onSave, onPrint, onR
     loadQuickDescriptions();
   }, []);
 
-  // Auto-save when transport, sharpen, or small repair data changes (for existing jobs only)
-  useEffect(() => {
-    if (!job?.id) return; // Only auto-save for existing jobs
-    
-    const timeoutId = setTimeout(async () => {
-      try {
-        setAutoSaveStatus('saving');
-        
-        // Create updated job data with new charges
-        const jobData: Job = {
-          ...job,
-          transportPickupRequired: transportData.pickupRequired,
-          transportDeliveryRequired: transportData.deliveryRequired,
-          transportSizeTier: transportData.sizeTier || undefined,
-          transportDistanceKm: transportData.distanceKm,
-          transportTotalCharge: transportData.totalCharge,
-          transportBreakdown: transportData.breakdown,
-          sharpenItems: sharpenData.items,
-          sharpenTotalCharge: sharpenData.totalCharge,
-          sharpenBreakdown: sharpenData.breakdown,
-          smallRepairDetails: smallRepairData.repairDetails,
-          smallRepairMinutes: smallRepairData.minutes,
-          smallRepairRate: smallRepairData.rate,
-          smallRepairTotal: smallRepairData.includeInTotals 
-            ? (smallRepairData.overrideTotal ?? smallRepairData.calculatedTotal)
-            : 0,
-          // Recalculate totals
-          ...calculations,
-          updatedAt: new Date()
-        };
-        
-        await jobBookingDB.saveJob(jobData);
-        setAutoSaveStatus('saved');
-        
-        // Reset to idle after 2 seconds
-        setTimeout(() => setAutoSaveStatus('idle'), 2000);
-      } catch (error) {
-        console.error('Auto-save failed:', error);
-        setAutoSaveStatus('idle');
-      }
-    }, 500); // 500ms debounce
-    
-    return () => clearTimeout(timeoutId);
-  }, [transportData, sharpenData, smallRepairData, job?.id]);
+  // REMOVED: Auto-save logic - now saves ONLY when user clicks "Save" button
+  // No more background saves, no more race conditions, no more duplicate saves!
 
   const loadQuickDescriptions = async () => {
     try {
