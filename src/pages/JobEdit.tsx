@@ -15,8 +15,24 @@ export default function JobEdit() {
   const { toast } = useToast();
   const [isSaving, setIsSaving] = useState(false);
 
-  // Fetch job details using the hook
+  // Fetch job details using the hook (includes parts data)
   const { data: job, isLoading, error, refetch } = useJobDetail(id);
+  
+  // Also fetch the raw response to get parts array
+  const [partsData, setPartsData] = React.useState<any[]>([]);
+
+  // Fetch parts data when job loads
+  React.useEffect(() => {
+    if (id) {
+      supabase.rpc('get_job_detail_simple', { p_job_id: id })
+        .then(({ data }) => {
+          if (data && data.parts) {
+            console.log('[JobEdit] Loaded parts:', data.parts);
+            setPartsData(data.parts);
+          }
+        });
+    }
+  }, [id]);
 
   const handleSave = async (patch: Partial<JobDetail>, version: number) => {
     setIsSaving(true);
@@ -186,7 +202,16 @@ export default function JobEdit() {
           labourHours: Number(job.labour_hours) || 0,
           labourRate: Number(job.labour_rate) || 95,
           labourTotal: Number(job.labour_total) || 0,
-          parts: [],
+          parts: partsData.map(p => ({
+            id: p.id,
+            partId: p.part_id || p.id,
+            partName: p.description,
+            quantity: Number(p.quantity),
+            unitPrice: Number(p.unit_price),
+            totalPrice: Number(p.total_price),
+            category: p.equipment_category,
+            sku: p.sku
+          })),
           grandTotal: Number(job.grand_total) || 0,
           balanceDue: Number(job.balance_due) || 0,
           subtotal: Number(job.subtotal) || 0,
