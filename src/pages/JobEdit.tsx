@@ -19,18 +19,37 @@ export default function JobEdit() {
   const { data: job, isLoading, error, refetch } = useJobDetail(id);
   
   // Also fetch the raw response to get parts array
-  const [partsData, setPartsData] = React.useState<any[]>([]);
+  const [partsData, setPartsData] = React.useState<any[] | null>(null);
+  const [isLoadingParts, setIsLoadingParts] = React.useState(true);
 
   // Fetch parts data when job loads
   React.useEffect(() => {
     if (id) {
-      supabase.rpc('get_job_detail_simple', { p_job_id: id })
-        .then(({ data }) => {
-          if (data && data.parts) {
+      setIsLoadingParts(true);
+      
+      const loadParts = async () => {
+        try {
+          const { data, error } = await supabase.rpc('get_job_detail_simple', { p_job_id: id });
+          
+          if (error) {
+            console.error('[JobEdit] Failed to load parts:', error);
+            setPartsData([]);
+          } else if (data && data.parts) {
             console.log('[JobEdit] Loaded parts:', data.parts);
             setPartsData(data.parts);
+          } else {
+            console.log('[JobEdit] No parts data, setting empty array');
+            setPartsData([]);
           }
-        });
+        } catch (err) {
+          console.error('[JobEdit] Exception loading parts:', err);
+          setPartsData([]);
+        } finally {
+          setIsLoadingParts(false);
+        }
+      };
+      
+      loadParts();
     }
   }, [id]);
 
@@ -98,7 +117,7 @@ export default function JobEdit() {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingParts) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <Skeleton className="h-12 w-48" />
@@ -132,7 +151,7 @@ export default function JobEdit() {
   console.log('[JobEdit] Customer data:', job?.customer_name);
 
   // Safety check - if job is still empty or doesn't have required fields, show error
-  if (!job || !job.id) {
+  if (!job || !job.id || partsData === null) {
     console.error('[JobEdit] CRITICAL: job is invalid:', job);
     return (
       <div className="container mx-auto p-6">
@@ -202,7 +221,7 @@ export default function JobEdit() {
           labourHours: Number(job.labour_hours) || 0,
           labourRate: Number(job.labour_rate) || 95,
           labourTotal: Number(job.labour_total) || 0,
-          parts: partsData.map(p => ({
+          parts: (partsData || []).map(p => ({
             id: p.id,
             partId: p.part_id || p.id,
             partName: p.description,
