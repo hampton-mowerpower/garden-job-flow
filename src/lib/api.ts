@@ -7,52 +7,13 @@ export async function getJobsListSimple(params?: {
   search?: string | null;
   status?: string | null;
 }): Promise<JobListRow[]> {
-  // Use direct query to get subtotal field (RPC doesn't return it)
-  let query = supabase
-    .from('jobs_db')
-    .select(`
-      id,
-      job_number,
-      status,
-      created_at,
-      updated_at,
-      subtotal,
-      grand_total,
-      balance_due,
-      customer_id,
-      machine_category,
-      machine_brand,
-      machine_model,
-      machine_serial,
-      problem_description,
-      customers_db!inner(
-        name,
-        phone,
-        email
-      )
-    `)
-    .is('deleted_at', null);
-  
-  // Apply search filter
-  if (params?.search && params.search.trim()) {
-    const searchTerm = `%${params.search.trim()}%`;
-    query = query.or(`job_number.ilike.${searchTerm},machine_model.ilike.${searchTerm},machine_serial.ilike.${searchTerm},machine_brand.ilike.${searchTerm},machine_category.ilike.${searchTerm},problem_description.ilike.${searchTerm},customers_db.name.ilike.${searchTerm},customers_db.phone.ilike.${searchTerm}`);
-  }
-  
-  // Apply status filter
-  if (params?.status && params.status !== 'all') {
-    query = query.eq('status', params.status);
-  }
-  
-  query = query
-    .order('created_at', { ascending: false })
-    .limit(params?.limit ?? 25);
-  
-  if (params?.offset) {
-    query.range(params.offset, params.offset + (params.limit ?? 25) - 1);
-  }
-
-  const { data, error } = await query;
+  // Use RPC function for proper search handling with joined tables
+  const { data, error } = await supabase.rpc('get_jobs_list_with_subtotal', {
+    p_limit: params?.limit ?? 25,
+    p_offset: params?.offset ?? 0,
+    p_search: params?.search || null,
+    p_status: params?.status === 'all' ? null : (params?.status || null)
+  });
   
   if (error) throw error;
   
