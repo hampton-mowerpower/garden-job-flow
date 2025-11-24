@@ -3409,6 +3409,36 @@ export type Database = {
           machine_serial: string
           problem_description: string
           status: string
+          subtotal: number
+        }[]
+      }
+      get_jobs_list_with_subtotal: {
+        Args: {
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_status?: string
+        }
+        Returns: {
+          balance_due: number
+          customer_email: string
+          customer_id: string
+          customer_name: string
+          customer_phone: string
+          grand_total: number
+          id: string
+          job_created_at: string
+          job_number: string
+          job_updated_at: string
+          latest_note_at: string
+          latest_note_text: string
+          machine_brand: string
+          machine_category: string
+          machine_model: string
+          machine_serial: string
+          problem_description: string
+          status: string
+          subtotal: number
         }[]
       }
       get_machine_brands: {

@@ -7,6 +7,8 @@ import type { Job } from '@/types/job';
 interface UseJobsListParams {
   limit?: number;
   offset?: number;
+  search?: string | null;
+  status?: string | null;
 }
 
 export function useJobsList(params: UseJobsListParams = {}) {
