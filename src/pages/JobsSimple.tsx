@@ -184,7 +184,7 @@ export default function JobsSimple() {
                     </span>
                   </TableCell>
                   <TableCell className="text-right font-medium">
-                    ${(job.grandTotal || 0).toFixed(2)}
+                    ${(job.subtotal || 0).toFixed(2)}
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A'}
