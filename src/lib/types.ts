@@ -6,6 +6,7 @@ export type JobListRow = {
   status: string;
   job_created_at: string;
   job_updated_at: string;
+  subtotal: number | null;
   grand_total: number | null;
   balance_due: number | null;
   customer_id: string | null;

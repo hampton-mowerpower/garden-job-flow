@@ -181,7 +181,7 @@ export function JobsTableVirtualized({
                       <p>{job.machineCategory}</p>
                     </div>
                     <div>
-                      <p className="font-medium text-primary">{formatCurrency(job.grandTotal)}</p>
+                      <p className="font-medium text-primary">{formatCurrency(job.subtotal)}</p>
                       <p>{job.createdAt ? new Date(job.createdAt).toLocaleDateString('en-AU') : 'N/A'}</p>
                     </div>
                   </div>

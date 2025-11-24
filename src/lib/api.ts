@@ -7,15 +7,64 @@ export async function getJobsListSimple(params?: {
   search?: string | null;
   status?: string | null;
 }): Promise<JobListRow[]> {
-  const { data, error } = await supabase.rpc('get_jobs_list_simple', {
-    p_limit: Number(params?.limit ?? 25),
-    p_offset: Number(params?.offset ?? 0),
-    p_search: params?.search ?? null,
-    p_status: params?.status ?? null
-  });
+  // Use direct query to get subtotal field (RPC doesn't return it)
+  const query = supabase
+    .from('jobs_db')
+    .select(`
+      id,
+      job_number,
+      status,
+      created_at,
+      updated_at,
+      subtotal,
+      grand_total,
+      balance_due,
+      customer_id,
+      machine_category,
+      machine_brand,
+      machine_model,
+      machine_serial,
+      problem_description,
+      customers_db!inner(
+        name,
+        phone,
+        email
+      )
+    `)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+    .limit(params?.limit ?? 25);
+  
+  if (params?.offset) {
+    query.range(params.offset, params.offset + (params.limit ?? 25) - 1);
+  }
+
+  const { data, error } = await query;
   
   if (error) throw error;
-  return (data ?? []) as JobListRow[];
+  
+  // Transform to JobListRow format
+  return (data || []).map((row: any) => ({
+    id: row.id,
+    job_number: row.job_number,
+    status: row.status,
+    job_created_at: row.created_at,
+    job_updated_at: row.updated_at,
+    subtotal: row.subtotal,
+    grand_total: row.grand_total,
+    balance_due: row.balance_due,
+    customer_id: row.customer_id,
+    customer_name: row.customers_db?.name || null,
+    customer_phone: row.customers_db?.phone || null,
+    customer_email: row.customers_db?.email || null,
+    machine_category: row.machine_category,
+    machine_brand: row.machine_brand,
+    machine_model: row.machine_model,
+    machine_serial: row.machine_serial,
+    problem_description: row.problem_description,
+    latest_note_text: null,
+    latest_note_at: null,
+  })) as JobListRow[];
 }
 
 export async function getJobDetailSimple(jobId: string) {
