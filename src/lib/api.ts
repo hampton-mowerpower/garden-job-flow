@@ -8,7 +8,7 @@ export async function getJobsListSimple(params?: {
   status?: string | null;
 }): Promise<JobListRow[]> {
   // Use direct query to get subtotal field (RPC doesn't return it)
-  const query = supabase
+  let query = supabase
     .from('jobs_db')
     .select(`
       id,
@@ -31,7 +31,20 @@ export async function getJobsListSimple(params?: {
         email
       )
     `)
-    .is('deleted_at', null)
+    .is('deleted_at', null);
+  
+  // Apply search filter
+  if (params?.search && params.search.trim()) {
+    const searchTerm = `%${params.search.trim()}%`;
+    query = query.or(`job_number.ilike.${searchTerm},machine_model.ilike.${searchTerm},machine_serial.ilike.${searchTerm},machine_brand.ilike.${searchTerm},machine_category.ilike.${searchTerm},problem_description.ilike.${searchTerm},customers_db.name.ilike.${searchTerm},customers_db.phone.ilike.${searchTerm}`);
+  }
+  
+  // Apply status filter
+  if (params?.status && params.status !== 'all') {
+    query = query.eq('status', params.status);
+  }
+  
+  query = query
     .order('created_at', { ascending: false })
     .limit(params?.limit ?? 25);
   

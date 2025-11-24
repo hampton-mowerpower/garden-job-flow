@@ -57,6 +57,8 @@ export default function JobsSimple() {
   const { data: jobs = [], isLoading, error } = useJobsList({
     limit: JOBS_PER_PAGE,
     offset: (currentPage - 1) * JOBS_PER_PAGE,
+    search: debouncedSearchTerm,
+    status: statusFilter,
   });
 
   const totalJobs = jobs.length;
