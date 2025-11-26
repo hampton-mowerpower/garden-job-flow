@@ -148,7 +148,7 @@ export interface Job {
   balanceDue?: number;
   
   // Status
-  status: 'pending' | 'in-progress' | 'completed' | 'delivered' | 'write_off';
+  status: 'pending' | 'in-progress' | 'awaiting_parts' | 'awaiting_quote' | 'completed' | 'delivered' | 'write_off';
   version?: number; // Optimistic locking version
   createdAt: Date;
   updatedAt: Date;
