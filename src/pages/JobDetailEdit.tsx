@@ -454,11 +454,11 @@ export default function JobDetailEdit() {
               <SelectContent>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="waiting-parts">Waiting Parts</SelectItem>
-                <SelectItem value="waiting-quote">Waiting Quote</SelectItem>
+                <SelectItem value="awaiting_parts">Awaiting Parts</SelectItem>
+                <SelectItem value="awaiting_quote">Awaiting Quote</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="delivered">Delivered</SelectItem>
-                <SelectItem value="write-off">Write Off</SelectItem>
+                <SelectItem value="write_off">Write Off</SelectItem>
               </SelectContent>
             </Select>
           </CardContent>

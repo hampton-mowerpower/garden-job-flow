@@ -88,6 +88,8 @@ export function JobsTableVirtualized({
     switch (status) {
       case 'pending': return 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20';
       case 'in-progress': return 'bg-blue-500/10 text-blue-600 border-blue-500/20';
+      case 'awaiting_parts': return 'bg-orange-500/10 text-orange-600 border-orange-500/20';
+      case 'awaiting_quote': return 'bg-cyan-500/10 text-cyan-600 border-cyan-500/20';
       case 'completed': return 'bg-green-500/10 text-green-600 border-green-500/20';
       case 'delivered': return 'bg-purple-500/10 text-purple-600 border-purple-500/20';
       case 'write_off': return 'bg-red-500/10 text-red-600 border-red-500/20';

@@ -85,11 +85,11 @@ interface JobDetailData {
 const statusConfig = {
   pending: { label: 'Pending', color: 'bg-yellow-500' },
   'in-progress': { label: 'In Progress', color: 'bg-blue-500' },
-  'waiting-parts': { label: 'Waiting for Parts', color: 'bg-orange-500' },
-  'waiting-quote': { label: 'Waiting for Quote', color: 'bg-purple-500' },
+  'awaiting_parts': { label: 'Awaiting Parts', color: 'bg-orange-500' },
+  'awaiting_quote': { label: 'Awaiting Quote', color: 'bg-purple-500' },
   completed: { label: 'Completed', color: 'bg-green-500' },
   delivered: { label: 'Delivered', color: 'bg-teal-500' },
-  'write-off': { label: 'Write Off', color: 'bg-red-500' },
+  'write_off': { label: 'Write Off', color: 'bg-red-500' },
 };
 
 export default function JobDetailComplete() {
@@ -423,11 +423,11 @@ export default function JobDetailComplete() {
               <SelectContent>
                 <SelectItem value="pending">Pending</SelectItem>
                 <SelectItem value="in-progress">In Progress</SelectItem>
-                <SelectItem value="waiting-parts">Waiting for Parts</SelectItem>
-                <SelectItem value="waiting-quote">Waiting for Quote</SelectItem>
+                <SelectItem value="awaiting_parts">Awaiting Parts</SelectItem>
+                <SelectItem value="awaiting_quote">Awaiting Quote</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="delivered">Delivered</SelectItem>
-                <SelectItem value="write-off">Write Off</SelectItem>
+                <SelectItem value="write_off">Write Off</SelectItem>
               </SelectContent>
             </Select>
           </div>

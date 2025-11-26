@@ -17,27 +17,27 @@ export async function getJobsListSimple(params?: {
   
   if (error) throw error;
   
-  // Transform to JobListRow format
+  // Transform to JobListRow format - RPC returns flat fields
   return (data || []).map((row: any) => ({
     id: row.id,
     job_number: row.job_number,
     status: row.status,
-    job_created_at: row.created_at,
-    job_updated_at: row.updated_at,
+    job_created_at: row.job_created_at,
+    job_updated_at: row.job_updated_at,
     subtotal: row.subtotal,
     grand_total: row.grand_total,
     balance_due: row.balance_due,
     customer_id: row.customer_id,
-    customer_name: row.customers_db?.name || null,
-    customer_phone: row.customers_db?.phone || null,
-    customer_email: row.customers_db?.email || null,
+    customer_name: row.customer_name || null,
+    customer_phone: row.customer_phone || null,
+    customer_email: row.customer_email || null,
     machine_category: row.machine_category,
     machine_brand: row.machine_brand,
     machine_model: row.machine_model,
     machine_serial: row.machine_serial,
     problem_description: row.problem_description,
-    latest_note_text: null,
-    latest_note_at: null,
+    latest_note_text: row.latest_note_text || null,
+    latest_note_at: row.latest_note_at || null,
   })) as JobListRow[];
 }
 

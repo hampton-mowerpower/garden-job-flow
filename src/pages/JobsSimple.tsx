@@ -25,21 +25,21 @@ const STATUS_OPTIONS = [
   { value: 'all', label: 'All Statuses' },
   { value: 'pending', label: 'Pending' },
   { value: 'in-progress', label: 'In Progress' },
-  { value: 'waiting-parts', label: 'Waiting Parts' },
-  { value: 'waiting-quote', label: 'Waiting Quote' },
+  { value: 'awaiting_parts', label: 'Awaiting Parts' },
+  { value: 'awaiting_quote', label: 'Awaiting Quote' },
   { value: 'completed', label: 'Completed' },
   { value: 'delivered', label: 'Delivered' },
-  { value: 'write-off', label: 'Write Off' },
+  { value: 'write_off', label: 'Write Off' },
 ];
 
 const STATUS_COLORS: Record<string, string> = {
   'pending': 'bg-yellow-100 text-yellow-800',
   'in-progress': 'bg-blue-100 text-blue-800',
-  'waiting-parts': 'bg-orange-100 text-orange-800',
-  'waiting-quote': 'bg-purple-100 text-purple-800',
+  'awaiting_parts': 'bg-orange-100 text-orange-800',
+  'awaiting_quote': 'bg-purple-100 text-purple-800',
   'completed': 'bg-green-100 text-green-800',
   'delivered': 'bg-gray-100 text-gray-800',
-  'write-off': 'bg-red-100 text-red-800',
+  'write_off': 'bg-red-100 text-red-800',
 };
 
 export default function JobsSimple() {
