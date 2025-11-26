@@ -51,10 +51,12 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [highlightedJobId, setHighlightedJobId] = useState<string | null>(null);
 
-  // Use React Query for jobs list via hook (already mapped)
+  // Use React Query for jobs list via hook (already mapped) - WITH SEARCH AND FILTER
   const { data: jobs = [], isLoading, error, refetch } = useJobsList({
     limit: PAGE_SIZE,
     offset: page * PAGE_SIZE,
+    search: debouncedSearch || null,
+    status: activeFilter === 'all' ? null : activeFilter,
   });
 
   // Show error toast when query fails
@@ -78,63 +80,8 @@ export default function JobSearch({ onSelectJob, onEditJob, restoredState }: Job
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Execute search when debounced value changes
-  useEffect(() => {
-    if (debouncedSearch.trim()) {
-      handleSearch(debouncedSearch);
-    } else {
-      setIsSearchMode(false);
-      refetch();
-    }
-  }, [debouncedSearch]);
-
-  // Fast search function (removed realtime, using direct query)
-  const handleSearch = useCallback(async (term: string) => {
-    if (!term.trim()) {
-      setIsSearchMode(false);
-      refetch();
-      return;
-    }
-
-    setIsSearchMode(true);
-    const startTime = performance.now();
-
-    try {
-      let result;
-
-      // Check if it's a phone number (digits only)
-      if (/^\d+$/.test(term)) {
-        result = await supabase.rpc('search_jobs_by_phone', {
-          p_phone: term,
-          p_limit: 50
-        });
-      } else if (term.toUpperCase().startsWith('JB')) {
-        // Job number search
-        result = await supabase.rpc('search_job_by_number', {
-          p_job_number: term.toUpperCase()
-        });
-      } else {
-        // Customer name search
-        result = await supabase.rpc('search_jobs_by_customer_name', {
-          p_name: term,
-          p_limit: 50
-        });
-      }
-
-      if (result.error) throw result.error;
-
-      // Note: Search results handled separately from main query
-      console.log('Search completed, results:', result.data?.length || 0);
-
-    } catch (err: any) {
-      console.error('Search error:', err);
-      toast({
-        variant: 'destructive',
-        title: 'Search failed',
-        description: err.message
-      });
-    }
-  }, [toast]);
+  // Search is now handled automatically by useJobsList hook with debounced search
+  // No need for separate search function - the RPC handles everything
 
   const resetSearch = () => {
     setSearchQuery('');
